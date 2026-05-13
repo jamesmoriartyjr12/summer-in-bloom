@@ -8,7 +8,7 @@ const config: Config = {
   theme: {
     extend: {
       screens: {
-        desktop: "900px",
+        desktop: "1100px",
       },
       colors: {
         chalk: {
