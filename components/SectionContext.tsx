@@ -4,7 +4,9 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -18,11 +20,20 @@ export type SectionId =
   | "current-portfolio"
   | "contact";
 
+type SectionEntry = { element: HTMLElement; theme: SectionTheme };
+
 type SectionState = {
   activeId: SectionId;
   theme: SectionTheme;
-  setActive: (id: SectionId, theme: SectionTheme) => void;
+  registerSection: (
+    id: SectionId,
+    el: HTMLElement | null,
+    theme: SectionTheme
+  ) => void;
 };
+
+// A section becomes active when its top edge crosses within 48px of the viewport top.
+const OFFSET = 48;
 
 const SectionContext = createContext<SectionState | null>(null);
 
@@ -32,15 +43,47 @@ export function SectionProvider({ children }: { children: React.ReactNode }) {
     theme: SectionTheme;
   }>({ id: "hero", theme: "dark" });
 
-  const setActive = useCallback((id: SectionId, theme: SectionTheme) => {
-    setActiveState((prev) =>
-      prev.id === id && prev.theme === theme ? prev : { id, theme }
-    );
+  const sectionsRef = useRef<Map<SectionId, SectionEntry>>(new Map());
+
+  const registerSection = useCallback(
+    (id: SectionId, el: HTMLElement | null, theme: SectionTheme) => {
+      if (el) {
+        sectionsRef.current.set(id, { element: el, theme });
+      } else {
+        sectionsRef.current.delete(id);
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    const onScroll = () => {
+      // Default to hero when no other section has reached the threshold.
+      let next: { id: SectionId; theme: SectionTheme } = {
+        id: "hero",
+        theme: "dark",
+      };
+
+      // Iterate in insertion order (top → bottom). The last section whose
+      // top edge is at or above the OFFSET line wins.
+      for (const [id, { element, theme }] of sectionsRef.current) {
+        if (id === "hero") continue;
+        if (element.getBoundingClientRect().top <= OFFSET) {
+          next = { id, theme };
+        }
+      }
+
+      setActiveState((prev) => (prev.id === next.id ? prev : next));
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll(); // set correct state on mount
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   const value = useMemo<SectionState>(
-    () => ({ activeId: active.id, theme: active.theme, setActive }),
-    [active.id, active.theme, setActive]
+    () => ({ activeId: active.id, theme: active.theme, registerSection }),
+    [active.id, active.theme, registerSection]
   );
 
   return (

@@ -21,12 +21,6 @@ export function Hero() {
         <source src="/summer-bloom-hero.webm" type="video/webm" />
       </video>
 
-      {/* Top nav */}
-      <div className="relative z-10 border-b border-chalk-25 flex items-center justify-between px-[48px] py-[24px] text-l1 uppercase">
-        <span>Bloom Ventures</span>
-        <span>July 2026</span>
-      </div>
-
       {/* Spacer pushes content to the bottom */}
       <div className="relative z-10 flex-1" />
 

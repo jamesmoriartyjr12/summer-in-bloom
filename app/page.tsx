@@ -1,5 +1,6 @@
 import { SectionProvider } from "@/components/SectionContext";
 import { SideNav } from "@/components/SideNav";
+import { TopNav } from "@/components/TopNav";
 import { LenisProvider } from "@/components/LenisProvider";
 import { Hero } from "@/components/sections/Hero";
 import { FundDetails } from "@/components/sections/FundDetails";
@@ -14,6 +15,7 @@ export default function Page() {
           <FundDetails />
           <FundThesis />
         </main>
+        <TopNav />
         <SideNav />
       </SectionProvider>
     </LenisProvider>

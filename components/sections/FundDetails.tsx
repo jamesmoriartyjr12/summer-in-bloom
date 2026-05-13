@@ -35,7 +35,7 @@ export function FundDetails() {
           {/* Row: image + metric list */}
           <div className="flex gap-[48px] items-start">
             {/* Motion-blur image, fixed aspect */}
-            <div className="relative w-[336px] h-[400px] shrink-0 overflow-hidden">
+            <div className="sticky top-[96px] w-[336px] h-[400px] shrink-0 overflow-hidden">
               <Image
                 src={DETAILS_IMAGE}
                 alt=""

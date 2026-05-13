@@ -32,7 +32,6 @@ export function SideNav() {
 
   const { scrollY } = useScroll();
 
-  // At scrollY=0 the nav is pushed below the viewport; by scrollY=(vh-TOP) it's at its resting spot.
   const y = useTransform(scrollY, [0, vh], [vh, 0], { clamp: true });
 
   const isDark = theme === "dark";
@@ -62,7 +61,7 @@ export function SideNav() {
                   aria-hidden
                   animate={{
                     backgroundColor: isActive ? activeColor : "transparent",
-                    borderColor: isActive ? activeColor : inactiveColor,
+                    borderColor: isActive ? activeColor : "transparent",
                   }}
                   transition={{ duration: 0.35, ease: "easeOut" }}
                   className="block w-[8px] h-[8px] rounded-full border"
