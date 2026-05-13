@@ -7,6 +7,9 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      screens: {
+        desktop: "900px",
+      },
       colors: {
         chalk: {
           DEFAULT: "#EBEBEB",

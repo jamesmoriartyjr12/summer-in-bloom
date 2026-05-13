@@ -4,6 +4,7 @@ import { useRef } from "react";
 import Image from "next/image";
 import { motion, useMotionValueEvent, useScroll, useTransform } from "framer-motion";
 import { Section } from "../Section";
+import { SectionContent } from "../SectionContent";
 import { useSection } from "../SectionContext";
 
 const THESIS_IMAGE = "/fund-thesis-BG.png";
@@ -53,8 +54,9 @@ export function FundThesis() {
       </motion.div>
 
       {/* Content — text color transitions from black to chalk with the background */}
-      <motion.div style={{ color: textColor }} className="relative z-10 flex justify-end pr-[48px] pl-[200px]">
-        <div className="flex flex-col gap-[48px] w-[600px]">
+      <motion.div style={{ color: textColor }} className="relative z-10">
+        <SectionContent>
+        <div className="flex flex-col gap-[48px] max-w-[600px]">
           <p className="text-l2 font-medium uppercase">Fund thesis</p>
           <h3 className="font-display text-h3 max-w-[500px] leading-none tracking-[-1.28px]">
             Backed by the track record and reputation of Bloom.
@@ -84,6 +86,7 @@ export function FundThesis() {
             </p>
           </div>
         </div>
+        </SectionContent>
       </motion.div>
     </Section>
   );
