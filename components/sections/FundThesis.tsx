@@ -1,41 +1,59 @@
 "use client";
 
+import { useRef } from "react";
 import Image from "next/image";
+import { motion, useMotionValueEvent, useScroll, useTransform } from "framer-motion";
 import { Section } from "../Section";
+import { useSection } from "../SectionContext";
 
-// Temporary asset from Figma — swap to local /public asset for production
-const THESIS_IMAGE =
-  "https://www.figma.com/api/mcp/asset/521a7fb1-19ac-44f8-b155-ad13ccbaffeb";
+const THESIS_IMAGE = "/fund-thesis-BG.png";
 
 export function FundThesis() {
+  const { updateTheme } = useSection();
+  const bgRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: bgRef,
+    offset: ["start start", "end start"],
+  });
+  const imageOpacity = useTransform(scrollYProgress, [0, 0.08], [0, 1]);
+  const textColor = useTransform(scrollYProgress, [0, 0.08], ["#000000", "#EBEBEB"]);
+
+  useMotionValueEvent(scrollYProgress, "change", (v) => {
+    updateTheme("fund-thesis", v >= 0.04 ? "dark" : "light");
+  });
+
   return (
     <Section
       id="fund-thesis"
-      theme="dark"
-      className="relative text-chalk py-[96px] overflow-hidden"
+      theme="light"
+      className="relative bg-chalk py-[192px] overflow-hidden"
     >
-      {/* Background image */}
-      <Image
-        src={THESIS_IMAGE}
-        alt=""
-        fill
-        sizes="100vw"
-        className="object-cover -z-10"
-        unoptimized
-      />
+      {/* Background fades in as section top reaches the viewport top */}
+      <motion.div
+        ref={bgRef}
+        style={{ opacity: imageOpacity }}
+        className="absolute inset-0"
+      >
+        <Image
+          src={THESIS_IMAGE}
+          alt=""
+          fill
+          sizes="100vw"
+          className="object-cover"
+          unoptimized
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0 backdrop-blur-[15px]"
+          style={{
+            background:
+              "linear-gradient(to bottom, rgba(0,0,0,0.2) 26.5%, rgba(0,0,0,0.75) 108.3%)",
+          }}
+        />
+      </motion.div>
 
-      {/* Blurred gradient overlay — this hides any low-res artifacts */}
-      <div
-        aria-hidden
-        className="absolute inset-0 -z-10 backdrop-blur-[15px]"
-        style={{
-          background:
-            "linear-gradient(to bottom, rgba(0,0,0,0.2) 26.5%, rgba(0,0,0,0.75) 108.3%)",
-        }}
-      />
-
-      {/* Content — right-aligned column, with 200px reserved on left for side nav */}
-      <div className="flex justify-end pr-[48px] pl-[200px]">
+      {/* Content — text color transitions from black to chalk with the background */}
+      <motion.div style={{ color: textColor }} className="relative z-10 flex justify-end pr-[48px] pl-[200px]">
         <div className="flex flex-col gap-[48px] w-[600px]">
           <p className="text-l2 font-medium uppercase">Fund thesis</p>
           <h3 className="font-display text-h3 max-w-[500px] leading-none tracking-[-1.28px]">
@@ -66,7 +84,7 @@ export function FundThesis() {
             </p>
           </div>
         </div>
-      </div>
+      </motion.div>
     </Section>
   );
 }

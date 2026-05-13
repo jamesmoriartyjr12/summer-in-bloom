@@ -30,6 +30,7 @@ type SectionState = {
     el: HTMLElement | null,
     theme: SectionTheme
   ) => void;
+  updateTheme: (id: SectionId, theme: SectionTheme) => void;
 };
 
 // A section becomes active when its top edge crosses within 48px of the viewport top.
@@ -55,6 +56,12 @@ export function SectionProvider({ children }: { children: React.ReactNode }) {
     },
     []
   );
+
+  const updateTheme = useCallback((id: SectionId, theme: SectionTheme) => {
+    const entry = sectionsRef.current.get(id);
+    if (entry) sectionsRef.current.set(id, { ...entry, theme });
+    setActiveState((prev) => (prev.id === id ? { id, theme } : prev));
+  }, []);
 
   useEffect(() => {
     const onScroll = () => {
@@ -82,8 +89,8 @@ export function SectionProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value = useMemo<SectionState>(
-    () => ({ activeId: active.id, theme: active.theme, registerSection }),
-    [active.id, active.theme, registerSection]
+    () => ({ activeId: active.id, theme: active.theme, registerSection, updateTheme }),
+    [active.id, active.theme, registerSection, updateTheme]
   );
 
   return (

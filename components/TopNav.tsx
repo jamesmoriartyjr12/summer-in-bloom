@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { useSection } from "./SectionContext";
 
 export function TopNav() {
-  const { activeId } = useSection();
+  const { activeId, theme } = useSection();
   const [visible, setVisible] = useState(true);
   const lastScrollY = useRef(0);
 
@@ -22,7 +22,7 @@ export function TopNav() {
   const variantClass =
     activeId === "hero"
       ? "border-b border-chalk-25 text-chalk"
-      : activeId === "fund-thesis"
+      : theme === "dark"
       ? "text-chalk backdrop-blur-[5px] bg-[rgba(235,235,235,0.05)]"
       : "text-black backdrop-blur-[5px] bg-[rgba(235,235,235,0.05)]";
 
