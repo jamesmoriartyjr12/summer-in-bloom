@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-chalk: #EBEBEB;
+  --color-chalk-25: rgba(235, 235, 235, 0.25);
+  --color-black: #000000;
+  --color-taupe: #777169;
+  --color-beige: #C4C3B6;
+}
+
+html,
+body {
+  background: var(--color-chalk);
+  color: var(--color-black);
+  font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Lenis smooth scroll — recommended setup */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
+/* Prevent horizontal scroll from any sub-pixel overflow */
+body {
+  overflow-x: hidden;
+}
