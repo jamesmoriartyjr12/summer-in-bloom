@@ -56,9 +56,9 @@ export function FundThesis() {
       {/* Content — text color transitions from black to chalk with the background */}
       <motion.div style={{ color: textColor }} className="relative z-10">
         <SectionContent>
-        <div className="flex flex-col gap-[48px] max-w-[600px]">
+        <div className="flex flex-col gap-[48px]">
           <p className="text-l2 font-medium uppercase">Fund thesis</p>
-          <h3 className="font-display text-h3 max-w-[500px] leading-none tracking-[-1.28px]">
+          <h3 className="font-display text-h3 leading-none tracking-[-1.28px]">
             Backed by the track record and reputation of Bloom.
           </h3>
           <div className="flex flex-col gap-[24px] text-p1">
