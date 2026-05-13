@@ -1,25 +1,63 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import Image from "next/image";
-import { motion, useMotionValueEvent, useScroll, useTransform } from "framer-motion";
+import { motion, useMotionValue, useMotionValueEvent, useScroll, useTransform } from "framer-motion";
 import { Section } from "../Section";
 import { SectionContent } from "../SectionContent";
 import { useSection } from "../SectionContext";
 
 const THESIS_IMAGE = "/fund-thesis-BG.png";
+const EXIT_FADE_PX = 96;
 
 export function FundThesis() {
   const { updateTheme } = useSection();
   const bgRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
+
+  // Entry: fade in as section top reaches the viewport top
+  const { scrollYProgress: enterProgress } = useScroll({
     target: bgRef,
     offset: ["start start", "end start"],
   });
-  const imageOpacity = useTransform(scrollYProgress, [0, 0.08], [0, 1]);
-  const textColor = useTransform(scrollYProgress, [0, 0.08], ["#000000", "#EBEBEB"]);
+  const enterOpacity = useTransform(enterProgress, [0, 0.08, 1], [0, 1, 1]);
 
-  useMotionValueEvent(scrollYProgress, "change", (v) => {
+  // Exit: fade out when Pipeline is 48px from the bottom of the side nav
+  const { scrollY } = useScroll();
+  const exitOpacity = useMotionValue(1);
+  const pipelineDocTop = useRef(Infinity);
+  const fadeStartViewportY = useRef(400);
+
+  useEffect(() => {
+    const measure = () => {
+      const pipeline = document.getElementById("pipeline");
+      if (pipeline) {
+        pipelineDocTop.current =
+          pipeline.getBoundingClientRect().top + window.scrollY;
+      }
+      const sideNav = document.querySelector("nav");
+      if (sideNav) {
+        // side nav is fixed at top-[96px]; offsetHeight gives its content height
+        fadeStartViewportY.current = 96 + sideNav.offsetHeight + 48;
+      }
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
+
+  useMotionValueEvent(scrollY, "change", (y) => {
+    const pipelineViewportTop = pipelineDocTop.current - y;
+    const t = (fadeStartViewportY.current - pipelineViewportTop) / EXIT_FADE_PX;
+    exitOpacity.set(1 - Math.max(0, Math.min(1, t)));
+  });
+
+  const imageOpacity = useTransform(
+    [enterOpacity, exitOpacity],
+    ([enter, exit]: number[]) => Math.min(enter as number, exit as number)
+  );
+  const textColor = useTransform(imageOpacity, [0, 1], ["#000000", "#EBEBEB"]);
+
+  useMotionValueEvent(imageOpacity, "change", (v) => {
     updateTheme("fund-thesis", v >= 0.04 ? "dark" : "light");
   });
 
@@ -29,7 +67,6 @@ export function FundThesis() {
       theme="light"
       className="relative bg-chalk py-[192px] overflow-hidden"
     >
-      {/* Background fades in as section top reaches the viewport top */}
       <motion.div
         ref={bgRef}
         style={{ opacity: imageOpacity }}
@@ -53,7 +90,6 @@ export function FundThesis() {
         />
       </motion.div>
 
-      {/* Content — text color transitions from black to chalk with the background */}
       <motion.div style={{ color: textColor }} className="relative z-10">
         <SectionContent>
         <div className="flex flex-col gap-[48px]">

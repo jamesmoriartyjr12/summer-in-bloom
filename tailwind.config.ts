@@ -36,6 +36,7 @@ const config: Config = {
         h2: ["80px", { lineHeight: "1", letterSpacing: "-1.6px" }],
         h3: ["64px", { lineHeight: "1", letterSpacing: "-1.28px" }],
         h4: ["32px", { lineHeight: "1", letterSpacing: "-0.64px" }],
+        h5: ["24px", { lineHeight: "1", letterSpacing: "-0.48px" }],
         l1: ["20px", { lineHeight: "1.2" }],
         l2: ["14px", { lineHeight: "1.35" }],
         p1: ["16px", { lineHeight: "1.5" }],

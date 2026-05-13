@@ -5,6 +5,7 @@ import { LenisProvider } from "@/components/LenisProvider";
 import { Hero } from "@/components/sections/Hero";
 import { FundDetails } from "@/components/sections/FundDetails";
 import { FundThesis } from "@/components/sections/FundThesis";
+import { Pipeline } from "@/components/sections/Pipeline";
 
 export default function Page() {
   return (
@@ -14,6 +15,7 @@ export default function Page() {
           <Hero />
           <FundDetails />
           <FundThesis />
+          <Pipeline />
         </main>
         <TopNav />
         <SideNav />
