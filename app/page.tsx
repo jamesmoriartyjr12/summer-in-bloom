@@ -6,6 +6,7 @@ import { Hero } from "@/components/sections/Hero";
 import { FundDetails } from "@/components/sections/FundDetails";
 import { FundThesis } from "@/components/sections/FundThesis";
 import { Pipeline } from "@/components/sections/Pipeline";
+import { CurrentPortfolio } from "@/components/sections/CurrentPortfolio";
 
 export default function Page() {
   return (
@@ -16,6 +17,7 @@ export default function Page() {
           <FundDetails />
           <FundThesis />
           <Pipeline />
+          <CurrentPortfolio />
         </main>
         <TopNav />
         <SideNav />

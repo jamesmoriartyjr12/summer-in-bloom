@@ -27,7 +27,7 @@ export function Pipeline() {
     <Section
       id="pipeline"
       theme="light"
-      className="relative z-10 bg-chalk text-black py-[96px]"
+      className="relative z-10 bg-chalk text-black pt-[96px] pb-[200px]"
     >
       <SectionContent
         flushRight
