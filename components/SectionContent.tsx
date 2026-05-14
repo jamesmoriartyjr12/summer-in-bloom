@@ -27,7 +27,7 @@ export function SectionContent({
 }: SectionContentProps) {
   return (
     <div
-      className={`flex gap-[48px] items-start pl-[200px] desktop:pl-[248px] xl:pl-[320px] ${flushRight ? "" : "pr-[48px]"} ${className ?? ""}`}
+      className={`flex gap-[48px] items-start pl-[76px] mobile:pl-[200px] desktop:pl-[248px] xl:pl-[320px] ${flushRight ? "" : "pr-[48px]"} ${className ?? ""}`}
     >
       {/* Left column — 336px on desktop, invisible spacer when empty */}
       <div className="w-[336px] shrink-0 self-stretch max-[1099px]:hidden" aria-hidden={!left}>

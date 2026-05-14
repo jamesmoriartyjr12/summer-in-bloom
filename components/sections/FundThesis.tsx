@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import {
   motion,
   useMotionValue,
@@ -13,7 +12,6 @@ import { Section } from "../Section";
 import { SectionContent } from "../SectionContent";
 import { useSection } from "../SectionContext";
 
-const THESIS_IMAGE = "/fund-thesis-BG.png";
 const ENTER_FADE_PX = 96;
 const EXIT_FADE_PX = 96;
 // textY that places the "Fund thesis" label at 400px from viewport top.
@@ -29,7 +27,7 @@ const PARAGRAPHS = [
 ];
 
 export function FundThesis() {
-  const { updateTheme } = useSection();
+  const { updateTheme, fundThesisOpacity } = useSection();
 
   const { scrollY } = useScroll();
   const enterOpacity = useMotionValue(0);
@@ -102,6 +100,7 @@ export function FundThesis() {
 
   useMotionValueEvent(imageOpacity, "change", (v) => {
     updateTheme("fund-thesis", v >= 0.04 ? "dark" : "light");
+    fundThesisOpacity.set(v);
   });
 
   return (
@@ -109,31 +108,8 @@ export function FundThesis() {
       <Section
         id="fund-thesis"
         theme="light"
-        className="sticky top-0 h-screen overflow-hidden relative bg-chalk z-20"
+        className="sticky top-0 h-screen overflow-hidden relative z-20"
       >
-        {/* Background — fades in before text appears */}
-        <motion.div
-          style={{ opacity: imageOpacity }}
-          className="absolute inset-0 pointer-events-none"
-        >
-          <Image
-            src={THESIS_IMAGE}
-            alt=""
-            fill
-            sizes="100vw"
-            className="object-cover"
-            unoptimized
-          />
-          <div
-            aria-hidden
-            className="absolute inset-0 backdrop-blur-[15px]"
-            style={{
-              background:
-                "linear-gradient(to bottom, rgba(0,0,0,0.2) 26.5%, rgba(0,0,0,0.75) 108.3%)",
-            }}
-          />
-        </motion.div>
-
         {/* Text — slides in from below viewport once BG is fully visible */}
         <motion.div
           style={{ y: textY, color: textColor, opacity: imageOpacity }}

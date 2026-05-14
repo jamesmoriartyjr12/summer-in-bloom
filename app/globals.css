@@ -45,3 +45,14 @@ html.lenis body {
 body {
   overflow-x: hidden;
 }
+
+/* Mobile nav — push page content left when panel opens */
+@media (max-width: 599px) {
+  main {
+    transition: transform 0.35s cubic-bezier(0.25, 0.1, 0.25, 1);
+  }
+
+  html.mobile-nav-open main {
+    transform: translateX(200px);
+  }
+}

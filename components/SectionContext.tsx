@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { MotionValue, useMotionValue } from "framer-motion";
 
 export type SectionTheme = "light" | "dark";
 
@@ -31,6 +32,7 @@ type SectionState = {
     theme: SectionTheme
   ) => void;
   updateTheme: (id: SectionId, theme: SectionTheme) => void;
+  fundThesisOpacity: MotionValue<number>;
 };
 
 // A section becomes active when its top edge crosses within 48px of the viewport top.
@@ -48,6 +50,7 @@ export function SectionProvider({ children }: { children: React.ReactNode }) {
     id: SectionId;
     theme: SectionTheme;
   }>({ id: "hero", theme: "dark" });
+  const fundThesisOpacity = useMotionValue(0);
 
   const sectionsRef = useRef<Map<SectionId, SectionEntry>>(new Map());
 
@@ -95,8 +98,8 @@ export function SectionProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value = useMemo<SectionState>(
-    () => ({ activeId: active.id, theme: active.theme, registerSection, updateTheme }),
-    [active.id, active.theme, registerSection, updateTheme]
+    () => ({ activeId: active.id, theme: active.theme, registerSection, updateTheme, fundThesisOpacity }),
+    [active.id, active.theme, registerSection, updateTheme, fundThesisOpacity]
   );
 
   return (

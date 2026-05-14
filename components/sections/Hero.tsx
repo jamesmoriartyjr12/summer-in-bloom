@@ -31,7 +31,7 @@ export function Hero() {
           studio, where we work side by side with early-stage companies and
           guide them through hypergrowth.
         </p>
-        <h1 className="font-display text-h1 leading-[0.95] tracking-[-4px]">
+        <h1 className="font-display text-[120px] desktop:text-h1 leading-[0.95] tracking-[-4px]">
           Summer in Bloom
         </h1>
       </div>

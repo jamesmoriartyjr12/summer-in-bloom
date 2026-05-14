@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Section } from "../Section";
 import { SectionContent } from "../SectionContent";
 
@@ -9,6 +10,7 @@ type PipelineCompany = {
   targetAllocation: string;
   targetValuation: string;
   description: string;
+  image?: string;
 };
 
 const PIPELINE: PipelineCompany[] = [
@@ -41,7 +43,15 @@ export function Pipeline() {
           <p className="text-l2 font-medium uppercase">Pipeline</p>
           {PIPELINE.map((company) => (
             <div key={company.name}>
-              <div className="flex items-start justify-between pt-[48px] pb-[24px] pr-[48px]">
+              <div className="desktop:hidden aspect-[4/3] w-full overflow-hidden bg-beige relative desktop:mt-0 mt-[48px] mb-[48px]">
+                {company.image && (
+                  <Image src={company.image} alt="" fill className="object-cover" unoptimized />
+                )}
+                {!company.image && (
+                  <div className="absolute bottom-[24px] left-[24px] bg-chalk rounded-[8px] w-[48px] h-[48px]" />
+                )}
+              </div>
+              <div className="flex items-start justify-between desktop:pt-[48px] pt-0 pb-[24px] pr-[48px]">
                 <p className="font-display text-h4 leading-none tracking-[-0.64px]">
                   {company.name}
                 </p>
