@@ -21,7 +21,7 @@ export function FundDetails() {
     <Section
       id="fund-details"
       theme="light"
-      className="relative z-10 bg-chalk text-black py-[96px]"
+      className="relative z-10 bg-chalk text-black pt-[400px] pb-[96px]"
     >
       <div className="flex flex-col gap-[48px] desktop:gap-[96px]">
         {/* Title — starts at image edge, spans both columns */}
