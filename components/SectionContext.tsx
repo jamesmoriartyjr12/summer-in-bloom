@@ -36,6 +36,11 @@ type SectionState = {
 // A section becomes active when its top edge crosses within 48px of the viewport top.
 const OFFSET = 48;
 
+// Per-section overrides: "bottom" activates when the section first enters the viewport from below.
+const BOTTOM_ENTRY: Partial<Record<SectionId, true>> = {
+  pipeline: true,
+};
+
 const SectionContext = createContext<SectionState | null>(null);
 
 export function SectionProvider({ children }: { children: React.ReactNode }) {
@@ -75,7 +80,8 @@ export function SectionProvider({ children }: { children: React.ReactNode }) {
       // top edge is at or above the OFFSET line wins.
       for (const [id, { element, theme }] of sectionsRef.current) {
         if (id === "hero") continue;
-        if (element.getBoundingClientRect().top <= OFFSET) {
+        const threshold = BOTTOM_ENTRY[id] ? window.innerHeight : OFFSET;
+        if (element.getBoundingClientRect().top <= threshold) {
           next = { id, theme };
         }
       }
