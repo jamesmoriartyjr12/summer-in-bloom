@@ -46,13 +46,13 @@ body {
   overflow-x: hidden;
 }
 
-/* Mobile nav — push page content left when panel opens */
+/* Mobile nav — push page content left when panel opens (transform on inner wrapper, not main). */
 @media (max-width: 599px) {
-  main {
+  main .mobile-nav-shift {
     transition: transform 0.35s cubic-bezier(0.25, 0.1, 0.25, 1);
   }
 
-  html.mobile-nav-open main {
+  html.mobile-nav-open main .mobile-nav-shift {
     transform: translateX(200px);
   }
 }

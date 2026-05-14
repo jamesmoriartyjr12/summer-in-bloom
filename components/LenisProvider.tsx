@@ -11,6 +11,13 @@ export function LenisProvider({ children }: { children: React.ReactNode }) {
       smoothWheel: true,
     });
 
+    // Lenis often drives scroll without firing native `window` scroll events every
+    // frame; listeners on `lenis-scroll` can stay in sync (e.g. FundThesis).
+    const onLenisScroll = (l: { scroll: number }) => {
+      window.dispatchEvent(new CustomEvent("lenis-scroll", { detail: { scroll: l.scroll } }));
+    };
+    lenis.on("scroll", onLenisScroll);
+
     let rafId: number;
     function raf(time: number) {
       lenis.raf(time);
@@ -20,6 +27,7 @@ export function LenisProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       cancelAnimationFrame(rafId);
+      lenis.off("scroll", onLenisScroll);
       lenis.destroy();
     };
   }, []);

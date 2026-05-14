@@ -7,7 +7,7 @@ export function Hero() {
     <Section
       id="hero"
       theme="dark"
-      className="sticky top-0 flex flex-col text-chalk overflow-hidden h-screen desktop:min-h-[716px]"
+      className="sticky top-0 z-0 flex flex-col text-chalk overflow-hidden h-screen desktop:min-h-[716px]"
     >
       {/* Video background — replace src with your provided video file */}
       <video

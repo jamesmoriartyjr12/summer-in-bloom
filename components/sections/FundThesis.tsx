@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import {
   motion,
   useMotionValue,
   useMotionValueEvent,
-  useScroll,
   useTransform,
 } from "framer-motion";
 import { Section } from "../Section";
@@ -14,10 +14,9 @@ import { useSection } from "../SectionContext";
 
 const ENTER_FADE_PX = 96;
 const EXIT_FADE_PX = 96;
-// textY that places the "Fund thesis" label at 400px from viewport top.
-// Text div is absolute top-0 with pt-[96px], so label natural pos = 96px.
-// To sit at 400px: textY = 400 - 96 = 304.
 const REST_Y = 304;
+const TRACK_ID = "fund-thesis-track";
+const THESIS_IMAGE = "/fund-thesis-BG.png";
 
 const PARAGRAPHS = [
   "Our integrated performance driven Product Studio with a track record of building early stage companies into category leaders.",
@@ -26,71 +25,21 @@ const PARAGRAPHS = [
   "Bloom has a strategic advantage with allocation, timing, and oftentimes terms.",
 ];
 
+function readScrollY() {
+  return window.scrollY ?? document.documentElement.scrollTop ?? 0;
+}
+
 export function FundThesis() {
   const { updateTheme, fundThesisOpacity } = useSection();
 
-  const { scrollY } = useScroll();
   const enterOpacity = useMotionValue(0);
   const exitOpacity = useMotionValue(1);
   const textY = useMotionValue(0);
   const sectionDocTop = useRef(0);
   const maxScroll = useRef(0);
-  // Slide distance matches travel distance for a 1:1 scroll-to-movement feel.
   const slidePx = useRef(300);
-  const lastParaRef = useRef<HTMLElement | null>(null);
+  const lastParaRef = useRef<HTMLParagraphElement | null>(null);
   const [wrapperHeight, setWrapperHeight] = useState(0);
-
-  useEffect(() => {
-    const measure = () => {
-      const section = document.getElementById("fund-thesis");
-      const lastPara = lastParaRef.current;
-      if (!section || !lastPara) return;
-
-      const sectionRect = section.getBoundingClientRect();
-      const lastParaRect = lastPara.getBoundingClientRect();
-      const vh = window.innerHeight;
-
-      sectionDocTop.current = sectionRect.top + window.scrollY;
-
-      // 1:1 slide: text travels from viewport bottom to REST_Y over the same pixel count.
-      slidePx.current = Math.max(200, vh - REST_Y);
-
-      // Last para's top relative to section top — layout-stable at any scroll position.
-      const lastParaTopFromSection = lastParaRect.top - sectionRect.top;
-      // Phase-3 scroll needed to bring last para's top to 20% from viewport top.
-      maxScroll.current = Math.max(0, lastParaTopFromSection + REST_Y - 0.2 * vh);
-
-      setWrapperHeight(vh + ENTER_FADE_PX + slidePx.current + maxScroll.current + EXIT_FADE_PX);
-    };
-    measure();
-    window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
-  }, []);
-
-  useMotionValueEvent(scrollY, "change", (y) => {
-    const scrolled = y - sectionDocTop.current;
-    const SLIDE = slidePx.current;
-
-    // Phase 1 — BG fades in, text waits below viewport.
-    enterOpacity.set(Math.max(0, Math.min(1, scrolled / ENTER_FADE_PX)));
-
-    if (scrolled <= ENTER_FADE_PX) {
-      textY.set(window.innerHeight);
-    } else if (scrolled <= ENTER_FADE_PX + SLIDE) {
-      // Phase 2 — Text slides up from viewport bottom to REST_Y.
-      const t = (scrolled - ENTER_FADE_PX) / SLIDE;
-      textY.set(window.innerHeight + (REST_Y - window.innerHeight) * t);
-    } else {
-      // Phase 3 — Text scrolls upward from REST_Y.
-      textY.set(REST_Y - (scrolled - ENTER_FADE_PX - SLIDE));
-    }
-
-    // Exit fade — begins when last para reaches the trigger in Phase 3.
-    const scrollAfterSlide = Math.max(0, scrolled - ENTER_FADE_PX - SLIDE);
-    exitOpacity.set(
-      1 - Math.max(0, Math.min(1, (scrollAfterSlide - maxScroll.current) / EXIT_FADE_PX))
-    );
-  });
 
   const imageOpacity = useTransform(
     [enterOpacity, exitOpacity],
@@ -103,17 +52,113 @@ export function FundThesis() {
     fundThesisOpacity.set(v);
   });
 
+  useEffect(() => {
+    const measure = () => {
+      const track = document.getElementById(TRACK_ID);
+      const section = document.getElementById("fund-thesis");
+      if (!track || !section) return;
+
+      const trackRect = track.getBoundingClientRect();
+      const sectionRect = section.getBoundingClientRect();
+      const vh = window.innerHeight;
+      sectionDocTop.current = trackRect.top + readScrollY();
+      slidePx.current = Math.max(200, vh - REST_Y);
+
+      const lastPara = lastParaRef.current;
+      if (lastPara) {
+        const lastParaRect = lastPara.getBoundingClientRect();
+        const lastParaTopFromSection = lastParaRect.top - sectionRect.top;
+        maxScroll.current = Math.max(0, lastParaTopFromSection + REST_Y - 0.2 * vh);
+      } else {
+        maxScroll.current = Math.max(0, PARAGRAPHS.length * 160 + vh * 0.35);
+      }
+
+      setWrapperHeight(vh + ENTER_FADE_PX + slidePx.current + maxScroll.current + EXIT_FADE_PX);
+    };
+
+    const applyScroll = (scrollYOverride?: number) => {
+      const y = typeof scrollYOverride === "number" ? scrollYOverride : readScrollY();
+      const scrolled = y - sectionDocTop.current;
+      const SLIDE = slidePx.current;
+
+      enterOpacity.set(Math.max(0, Math.min(1, scrolled / ENTER_FADE_PX)));
+
+      if (scrolled <= ENTER_FADE_PX) {
+        textY.set(window.innerHeight);
+      } else if (scrolled <= ENTER_FADE_PX + SLIDE) {
+        const t = (scrolled - ENTER_FADE_PX) / SLIDE;
+        textY.set(window.innerHeight + (REST_Y - window.innerHeight) * t);
+      } else {
+        textY.set(REST_Y - (scrolled - ENTER_FADE_PX - SLIDE));
+      }
+
+      const scrollAfterSlide = Math.max(0, scrolled - ENTER_FADE_PX - SLIDE);
+      exitOpacity.set(
+        1 - Math.max(0, Math.min(1, (scrollAfterSlide - maxScroll.current) / EXIT_FADE_PX))
+      );
+    };
+
+    const onScroll = () => applyScroll();
+    const onLenisScroll = (e: Event) => {
+      const d = (e as CustomEvent<{ scroll?: number }>).detail;
+      applyScroll(typeof d?.scroll === "number" ? d.scroll : undefined);
+    };
+
+    const onResize = () => {
+      measure();
+      applyScroll();
+    };
+
+    measure();
+    applyScroll();
+    queueMicrotask(() => {
+      measure();
+      applyScroll();
+    });
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("lenis-scroll", onLenisScroll, { passive: true });
+    window.addEventListener("resize", onResize, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("lenis-scroll", onLenisScroll);
+      window.removeEventListener("resize", onResize);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
-    <div style={{ height: wrapperHeight || "200vh" }}>
+    <div id={TRACK_ID} className="bg-chalk" style={{ height: wrapperHeight || "200vh" }}>
       <Section
         id="fund-thesis"
         theme="light"
-        className="sticky top-0 h-screen overflow-hidden relative z-20"
+        className="sticky top-0 h-screen overflow-hidden relative z-20 isolate"
       >
-        {/* Text — slides in from below viewport once BG is fully visible */}
+        <div className="absolute inset-0 z-0 bg-chalk pointer-events-none" aria-hidden />
         <motion.div
-          style={{ y: textY, color: textColor, opacity: imageOpacity }}
-          className="absolute top-0 left-0 right-0 pt-[96px] z-10"
+          style={{ opacity: imageOpacity }}
+          className="absolute inset-0 z-[1] pointer-events-none"
+          aria-hidden
+        >
+          <Image
+            src={THESIS_IMAGE}
+            alt=""
+            fill
+            sizes="100vw"
+            className="object-cover"
+            unoptimized
+          />
+          <div
+            className="absolute inset-0 backdrop-blur-[15px]"
+            style={{
+              background:
+                "linear-gradient(to bottom, rgba(0,0,0,0.2) 26.5%, rgba(0,0,0,0.75) 108.3%)",
+            }}
+          />
+        </motion.div>
+        <motion.div
+          style={{ y: textY, color: textColor }}
+          className="absolute top-0 left-0 right-0 z-10 pt-[96px]"
         >
           <SectionContent>
             <div className="flex flex-col gap-[48px]">
@@ -123,16 +168,9 @@ export function FundThesis() {
               </h3>
               <div className="flex flex-col gap-[24px] text-p1">
                 {PARAGRAPHS.map((text, i) => (
-                  <motion.p
-                    key={i}
-                    ref={i === PARAGRAPHS.length - 1 ? lastParaRef : undefined}
-                    initial={{ opacity: 0, y: 24 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "0px 0px -20% 0px" }}
-                    transition={{ duration: 0.55, delay: i * 0.07, ease: [0.25, 0.1, 0.25, 1] }}
-                  >
+                  <p key={i} ref={i === PARAGRAPHS.length - 1 ? lastParaRef : undefined}>
                     {text}
-                  </motion.p>
+                  </p>
                 ))}
               </div>
             </div>
