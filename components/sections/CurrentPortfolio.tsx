@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { Section } from "../Section";
 import { SectionContent } from "../SectionContent";
 
@@ -113,25 +114,51 @@ const PORTFOLIO: PortfolioCompany[] = [
   },
 ];
 
-function CompanyImagePlaceholder() {
+// Bottom edge of the sticky image = sticky top (96) + image height (400)
+const TRIGGER_Y = 496;
+
+function StickyImage({ activeIndex }: { activeIndex: number }) {
   return (
     <div className="sticky top-[96px] h-[400px] overflow-hidden bg-beige relative">
       <div className="absolute bottom-[24px] left-[24px] bg-chalk rounded-[8px] w-[48px] h-[48px]" />
+      <p className="absolute bottom-[24px] right-[24px] text-p2 text-black/40">
+        {PORTFOLIO[activeIndex].name}
+      </p>
     </div>
   );
 }
 
 export function CurrentPortfolio() {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const companyRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  useEffect(() => {
+    const onScroll = () => {
+      let next = 0;
+      companyRefs.current.forEach((el, i) => {
+        if (el && el.getBoundingClientRect().top <= TRIGGER_Y) next = i;
+      });
+      setActiveIndex(next);
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
     <Section
       id="current-portfolio"
       theme="light"
       className="relative z-10 bg-chalk text-black pt-[200px] pb-[96px]"
     >
-      <div className="flex flex-col gap-[400px]">
-        {PORTFOLIO.map((company, i) => (
-          <SectionContent key={company.name} flushRight left={<CompanyImagePlaceholder />}>
-            <div className="flex flex-col">
+      <SectionContent flushRight left={<StickyImage activeIndex={activeIndex} />}>
+        <div className="flex flex-col gap-[400px]">
+          {PORTFOLIO.map((company, i) => (
+            <div
+              key={company.name}
+              ref={(el) => { companyRefs.current[i] = el; }}
+              className="flex flex-col"
+            >
               {i === 0 && (
                 <p className="text-l2 font-medium uppercase">Current Portfolio</p>
               )}
@@ -163,9 +190,9 @@ export function CurrentPortfolio() {
               ))}
               <p className="text-p1 pt-[24px] pr-[48px]">{company.description}</p>
             </div>
-          </SectionContent>
-        ))}
-      </div>
+          ))}
+        </div>
+      </SectionContent>
     </Section>
   );
 }
