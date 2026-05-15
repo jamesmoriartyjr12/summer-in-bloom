@@ -21,11 +21,11 @@ export function FundDetails() {
     <Section
       id="fund-details"
       theme="light"
-      className="relative z-10 bg-chalk text-black pt-[400px] pb-[96px]"
+      className="relative z-10 bg-chalk text-black pt-[96px] mobile:pt-[400px] pb-[96px]"
     >
       <div className="flex flex-col gap-[48px] desktop:gap-[96px]">
         {/* Title — starts at image edge, spans both columns */}
-        <div className="pl-[76px] mobile:pl-[200px] desktop:pl-[248px] xl:pl-[320px] pr-[48px]">
+        <div className="pl-[76px] mobile:pl-[200px] desktop:pl-[248px] xl:pl-[320px] pr-[24px] mobile:pr-[48px]">
           <h2 className="font-display text-h2 leading-none tracking-[-1.6px] max-w-[850px]">
             A venture-style partner led by proven operators.
           </h2>
@@ -49,6 +49,18 @@ export function FundDetails() {
           }
         >
           <div className="flex flex-col">
+            {/* Mobile image — hidden on desktop where sticky left column takes over */}
+            <div className="desktop:hidden aspect-[4/3] w-full overflow-hidden relative mb-[48px]">
+              <Image
+                src={DETAILS_IMAGE}
+                alt=""
+                fill
+                className="object-cover"
+                unoptimized
+              />
+              <div className="absolute inset-0 bg-black/10" />
+            </div>
+
             <p className="text-l2 font-medium uppercase">Fund details</p>
             {FUND_DETAILS.map((row) => (
               <div

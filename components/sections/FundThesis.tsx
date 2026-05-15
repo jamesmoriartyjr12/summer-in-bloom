@@ -160,7 +160,7 @@ export function FundThesis() {
           style={{ y: textY, color: textColor }}
           className="absolute top-0 left-0 right-0 z-10 pt-[96px]"
         >
-          <SectionContent>
+          <SectionContent flushRight className="pr-[24px] mobile:pr-[48px]">
             <div className="flex flex-col gap-[48px]">
               <p className="text-l2 font-medium uppercase">Fund thesis</p>
               <h3 className="font-display text-h3 leading-none tracking-[-1.28px]">

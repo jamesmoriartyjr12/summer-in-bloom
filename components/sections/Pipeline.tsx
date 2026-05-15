@@ -51,11 +51,11 @@ export function Pipeline() {
                   <div className="absolute bottom-[24px] left-[24px] bg-chalk rounded-[8px] w-[48px] h-[48px]" />
                 )}
               </div>
-              <div className="flex items-start justify-between desktop:pt-[48px] pt-0 pb-[24px] pr-[48px]">
+              <div className="flex flex-col gap-[24px] mobile:flex-row mobile:items-start mobile:justify-between desktop:pt-[48px] pt-0 pb-[24px] pr-[24px] mobile:pr-[48px]">
                 <p className="font-display text-h4 leading-none tracking-[-0.64px]">
                   {company.name}
                 </p>
-                <div className="bg-[rgba(196,195,182,0.5)] flex items-center px-[12px] py-[6px] rounded-full shrink-0">
+                <div className="bg-[rgba(196,195,182,0.5)] flex items-center px-[12px] py-[6px] rounded-full shrink-0 self-start">
                   <p className="text-[12px] font-medium leading-[1.35] uppercase">
                     {company.tag}
                   </p>
@@ -73,7 +73,7 @@ export function Pipeline() {
                   {company.targetValuation}
                 </p>
               </div>
-              <p className="text-p1 pt-[24px] pr-[48px]">{company.description}</p>
+              <p className="text-p1 pt-[24px] pr-[24px] mobile:pr-[48px]">{company.description}</p>
             </div>
           ))}
         </div>

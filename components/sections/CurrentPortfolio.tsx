@@ -172,11 +172,11 @@ export function CurrentPortfolio() {
                   <div className="absolute bottom-[24px] left-[24px] bg-chalk rounded-[8px] w-[48px] h-[48px]" />
                 )}
               </div>
-              <div className="flex items-start justify-between desktop:pt-[48px] pt-0 pb-[24px] pr-[48px]">
+              <div className="flex flex-col gap-[24px] mobile:flex-row mobile:items-start mobile:justify-between desktop:pt-[48px] pt-0 pb-[24px] pr-[24px] mobile:pr-[48px]">
                 <p className="font-display text-h4 leading-none tracking-[-0.64px]">
                   {company.name}
                 </p>
-                <div className="flex items-center gap-[8px] shrink-0">
+                <div className="flex items-center gap-[8px] shrink-0 self-start">
                   {company.tags.map((tag) => (
                     <div
                       key={tag}
@@ -198,7 +198,7 @@ export function CurrentPortfolio() {
                   </p>
                 </div>
               ))}
-              <p className="text-p1 pt-[24px] pr-[48px]">{company.description}</p>
+              <p className="text-p1 pt-[24px] pr-[24px] mobile:pr-[48px]">{company.description}</p>
             </div>
           ))}
         </div>

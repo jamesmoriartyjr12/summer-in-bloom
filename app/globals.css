@@ -46,6 +46,14 @@ body {
   overflow-x: hidden;
 }
 
+/* Responsive heading scale — below the 600px mobile breakpoint */
+@media (max-width: 599px) {
+  .text-h1 { font-size: 19vw; }
+  .text-h2 { font-size: 48px; }
+  .text-h3 { font-size: 32px; }
+  .text-l1 { font-size: 14px; }
+}
+
 /* Mobile nav — push page content left when panel opens (transform on inner wrapper, not main). */
 @media (max-width: 599px) {
   main .mobile-nav-shift {

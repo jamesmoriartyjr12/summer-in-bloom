@@ -30,7 +30,7 @@ export function TopNav() {
     <motion.header
       animate={{ y: visible ? 0 : "-100%" }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
-      className={`fixed top-0 left-0 right-0 z-[100] flex items-center justify-between px-[48px] py-[24px] text-l1 uppercase ${variantClass}`}
+      className={`fixed top-0 left-0 right-0 z-[100] flex items-center justify-between px-[24px] mobile:px-[48px] py-[24px] text-l1 uppercase ${variantClass}`}
     >
       <span>Bloom Ventures</span>
       <span>July 2026</span>

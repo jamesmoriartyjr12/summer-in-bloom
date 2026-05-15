@@ -7,6 +7,7 @@ import { FundDetails } from "@/components/sections/FundDetails";
 import { FundThesis } from "@/components/sections/FundThesis";
 import { Pipeline } from "@/components/sections/Pipeline";
 import { CurrentPortfolio } from "@/components/sections/CurrentPortfolio";
+import { Contact } from "@/components/sections/Contact";
 
 export default function Page() {
   return (
@@ -19,6 +20,7 @@ export default function Page() {
             <FundThesis />
             <Pipeline />
             <CurrentPortfolio />
+            <Contact />
           </div>
         </main>
         <TopNav />
