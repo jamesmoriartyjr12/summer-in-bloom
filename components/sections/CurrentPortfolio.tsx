@@ -5,114 +5,79 @@ import Image from "next/image";
 import { Section } from "../Section";
 import { SectionContent } from "../SectionContent";
 
-type CompanyMetric = {
-  label: string;
-  value: string;
-};
-
 type PortfolioCompany = {
   name: string;
+  stage: string;
   tags: string[];
-  metrics: CompanyMetric[];
-  description: string;
-  image?: string;
+  imageSmall: string;
+  imageLarge: string;
 };
+
+const BASE = "/Bloom%20Portfolio%20Images/";
 
 const PORTFOLIO: PortfolioCompany[] = [
   {
     name: "Orion",
+    stage: "Seed",
     tags: ["Consumer", "Health"],
-    metrics: [
-      { label: "Stage", value: "Seed" },
-      { label: "Investment", value: "$45,000" },
-      { label: "Valuation at Investment", value: "$50M Pre-Seed" },
-      { label: "Mark Ups", value: "17.2M Seed at 70M Valuation" },
-    ],
-    description:
-      "Orion is a sleep wellness company that uses temperature control to optimize sleep quality. The Orion Sleep System's dual-zone mattress cover heats or cools based on biometric feedback, encouraging deeper sleep and fewer interruptions.",
+    imageSmall: `${BASE}Orion_Small.png`,
+    imageLarge: `${BASE}Orion_Large.png`,
+  },
+  {
+    name: "TeeCommerce",
+    stage: "Seed",
+    tags: ["Ecomm"],
+    imageSmall: `${BASE}TeeCommerce_Small.png`,
+    imageLarge: `${BASE}TeeCommerce_Large.png`,
   },
   {
     name: "FanFix",
+    stage: "Post-Acquisition Growth",
     tags: ["Consumer", "Money"],
-    metrics: [
-      { label: "Stage", value: "Post-Acquisition Growth" },
-      { label: "Investment", value: "$40,000 Post-Acquisition" },
-      { label: "Valuation at Investment", value: "$150M Post" },
-    ],
-    description:
-      "FanFix is a subscription platform driving the $100B+ creator economy, enabling Gen Z creators to monetize exclusive content. Now in a post-acquisition growth phase, FanFix reports 15M users and aims for $1B in creator payouts by 2027.",
+    imageSmall: `${BASE}FanFix_Small.png`,
+    imageLarge: `${BASE}FanFix_Large.png`,
   },
   {
     name: "WatchCheck",
+    stage: "Seed",
     tags: ["Consumer"],
-    metrics: [
-      { label: "Advisory", value: "2.5%" },
-      { label: "Investment", value: "$50k Pre-seed" },
-      { label: "Pre-seed Valuation", value: "$10M Post" },
-      { label: "Bridge Valuation", value: "$25M Post" },
-      { label: "Seed Valuation", value: "$30M Post" },
-    ],
-    description:
-      "WatchCheck provides the digital and physical infrastructure to power best-in-class servicing software for luxury timepieces. Aided by an exclusive partnership with Sotheby's, WatchCheck is on track to disrupt the most integral and archaic infrastructure in the world's roughly $50B pre-owned watch industry.",
+    imageSmall: `${BASE}WatchCheck_Small.png`,
+    imageLarge: `${BASE}WatchCheck_Large.png`,
   },
   {
     name: "Meridian",
+    stage: "Seed",
     tags: ["Money"],
-    metrics: [
-      { label: "Ownership", value: "1.45%" },
-      { label: "Investment", value: "$10k Pre-seed" },
-      { label: "Pre-seed Valuation", value: "$20M" },
-      { label: "Seed Valuation", value: "$70m" },
-      { label: "Targeting Bridge to A", value: "$200M" },
-    ],
-    description:
-      "Meridian is an instant payments network that provides novel payments infrastructure to major wallets, financial institutions, telecoms, and neo-banks around the world. Founded by serial entrepreneur Will Haering and Bradley Riss, the former Chief Commercial Officer of Checkout.com, the network powers instant payments access for 93m people across the United States, Philippines, and Mexico.",
+    imageSmall: `${BASE}Meridian_Small.png`,
+    imageLarge: `${BASE}Meridian_Large.png`,
   },
   {
     name: "Milly",
+    stage: "Seed",
     tags: ["Marketplace"],
-    metrics: [
-      { label: "Ownership", value: "1.6%" },
-      { label: "Investment", value: "$50k Pre-seed 5m" },
-      { label: "Seed", value: "Raising at $8m" },
-    ],
-    description:
-      "Milly is a transactional marketplace platform engineered to simplify the M&A process for independent insurance agencies. The platform handles the entire transaction journey, from listing and discovery to due diligence and closing.",
+    imageSmall: `${BASE}Milly_Small.png`,
+    imageLarge: `${BASE}Milly_Large.png`,
   },
   {
     name: "Jamie",
+    stage: "Seed",
     tags: ["AI"],
-    metrics: [
-      { label: "Ownership", value: "2.75%" },
-      { label: "Investment", value: "$25,000 at $2.5M Post, $10,000 at $6.6M Post" },
-      { label: "Angel Round Valuation", value: "$6.6M Post" },
-      { label: "Pre-seed Valuation", value: "$10M Post" },
-    ],
-    description:
-      "Jamie is the solution to content-market fit for media teams. Jamie automates pre-production by turning audience data and internet trends into real-time insights, actionable content suggestions, and production materials.",
+    imageSmall: `${BASE}Jamie_Small.png`,
+    imageLarge: `${BASE}Jamie_Large.png`,
   },
   {
     name: "Sunny Benefits",
+    stage: "Seed",
     tags: ["Health", "Money"],
-    metrics: [
-      { label: "Ownership", value: "0.15%" },
-      { label: "Seed Valuation", value: "$36M Post" },
-      { label: "Bridge to Series A", value: "$6M at $70M Cap" },
-    ],
-    description:
-      "At the crossroads of consumer engagement and fintech, Sunny helps health plans and large employer groups deliver a streamlined experience to members and employees. The platform allows users to manage and maximize their benefits through a single, intuitive interface. The company's Series A is in progress, and currently oversubscribed.",
+    imageSmall: `${BASE}Sunny_Small.png`,
+    imageLarge: `${BASE}Sunny_Large.png`,
   },
   {
     name: "Feno Labs",
+    stage: "Seed",
     tags: ["AI Healthcare", "Dental Tech"],
-    metrics: [
-      { label: "Ownership", value: "Convertible Note (20% Discount)" },
-      { label: "Investment", value: "$96,720 Convertible Note" },
-      { label: "Structure", value: "15% of annual services converted into equity" },
-      { label: "Qualified Financing Trigger", value: "$5M+ round" },
-    ],
-    description:
-      "Feno Labs is building an AI-powered oral health platform and connected ecosystem designed to improve preventative dental care, diagnostics, and patient engagement through hardware, software, and data-driven workflows.",
+    imageSmall: `${BASE}Feno_Small.png`,
+    imageLarge: `${BASE}Feno_Large.png`,
   },
 ];
 
@@ -120,11 +85,12 @@ const PORTFOLIO: PortfolioCompany[] = [
 const TRIGGER_Y = 496;
 
 function StickyImage({ activeIndex }: { activeIndex: number }) {
+  const company = PORTFOLIO[activeIndex];
   return (
     <div className="sticky top-[96px] h-[400px] overflow-hidden bg-beige relative">
-      <div className="absolute bottom-[24px] left-[24px] bg-chalk rounded-[8px] w-[48px] h-[48px]" />
+      <Image src={company.imageSmall} alt={company.name} fill className="object-cover" unoptimized />
       <p className="absolute bottom-[24px] right-[24px] text-p2 text-black/40">
-        {PORTFOLIO[activeIndex].name}
+        {company.name}
       </p>
     </div>
   );
@@ -154,7 +120,7 @@ export function CurrentPortfolio() {
       className="relative z-10 bg-chalk text-black pt-[200px] pb-[96px]"
     >
       <SectionContent flushRight left={<StickyImage activeIndex={activeIndex} />}>
-        <div className="flex flex-col gap-[400px]">
+        <div className="flex flex-col gap-[96px] desktop:gap-[400px]">
           {PORTFOLIO.map((company, i) => (
             <div
               key={company.name}
@@ -165,18 +131,22 @@ export function CurrentPortfolio() {
                 <p className="text-l2 font-medium uppercase mb-[48px] desktop:mb-0">Current Portfolio</p>
               )}
               <div className="desktop:hidden aspect-[4/3] w-full overflow-hidden bg-beige relative mb-[48px]">
-                {company.image && (
-                  <Image src={company.image} alt="" fill className="object-cover" unoptimized />
-                )}
-                {!company.image && (
-                  <div className="absolute bottom-[24px] left-[24px] bg-chalk rounded-[8px] w-[48px] h-[48px]" />
-                )}
+                <Image src={company.imageLarge} alt={company.name} fill className="object-cover" unoptimized />
               </div>
-              <div className="flex flex-col gap-[24px] mobile:flex-row mobile:items-start mobile:justify-between desktop:pt-[48px] pt-0 pb-[24px] pr-[24px] mobile:pr-[48px]">
-                <p className="font-display text-h4 leading-none tracking-[-0.64px]">
+              <div className="desktop:pt-[48px] pt-0 pb-[24px] pr-[24px] mobile:pr-[48px]">
+                <p className="font-display text-h3 leading-none tracking-[-1.28px]">
                   {company.name}
                 </p>
-                <div className="flex items-center gap-[8px] shrink-0 self-start">
+              </div>
+              <div className="flex flex-col gap-[12px] py-[24px] border-b border-beige">
+                <p className="text-p2">Stage</p>
+                <p className="font-display text-h5 leading-none tracking-[-0.48px]">
+                  {company.stage}
+                </p>
+              </div>
+              <div className="flex flex-col gap-[12px] py-[24px] border-b border-beige">
+                <p className="text-p2">Vertical</p>
+                <div className="flex items-center gap-[8px]">
                   {company.tags.map((tag) => (
                     <div
                       key={tag}
@@ -187,18 +157,6 @@ export function CurrentPortfolio() {
                   ))}
                 </div>
               </div>
-              {company.metrics.map((metric) => (
-                <div
-                  key={metric.label}
-                  className="flex flex-col gap-[12px] py-[24px] border-b border-beige"
-                >
-                  <p className="text-p2">{metric.label}</p>
-                  <p className="font-display text-h5 leading-none tracking-[-0.48px]">
-                    {metric.value}
-                  </p>
-                </div>
-              ))}
-              <p className="text-p1 pt-[24px] pr-[24px] mobile:pr-[48px]">{company.description}</p>
             </div>
           ))}
         </div>
