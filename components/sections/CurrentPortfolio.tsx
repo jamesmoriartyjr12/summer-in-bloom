@@ -89,9 +89,6 @@ function StickyImage({ activeIndex }: { activeIndex: number }) {
   return (
     <div className="sticky top-[96px] h-[400px] overflow-hidden bg-beige relative">
       <Image src={company.imageSmall} alt={company.name} fill className="object-cover" unoptimized />
-      <p className="absolute bottom-[24px] right-[24px] text-p2 text-black/40">
-        {company.name}
-      </p>
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { Hero } from "@/components/sections/Hero";
 import { FundDetails } from "@/components/sections/FundDetails";
 import { FundThesis } from "@/components/sections/FundThesis";
 import { CurrentPortfolio } from "@/components/sections/CurrentPortfolio";
+import { InTheNews } from "@/components/sections/InTheNews";
 import { Contact } from "@/components/sections/Contact";
 
 export default function Page() {
@@ -18,6 +19,8 @@ export default function Page() {
             <FundDetails />
             <FundThesis />
             <CurrentPortfolio />
+            <InTheNews />
+            <FundDetails id="fund-details-2" />
             <Contact />
           </div>
         </main>

@@ -12,8 +12,9 @@ type NavItem = {
 const NAV_ITEMS: NavItem[] = [
   { id: "fund-details", label: "Fund Details" },
   { id: "fund-thesis", label: "Fund Thesis" },
-  { id: "pipeline", label: "Pipeline" },
-  { id: "current-portfolio", label: "Current Porfolio" },
+  { id: "current-portfolio", label: "Current Portfolio" },
+  { id: "in-the-news", label: "In the News" },
+  { id: "fund-details-2", label: "Fund Details" },
   { id: "contact", label: "Contact" },
 ];
 

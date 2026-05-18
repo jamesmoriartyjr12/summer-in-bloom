@@ -3,9 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useSection } from "./SectionContext";
+import { useLenis } from "./LenisContext";
 
 export function TopNav() {
   const { activeId, theme } = useSection();
+  const lenis = useLenis();
   const [visible, setVisible] = useState(true);
   const lastScrollY = useRef(0);
 
@@ -32,7 +34,13 @@ export function TopNav() {
       transition={{ duration: 0.3, ease: "easeInOut" }}
       className={`fixed top-0 left-0 right-0 z-[100] flex items-center justify-between px-[24px] mobile:px-[48px] py-[24px] text-l1 uppercase ${variantClass}`}
     >
-      <span>Bloom Ventures</span>
+      <button
+        type="button"
+        onClick={() => lenis?.scrollTo(0)}
+        className="cursor-pointer uppercase"
+      >
+        Bloom Ventures
+      </button>
       <span>July 2026</span>
     </motion.header>
   );

@@ -17,8 +17,9 @@ export type SectionId =
   | "hero"
   | "fund-details"
   | "fund-thesis"
-  | "pipeline"
   | "current-portfolio"
+  | "in-the-news"
+  | "fund-details-2"
   | "contact";
 
 type SectionEntry = { element: HTMLElement; theme: SectionTheme };
@@ -39,9 +40,7 @@ type SectionState = {
 const OFFSET = 48;
 
 // Per-section overrides: "bottom" activates when the section first enters the viewport from below.
-const BOTTOM_ENTRY: Partial<Record<SectionId, true>> = {
-  pipeline: true,
-};
+const BOTTOM_ENTRY: Partial<Record<SectionId, true>> = {};
 
 const SectionContext = createContext<SectionState | null>(null);
 

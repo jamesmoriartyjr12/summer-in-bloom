@@ -16,10 +16,10 @@ const FUND_DETAILS = [
 const DETAILS_IMAGE =
   "https://www.figma.com/api/mcp/asset/e0d04282-eb25-4fc4-baf0-b9a2d98c8ecf";
 
-export function FundDetails() {
+export function FundDetails({ id = "fund-details" as const }: { id?: "fund-details" | "fund-details-2" }) {
   return (
     <Section
-      id="fund-details"
+      id={id}
       theme="light"
       className="relative z-10 bg-chalk text-black pt-[96px] mobile:pt-[400px] pb-[96px]"
     >
