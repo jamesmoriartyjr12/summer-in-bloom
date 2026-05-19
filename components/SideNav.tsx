@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useScroll, useTransform } from "framer-motion";
 import { SectionId, useSection } from "./SectionContext";
 
@@ -18,6 +18,16 @@ const NAV_ITEMS: NavItem[] = [
   { id: "contact", label: "Contact" },
 ];
 
+// Section themes in document order — used for per-tab dark/light calculation.
+const SECTION_THEMES: Array<{ id: string; theme: "light" | "dark" }> = [
+  { id: "fund-details", theme: "light" },
+  { id: "fund-thesis", theme: "dark" },
+  { id: "current-portfolio", theme: "light" },
+  { id: "in-the-news", theme: "light" },
+  { id: "fund-details-2", theme: "light" },
+  { id: "contact", theme: "dark" },
+];
+
 function scrollTo(id: SectionId) {
   document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
 }
@@ -27,6 +37,8 @@ export function SideNav() {
   const [isOpen, setIsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [vh, setVh] = useState(800);
+  const itemRefs = useRef<(HTMLLIElement | null)[]>([]);
+  const [tabDark, setTabDark] = useState<boolean[]>(() => NAV_ITEMS.map(() => false));
 
   useEffect(() => {
     const measure = () => {
@@ -46,6 +58,35 @@ export function SideNav() {
     return () => document.documentElement.classList.remove("mobile-nav-open");
   }, [isOpen]);
 
+  // Per-tab dark mode: for each tab, find the last section (in document order)
+  // whose top edge has crossed the tab's midpoint — that section's theme wins.
+  // This handles both dark sections (fund-thesis, contact) and their light exits.
+  useEffect(() => {
+    const sectionEls = SECTION_THEMES.map((s) => document.getElementById(s.id));
+    const onScroll = () => {
+      setTabDark((prev) => {
+        const next = itemRefs.current.map((el) => {
+          if (!el) return false;
+          const { top, height } = el.getBoundingClientRect();
+          const midY = top + height / 2;
+          let theme: "light" | "dark" = "light";
+          for (let s = 0; s < SECTION_THEMES.length; s++) {
+            const el = sectionEls[s];
+            if (el && el.getBoundingClientRect().top <= midY) {
+              theme = SECTION_THEMES[s].theme;
+            }
+          }
+          return theme === "dark";
+        });
+        if (next.every((v, i) => v === prev[i])) return prev;
+        return next;
+      });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   const { scrollY } = useScroll();
   const y = useTransform(scrollY, [0, vh], [vh, 0], { clamp: true });
 
@@ -62,10 +103,13 @@ export function SideNav() {
         className="max-[599px]:hidden fixed left-0 top-[96px] z-50 px-[16px] w-[200px]"
       >
         <ul className="flex flex-col gap-[8px]">
-          {NAV_ITEMS.map((item) => {
+          {NAV_ITEMS.map((item, i) => {
             const isActive = item.id === activeId;
+            const tabIsDark = tabDark[i] || (isDark && activeId !== "contact" && activeId !== "fund-thesis");
+            const tabActiveColor = tabIsDark ? "#EBEBEB" : "#000000";
+            const tabInactiveColor = tabIsDark ? "rgba(235,235,235,0.25)" : "#777169";
             return (
-              <li key={item.id}>
+              <li key={item.id} ref={(el) => { itemRefs.current[i] = el; }}>
                 <button
                   type="button"
                   onClick={() => scrollTo(item.id)}
@@ -74,15 +118,15 @@ export function SideNav() {
                   <motion.span
                     aria-hidden
                     animate={{
-                      backgroundColor: isActive ? activeColor : "transparent",
-                      borderColor: isActive ? activeColor : "transparent",
+                      backgroundColor: isActive ? tabActiveColor : "transparent",
+                      borderColor: isActive ? tabActiveColor : "transparent",
                     }}
                     transition={{ duration: 0.35, ease: "easeOut" }}
                     className="block w-[8px] h-[8px] rounded-full border shrink-0"
                     style={{ borderWidth: 1 }}
                   />
                   <motion.span
-                    animate={{ color: isActive ? activeColor : inactiveColor }}
+                    animate={{ color: isActive ? tabActiveColor : tabInactiveColor }}
                     transition={{ duration: 0.35, ease: "easeOut" }}
                     className="text-l2 whitespace-nowrap"
                   >

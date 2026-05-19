@@ -21,7 +21,7 @@ export function FundDetails({ id = "fund-details" as const }: { id?: "fund-detai
     <Section
       id={id}
       theme="light"
-      className="relative z-10 bg-chalk text-black pt-[96px] mobile:pt-[400px] pb-[96px]"
+      className="relative z-10 bg-chalk text-black py-[200px]"
     >
       <div className="flex flex-col gap-[48px] desktop:gap-[96px]">
         {/* Title — starts at image edge, spans both columns */}

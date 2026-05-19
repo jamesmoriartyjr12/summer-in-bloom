@@ -89,6 +89,9 @@ function StickyImage({ activeIndex }: { activeIndex: number }) {
   return (
     <div className="sticky top-[96px] h-[400px] overflow-hidden bg-beige relative">
       <Image src={company.imageSmall} alt={company.name} fill className="object-cover" unoptimized />
+      <div className="absolute bottom-[24px] right-[24px] backdrop-blur-[7.5px] bg-[rgba(235,235,235,0.1)] flex items-center px-[12px] py-[6px] rounded-full">
+        <p className="text-[12px] font-medium leading-[1.35] uppercase text-[#ebebeb] whitespace-nowrap">Markup</p>
+      </div>
     </div>
   );
 }
@@ -129,6 +132,9 @@ export function CurrentPortfolio() {
               )}
               <div className="desktop:hidden aspect-[4/3] w-full overflow-hidden bg-beige relative mb-[48px]">
                 <Image src={company.imageLarge} alt={company.name} fill className="object-cover" unoptimized />
+                <div className="absolute top-[24px] left-[24px] backdrop-blur-[7.5px] bg-[rgba(235,235,235,0.1)] flex items-center px-[12px] py-[6px] rounded-full">
+                  <p className="text-[12px] font-medium leading-[1.35] uppercase text-[#ebebeb] whitespace-nowrap">Markup</p>
+                </div>
               </div>
               <div className="desktop:pt-[48px] pt-0 pb-[24px] pr-[24px] mobile:pr-[48px]">
                 <p className="font-display text-h3 leading-none tracking-[-1.28px]">
