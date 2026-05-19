@@ -201,7 +201,8 @@ export function SideNav() {
               animate={{ x: 0 }}
               exit={{ x: -200 }}
               transition={{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
-              className="fixed left-0 top-[136px] w-[200px] z-40 px-[16px] py-[8px]"
+              className="fixed left-0 top-0 bottom-0 w-[200px] z-40 px-[16px] pt-[136px] pb-[8px] backdrop-blur-md"
+              style={{ background: "rgba(235, 235, 235, 0.05)" }}
             >
               <ul className="flex flex-col gap-[8px]">
                 {NAV_ITEMS.map((item) => {
