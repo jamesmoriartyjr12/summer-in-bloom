@@ -1,6 +1,5 @@
 "use client";
 
-import UnicornScene from "unicornstudio-react/next";
 import { Section } from "../Section";
 import { SectionContent } from "../SectionContent";
 
@@ -19,15 +18,13 @@ export function FundThesis() {
       className="relative z-20 text-chalk py-[200px] overflow-hidden"
     >
       <div className="absolute inset-0 z-0" aria-hidden>
-        <UnicornScene
-          projectId="o7jJi6ALg8WiK3ciep1Z"
-          sdkUrl="https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v2.1.12/dist/unicornStudio.umd.js"
-          width="100%"
-          height="100%"
-          lazyLoad={true}
-          dpi={1}
-          fps={30}
-          scale={0.5}
+        <video
+          src="/waves-video.webm"
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="w-full h-full object-cover"
         />
       </div>
       <SectionContent flushRight className="relative z-10 pr-[24px] mobile:pr-[48px]">
