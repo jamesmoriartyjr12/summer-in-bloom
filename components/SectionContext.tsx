@@ -20,7 +20,8 @@ export type SectionId =
   | "current-portfolio"
   | "in-the-news"
   | "fund-details-2"
-  | "contact";
+  | "contact"
+  | "pipeline";
 
 type SectionEntry = { element: HTMLElement; theme: SectionTheme };
 
