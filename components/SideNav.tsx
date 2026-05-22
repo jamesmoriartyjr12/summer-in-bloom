@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useScroll, useTransform } from "framer-motion";
 import { SectionId, useSection } from "./SectionContext";
+import { useLenis } from "./LenisContext";
 
 type NavItem = {
   id: SectionId;
@@ -28,12 +29,9 @@ const SECTION_THEMES: Array<{ id: string; theme: "light" | "dark" }> = [
   { id: "contact", theme: "dark" },
 ];
 
-function scrollTo(id: SectionId) {
-  document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
-}
-
 export function SideNav() {
   const { activeId, theme } = useSection();
+  const lenis = useLenis();
   const [isOpen, setIsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [vh, setVh] = useState(800);
@@ -112,7 +110,7 @@ export function SideNav() {
               <li key={item.id} ref={(el) => { itemRefs.current[i] = el; }}>
                 <button
                   type="button"
-                  onClick={() => scrollTo(item.id)}
+                  onClick={() => lenis?.scrollTo(`#${item.id}`)}
                   className="flex items-center gap-[24px] py-[8px] w-full text-left"
                 >
                   <motion.span
@@ -212,7 +210,7 @@ export function SideNav() {
                       <button
                         type="button"
                         onClick={() => {
-                          scrollTo(item.id);
+                          lenis?.scrollTo(`#${item.id}`);
                           setIsOpen(false);
                         }}
                         className="flex items-center gap-[24px] py-[8px] w-full text-left"
