@@ -19,6 +19,12 @@ const NAV_ITEMS: NavItem[] = [
   { id: "contact", label: "Contact" },
 ];
 
+function scrollDuration(id: SectionId): number {
+  const el = document.getElementById(id);
+  const distance = el ? Math.abs(el.getBoundingClientRect().top) : 0;
+  return Math.min(0.6 + distance / 2500, 1.4);
+}
+
 // Section themes in document order — used for per-tab dark/light calculation.
 const SECTION_THEMES: Array<{ id: string; theme: "light" | "dark" }> = [
   { id: "fund-details", theme: "light" },
@@ -32,6 +38,8 @@ const SECTION_THEMES: Array<{ id: string; theme: "light" | "dark" }> = [
 export function SideNav() {
   const { activeId, theme } = useSection();
   const lenis = useLenis();
+  const [navigatingTo, setNavigatingTo] = useState<SectionId | null>(null);
+  const displayActiveId = navigatingTo ?? activeId;
   const [isOpen, setIsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [vh, setVh] = useState(800);
@@ -102,7 +110,7 @@ export function SideNav() {
       >
         <ul className="flex flex-col gap-[8px]">
           {NAV_ITEMS.map((item, i) => {
-            const isActive = item.id === activeId;
+            const isActive = item.id === displayActiveId;
             const tabIsDark = tabDark[i] || (isDark && activeId !== "contact" && activeId !== "fund-thesis");
             const tabActiveColor = tabIsDark ? "#EBEBEB" : "#000000";
             const tabInactiveColor = tabIsDark ? "rgba(235,235,235,0.25)" : "#777169";
@@ -110,7 +118,10 @@ export function SideNav() {
               <li key={item.id} ref={(el) => { itemRefs.current[i] = el; }}>
                 <button
                   type="button"
-                  onClick={() => lenis?.scrollTo(`#${item.id}`)}
+                  onClick={() => {
+                    setNavigatingTo(item.id);
+                    lenis?.scrollTo(`#${item.id}`, { duration: scrollDuration(item.id), onComplete: () => setNavigatingTo(null) });
+                  }}
                   className="flex items-center gap-[24px] py-[8px] w-full text-left"
                 >
                   <motion.span
@@ -204,13 +215,14 @@ export function SideNav() {
             >
               <ul className="flex flex-col gap-[8px]">
                 {NAV_ITEMS.map((item) => {
-                  const isActive = item.id === activeId;
+                  const isActive = item.id === displayActiveId;
                   return (
                     <li key={item.id}>
                       <button
                         type="button"
                         onClick={() => {
-                          lenis?.scrollTo(`#${item.id}`);
+                          setNavigatingTo(item.id);
+                          lenis?.scrollTo(`#${item.id}`, { duration: scrollDuration(item.id), onComplete: () => setNavigatingTo(null) });
                           setIsOpen(false);
                         }}
                         className="flex items-center gap-[24px] py-[8px] w-full text-left"
