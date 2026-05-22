@@ -12,9 +12,8 @@ const FUND_DETAILS = [
   { label: "Fund carry", value: "20%" },
 ];
 
-// Temporary asset from Figma — swap to local /public asset for production
-const DETAILS_IMAGE =
-  "https://www.figma.com/api/mcp/asset/e0d04282-eb25-4fc4-baf0-b9a2d98c8ecf";
+const DETAILS_IMAGE_SMALL = "/fund-details-small.png";
+const DETAILS_IMAGE_LARGE = "/fund-details-large.png";
 
 export function FundDetails({ id = "fund-details" as const }: { id?: "fund-details" | "fund-details-2" }) {
   return (
@@ -37,12 +36,11 @@ export function FundDetails({ id = "fund-details" as const }: { id?: "fund-detai
           left={
             <div className="sticky top-[96px] h-[400px] overflow-hidden">
               <Image
-                src={DETAILS_IMAGE}
+                src={DETAILS_IMAGE_SMALL}
                 alt=""
                 fill
                 sizes="336px"
                 className="object-cover"
-                unoptimized
               />
               <div className="absolute inset-0 bg-black/10" />
             </div>
@@ -52,11 +50,10 @@ export function FundDetails({ id = "fund-details" as const }: { id?: "fund-detai
             {/* Mobile image — hidden on desktop where sticky left column takes over */}
             <div className="desktop:hidden aspect-[4/3] w-full overflow-hidden relative mb-[48px]">
               <Image
-                src={DETAILS_IMAGE}
+                src={DETAILS_IMAGE_LARGE}
                 alt=""
                 fill
                 className="object-cover"
-                unoptimized
               />
               <div className="absolute inset-0 bg-black/10" />
             </div>
