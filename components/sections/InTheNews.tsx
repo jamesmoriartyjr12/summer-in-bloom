@@ -9,28 +9,33 @@ type Article = {
   publication: string;
   headline: string;
   image: string;
+  company: string;
 };
 
 const ARTICLES: Article[] = [
   {
-    publication: "Publication",
-    headline: "Lorem ipsum dolor sit amet consectetur. Diam eleifend integer donec sed porttitor volutpat.",
+    publication: "Forbes",
+    headline: "This Under 30 Raised $18 Million To Make Sleeping Cool—Literally",
     image: `${BASE}Orion_Article.png`,
+    company: "Orion",
   },
   {
     publication: "Publication",
-    headline: "Lorem ipsum dolor sit amet consectetur. Diam eleifend integer donec sed porttitor volutpat.",
+    headline: "Inside The $100 Million Membership Platform For Gen Z Creators",
     image: `${BASE}FanFix_Article.png`,
+    company: "FanFix",
   },
   {
-    publication: "Publication",
-    headline: "Lorem ipsum dolor sit amet consectetur. Diam eleifend integer donec sed porttitor volutpat.",
+    publication: "Philippine Daily Inquirer",
+    headline: "GCash woos freelancers with US virtual account",
     image: `${BASE}Meridian_Article.png`,
+    company: "Meridian",
   },
   {
-    publication: "Publication",
-    headline: "Lorem ipsum dolor sit amet consectetur. Diam eleifend integer donec sed porttitor volutpat.",
+    publication: "The New York Times",
+    headline: "Does Your Watch Need Care? This Website Wants to Help.",
     image: `${BASE}WatchCheck_Article.png`,
+    company: "WatchCheck",
   },
 ];
 
@@ -60,6 +65,9 @@ export function InTheNews() {
                 <p className="font-display text-h4 leading-none tracking-[-0.64px]">
                   {article.headline}
                 </p>
+                <div className="bg-[rgba(196,195,182,0.5)] self-start flex items-center px-[12px] py-[6px] rounded-full">
+                  <p className="text-[12px] font-medium leading-[1.35] uppercase">{article.company}</p>
+                </div>
               </div>
             </div>
           ))}
