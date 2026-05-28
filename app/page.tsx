@@ -3,6 +3,7 @@ import { SideNav } from "@/components/SideNav";
 import { TopNav } from "@/components/TopNav";
 import { LenisProvider } from "@/components/LenisProvider";
 import { Hero } from "@/components/sections/Hero";
+import { TheStudio } from "@/components/sections/TheStudio";
 import { FundDetails } from "@/components/sections/FundDetails";
 import { FundThesis } from "@/components/sections/FundThesis";
 import { CurrentPortfolio } from "@/components/sections/CurrentPortfolio";
@@ -17,7 +18,7 @@ export default function Page() {
         <main>
           <div className="mobile-nav-shift">
             <Hero />
-            <FundDetails />
+            <TheStudio />
             <FundThesis />
             <AboutUs />
             <CurrentPortfolio />

@@ -15,6 +15,7 @@ export type SectionTheme = "light" | "dark";
 
 export type SectionId =
   | "hero"
+  | "the-studio"
   | "fund-details"
   | "fund-thesis"
   | "current-portfolio"
