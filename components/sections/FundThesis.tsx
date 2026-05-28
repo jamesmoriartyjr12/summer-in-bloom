@@ -26,6 +26,7 @@ export function FundThesis() {
           playsInline
           className="w-full h-full object-cover"
         />
+        <div className="absolute inset-0 bg-black/35" />
       </div>
       <SectionContent flushRight className="relative z-10 pr-[24px] mobile:pr-[48px]">
         <div className="flex flex-col gap-[48px]">
