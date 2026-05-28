@@ -41,8 +41,8 @@ export function InTheNews() {
       theme="light"
       className="relative z-10 bg-chalk text-black pt-[200px] pb-[96px]"
     >
-      <div className="flex flex-col gap-[96px] pl-[76px] mobile:pl-[200px] desktop:pl-[248px] xl:pl-[320px] pr-[24px] mobile:pr-[48px]">
-        <h2 className="font-display text-h2 leading-none tracking-[-1.6px] max-w-[800px]">
+      <div className="flex flex-col gap-[96px] pl-[76px] mobile:pl-[200px] desktop:pl-[248px] xl:pl-[320px]">
+        <h2 className="font-display text-h2 leading-none tracking-[-1.6px] max-w-[800px] pr-[24px] mobile:pr-[48px]">
           Our portfolio companies are making waves
         </h2>
 
@@ -50,12 +50,12 @@ export function InTheNews() {
           {ARTICLES.map((article, i) => (
             <div
               key={i}
-              className={`flex flex-col mobile:flex-row mobile:items-start desktop:items-center gap-[48px] mobile:gap-[24px] desktop:gap-[48px] border-b border-beige pr-[0] mobile:pr-[48px] ${i === 0 ? "pb-[48px]" : "py-[48px]"}`}
+              className={`flex flex-col desktop:flex-row desktop:items-center gap-[48px] desktop:gap-[48px] border-b border-beige pr-[0] desktop:pr-[48px] ${i === 0 ? "pb-[48px]" : "py-[48px]"}`}
             >
-              <div className="-mr-[24px] w-[calc(100%+24px)] mobile:mr-0 mobile:w-[200px] desktop:w-[336px] aspect-[14/9] shrink-0 bg-beige relative overflow-hidden">
+              <div className="w-full desktop:w-[336px] shrink-0 aspect-[14/9] bg-beige relative overflow-hidden">
                 <Image src={article.image} alt={article.publication} fill className="object-cover" unoptimized />
               </div>
-              <div className="flex flex-col gap-[32px] flex-1 min-w-0">
+              <div className="flex flex-col gap-[32px] flex-1 min-w-0 pr-[24px] mobile:pr-[48px] desktop:pr-0">
                 <p className="text-l2 font-medium uppercase">{article.publication}</p>
                 <p className="font-display text-h4 leading-none tracking-[-0.64px]">
                   {article.headline}
