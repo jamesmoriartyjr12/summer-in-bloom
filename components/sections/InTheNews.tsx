@@ -10,6 +10,7 @@ type Article = {
   headline: string;
   image: string;
   company: string;
+  url: string;
 };
 
 const ARTICLES: Article[] = [
@@ -18,24 +19,28 @@ const ARTICLES: Article[] = [
     headline: "This Under 30 Raised $18 Million To Make Sleeping Cool—Literally",
     image: `${BASE}Orion_Article.png`,
     company: "Orion",
+    url: "https://www.forbes.com/sites/alexyork/2025/11/14/this-under-30-raised-18-million-to-make-sleeping-cool-literally/",
   },
   {
-    publication: "Publication",
+    publication: "Forbes",
     headline: "Inside The $100 Million Membership Platform For Gen Z Creators",
     image: `${BASE}FanFix_Article.png`,
     company: "FanFix",
+    url: "https://www.forbes.com/sites/ianshepherd/2024/08/19/inside-the-100-million-membership-platform-for-gen-z-creators/",
   },
   {
     publication: "Philippine Daily Inquirer",
     headline: "GCash woos freelancers with US virtual account",
     image: `${BASE}Meridian_Article.png`,
     company: "Meridian",
+    url: "https://business.inquirer.net/560479/gcash-woos-freelancers-with-us-virtual-account",
   },
   {
     publication: "The New York Times",
     headline: "Does Your Watch Need Care? This Website Wants to Help.",
     image: `${BASE}WatchCheck_Article.png`,
     company: "WatchCheck",
+    url: "https://www.nytimes.com/2024/11/07/fashion/watchcheck-repair-and-service-app.html",
   },
 ];
 
@@ -62,9 +67,14 @@ export function InTheNews() {
               </div>
               <div className="flex flex-col gap-[32px] flex-1 min-w-0 pr-[24px] mobile:pr-[48px] desktop:pr-0">
                 <p className="text-l2 font-medium uppercase">{article.publication}</p>
-                <p className="font-display text-h4 leading-none tracking-[-0.64px]">
+                <a
+                  href={article.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-display text-h4 leading-tight tracking-[-0.64px] underline-offset-4 decoration-[1.5px] hover:underline"
+                >
                   {article.headline}
-                </p>
+                </a>
                 <div className="bg-[rgba(196,195,182,0.5)] self-start flex items-center px-[12px] py-[6px] rounded-full">
                   <p className="text-[12px] font-medium leading-[1.35] uppercase">{article.company}</p>
                 </div>
