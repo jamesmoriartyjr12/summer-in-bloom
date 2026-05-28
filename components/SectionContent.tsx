@@ -8,9 +8,8 @@ import { ReactNode } from "react";
 //   - Left column: 336px fixed, hidden below 900px
 //   - Right column: flex-1, expands to fill remaining width
 //
-// Pass `left` to populate the left column. Omit it and the column
-// still renders as a spacer on desktop, keeping the right column
-// aligned consistently across rows.
+// Pass `left` to populate the left column and reserve its space.
+// Omit it and the content spans the full width (no spacer rendered).
 
 type SectionContentProps = {
   left?: ReactNode;
@@ -29,10 +28,11 @@ export function SectionContent({
     <div
       className={`flex gap-[48px] items-start pl-[76px] mobile:pl-[200px] desktop:pl-[248px] xl:pl-[320px] ${flushRight ? "" : "pr-[48px]"} ${className ?? ""}`}
     >
-      {/* Left column — 336px on desktop, invisible spacer when empty */}
-      <div className="w-[336px] shrink-0 self-stretch max-[1099px]:hidden" aria-hidden={!left}>
-        {left}
-      </div>
+      {left && (
+        <div className="w-[336px] shrink-0 self-stretch max-[1099px]:hidden">
+          {left}
+        </div>
+      )}
 
       {/* Right column — fills remaining width */}
       <div className="flex-1 min-w-0">{children}</div>
