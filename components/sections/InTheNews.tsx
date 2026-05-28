@@ -1,28 +1,36 @@
 "use client";
 
+import Image from "next/image";
 import { Section } from "../Section";
+
+const BASE = "/Press%20Images/";
 
 type Article = {
   publication: string;
   headline: string;
+  image: string;
 };
 
 const ARTICLES: Article[] = [
   {
     publication: "Publication",
     headline: "Lorem ipsum dolor sit amet consectetur. Diam eleifend integer donec sed porttitor volutpat.",
+    image: `${BASE}Orion_Article.png`,
   },
   {
     publication: "Publication",
     headline: "Lorem ipsum dolor sit amet consectetur. Diam eleifend integer donec sed porttitor volutpat.",
+    image: `${BASE}FanFix_Article.png`,
   },
   {
     publication: "Publication",
     headline: "Lorem ipsum dolor sit amet consectetur. Diam eleifend integer donec sed porttitor volutpat.",
+    image: `${BASE}Meridian_Article.png`,
   },
   {
     publication: "Publication",
     headline: "Lorem ipsum dolor sit amet consectetur. Diam eleifend integer donec sed porttitor volutpat.",
+    image: `${BASE}WatchCheck_Article.png`,
   },
 ];
 
@@ -44,7 +52,9 @@ export function InTheNews() {
               key={i}
               className={`flex flex-col mobile:flex-row mobile:items-start desktop:items-center gap-[48px] mobile:gap-[24px] desktop:gap-[48px] border-b border-beige pr-[0] mobile:pr-[48px] ${i === 0 ? "pb-[48px]" : "py-[48px]"}`}
             >
-              <div className="-mr-[24px] w-[calc(100%+24px)] mobile:mr-0 mobile:w-[200px] desktop:w-[336px] aspect-[14/9] shrink-0 bg-beige" />
+              <div className="-mr-[24px] w-[calc(100%+24px)] mobile:mr-0 mobile:w-[200px] desktop:w-[336px] aspect-[14/9] shrink-0 bg-beige relative overflow-hidden">
+                <Image src={article.image} alt={article.publication} fill className="object-cover" unoptimized />
+              </div>
               <div className="flex flex-col gap-[32px] flex-1 min-w-0">
                 <p className="text-l2 font-medium uppercase">{article.publication}</p>
                 <p className="font-display text-h4 leading-none tracking-[-0.64px]">
