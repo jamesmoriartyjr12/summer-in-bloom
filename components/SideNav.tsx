@@ -13,6 +13,7 @@ type NavItem = {
 const NAV_ITEMS: NavItem[] = [
   { id: "fund-details", label: "Fund Details" },
   { id: "fund-thesis", label: "Fund Thesis" },
+  { id: "about-us", label: "About Us" },
   { id: "current-portfolio", label: "Current Portfolio" },
   { id: "in-the-news", label: "In the News" },
   { id: "fund-details-2", label: "Fund Details" },
@@ -29,6 +30,7 @@ function scrollDuration(id: SectionId): number {
 const SECTION_THEMES: Array<{ id: string; theme: "light" | "dark" }> = [
   { id: "fund-details", theme: "light" },
   { id: "fund-thesis", theme: "dark" },
+  { id: "about-us", theme: "light" },
   { id: "current-portfolio", theme: "light" },
   { id: "in-the-news", theme: "light" },
   { id: "fund-details-2", theme: "light" },

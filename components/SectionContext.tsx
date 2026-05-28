@@ -18,6 +18,7 @@ export type SectionId =
   | "fund-details"
   | "fund-thesis"
   | "current-portfolio"
+  | "about-us"
   | "in-the-news"
   | "fund-details-2"
   | "contact"
