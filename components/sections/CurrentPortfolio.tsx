@@ -11,6 +11,7 @@ type PortfolioCompany = {
   tags: string[];
   imageSmall: string;
   imageLarge: string;
+  hidden?: boolean;
 };
 
 const BASE = "/Bloom%20Portfolio%20Images/";
@@ -57,6 +58,7 @@ const PORTFOLIO: PortfolioCompany[] = [
     tags: ["Marketplace"],
     imageSmall: `${BASE}Milly_Small.png`,
     imageLarge: `${BASE}Milly_Large.png`,
+    hidden: true,
   },
   {
     name: "Jamie",
@@ -81,11 +83,13 @@ const PORTFOLIO: PortfolioCompany[] = [
   },
 ];
 
+const VISIBLE_PORTFOLIO = PORTFOLIO.filter((c) => !c.hidden);
+
 // Bottom edge of the sticky image = sticky top (96) + image height (400)
 const TRIGGER_Y = 496;
 
 function StickyImage({ activeIndex }: { activeIndex: number }) {
-  const company = PORTFOLIO[activeIndex];
+  const company = VISIBLE_PORTFOLIO[activeIndex];
   return (
     <div className="sticky top-[96px] h-[400px] overflow-hidden bg-beige relative">
       <Image src={company.imageSmall} alt={company.name} fill className="object-cover" unoptimized />
@@ -121,7 +125,7 @@ export function CurrentPortfolio() {
     >
       <SectionContent flushRight left={<StickyImage activeIndex={activeIndex} />}>
         <div className="flex flex-col gap-[96px] desktop:gap-[400px]">
-          {PORTFOLIO.map((company, i) => (
+          {VISIBLE_PORTFOLIO.map((company, i) => (
             <div
               key={company.name}
               ref={(el) => { companyRefs.current[i] = el; }}
