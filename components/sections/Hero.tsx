@@ -67,7 +67,7 @@ export function Hero() {
         <div className="relative z-10 flex-1" />
 
         <div className="relative z-10 flex flex-col gap-[96px] p-[24px] mobile:p-[48px]">
-          <p className="text-p1 max-w-[448px]">
+          <p className="text-[24px] leading-[1.4] max-w-[448px]">
             {LINES.map((line, i) => (
               <span
                 key={i}
