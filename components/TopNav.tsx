@@ -23,8 +23,8 @@ export function TopNav() {
 
   const isDark = activeId === "hero" || theme === "dark";
 
-  const variantClass = isDark
-    ? "backdrop-blur-[5px] bg-[rgba(235,235,235,0.05)]"
+  const variantClass = activeId === "hero"
+    ? ""
     : "backdrop-blur-[5px] bg-[rgba(235,235,235,0.05)]";
 
   return (
