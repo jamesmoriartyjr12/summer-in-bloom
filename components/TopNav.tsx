@@ -51,7 +51,6 @@ export function TopNav() {
           }}
         />
       </button>
-      <span className={`text-l1 uppercase ${isDark ? "text-chalk" : "text-black"}`}>Flagship Fund One</span>
     </motion.header>
   );
 }

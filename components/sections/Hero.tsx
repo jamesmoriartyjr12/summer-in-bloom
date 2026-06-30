@@ -31,9 +31,12 @@ export function Hero() {
           studio, where we work side by side with early-stage companies and
           guide them through hypergrowth.
         </p>
-        <h1 className="font-display text-[clamp(60px,18vw,200px)] leading-[0.95] tracking-[-4px]">
-          Summer<br /> in Bloom
-        </h1>
+        <div className="flex items-end justify-between">
+          <h1 className="font-display text-[clamp(60px,18vw,200px)] leading-[0.95] tracking-[-4px]">
+            Summer<br /> in Bloom
+          </h1>
+          <span className="text-l1 pb-[6px]">Flagship fund one</span>
+        </div>
       </div>
     </Section>
   );
