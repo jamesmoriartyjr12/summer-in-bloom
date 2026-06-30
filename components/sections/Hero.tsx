@@ -35,7 +35,7 @@ export function Hero() {
           <h1 className="font-display text-[clamp(60px,18vw,200px)] leading-[0.95] tracking-[-4px]">
             Summer<br /> in Bloom
           </h1>
-          <span className="text-l1 pb-[6px]">Flagship Fund One</span>
+          <span className="font-display text-l1 pb-[6px]">Flagship Fund One</span>
         </div>
       </div>
     </Section>
