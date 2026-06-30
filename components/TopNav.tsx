@@ -31,7 +31,7 @@ export function TopNav() {
     <motion.header
       animate={{ y: visible ? 0 : "-100%" }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
-      className={`fixed top-0 left-0 right-0 z-[100] flex items-center justify-between px-[24px] mobile:px-[48px] py-[24px] ${variantClass}`}
+      className={`fixed top-0 left-0 right-0 z-[100] flex items-center justify-center px-[24px] mobile:px-[48px] py-[24px] ${variantClass}`}
     >
       <button
         type="button"
@@ -42,9 +42,8 @@ export function TopNav() {
         <img
           src="/bloom-logo-white.svg"
           alt="Bloom Ventures"
-          height={20}
           style={{
-            height: "20px",
+            height: "24px",
             width: "auto",
             filter: isDark ? "none" : "invert(1)",
             transition: "filter 0.3s ease",
