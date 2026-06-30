@@ -24,9 +24,7 @@ export function TopNav() {
   const isDark = activeId === "hero" || theme === "dark";
 
   const variantClass = isDark
-    ? activeId === "hero"
-      ? "border-b border-chalk-25"
-      : "backdrop-blur-[5px] bg-[rgba(235,235,235,0.05)]"
+    ? "backdrop-blur-[5px] bg-[rgba(235,235,235,0.05)]"
     : "backdrop-blur-[5px] bg-[rgba(235,235,235,0.05)]";
 
   return (
@@ -53,7 +51,7 @@ export function TopNav() {
           }}
         />
       </button>
-      <span className={`text-l1 uppercase ${isDark ? "text-chalk" : "text-black"}`}>July 2026</span>
+      <span className={`text-l1 uppercase ${isDark ? "text-chalk" : "text-black"}`}>Flagship Fund One</span>
     </motion.header>
   );
 }
