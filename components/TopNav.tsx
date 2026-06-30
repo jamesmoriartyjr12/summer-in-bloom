@@ -21,27 +21,39 @@ export function TopNav() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const variantClass =
-    activeId === "hero"
-      ? "border-b border-chalk-25 text-chalk"
-      : theme === "dark"
-      ? "text-chalk backdrop-blur-[5px] bg-[rgba(235,235,235,0.05)]"
-      : "text-black backdrop-blur-[5px] bg-[rgba(235,235,235,0.05)]";
+  const isDark = activeId === "hero" || theme === "dark";
+
+  const variantClass = isDark
+    ? activeId === "hero"
+      ? "border-b border-chalk-25"
+      : "backdrop-blur-[5px] bg-[rgba(235,235,235,0.05)]"
+    : "backdrop-blur-[5px] bg-[rgba(235,235,235,0.05)]";
 
   return (
     <motion.header
       animate={{ y: visible ? 0 : "-100%" }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
-      className={`fixed top-0 left-0 right-0 z-[100] flex items-center justify-between px-[24px] mobile:px-[48px] py-[24px] text-l1 uppercase ${variantClass}`}
+      className={`fixed top-0 left-0 right-0 z-[100] flex items-center justify-between px-[24px] mobile:px-[48px] py-[24px] ${variantClass}`}
     >
       <button
         type="button"
         onClick={() => lenis?.scrollTo(0)}
-        className="cursor-pointer uppercase"
+        className="cursor-pointer"
+        aria-label="Bloom Ventures"
       >
-        Bloom Ventures
+        <img
+          src="/bloom-logo-white.svg"
+          alt="Bloom Ventures"
+          height={20}
+          style={{
+            height: "20px",
+            width: "auto",
+            filter: isDark ? "none" : "invert(1)",
+            transition: "filter 0.3s ease",
+          }}
+        />
       </button>
-      <span>July 2026</span>
+      <span className={`text-l1 uppercase ${isDark ? "text-chalk" : "text-black"}`}>July 2026</span>
     </motion.header>
   );
 }
