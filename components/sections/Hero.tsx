@@ -7,6 +7,14 @@ const TEXT =
   "We built this fund to give our LPs exposure to the success of our studio, where we work side by side with early-stage companies and guide them through hypergrowth.";
 const WORDS = TEXT.split(" ");
 
+// Paragraph writes in across 0–0.60
+// Headline appears at 0.60–0.72
+// Everything fades out at 0.85+
+const PARA_END = 0.60;
+const HEAD_START = 0.60;
+const HEAD_FULL = 0.72;
+const FADE_START = 0.85;
+
 function useScrollProgress(ref: React.RefObject<HTMLDivElement | null>) {
   const [progress, setProgress] = useState(0);
   useEffect(() => {
@@ -28,22 +36,26 @@ export function Hero() {
   const outerRef = useRef<HTMLDivElement>(null);
   const progress = useScrollProgress(outerRef);
 
+  const exitOpacity = progress > FADE_START
+    ? Math.max(0, 1 - (progress - FADE_START) / (1 - FADE_START))
+    : 1;
+
   const getWordOpacity = (index: number) => {
-    // Reveal words across the first 75% of scroll
-    const revealEnd = 0.75;
     const wordFraction = index / WORDS.length;
-    const cursor = progress / revealEnd;
-
-    // Fade everything out near the end
-    if (progress > 0.85) {
-      return Math.max(0, 1 - (progress - 0.85) / 0.15);
-    }
-
+    const cursor = progress / PARA_END;
     const ahead = cursor - wordFraction;
     if (ahead >= 0.08) return 1;
     if (ahead >= 0) return ahead / 0.08;
     return 0;
   };
+
+  const headlineOpacity =
+    progress < HEAD_START ? 0
+    : Math.min(1, (progress - HEAD_START) / (HEAD_FULL - HEAD_START));
+
+  const headlineY =
+    progress < HEAD_START ? 40
+    : Math.max(0, 40 * (1 - (progress - HEAD_START) / (HEAD_FULL - HEAD_START)));
 
   return (
     <div ref={outerRef} className="relative h-[300vh]">
@@ -65,7 +77,10 @@ export function Hero() {
 
         <div className="relative z-10 flex-1" />
 
-        <div className="relative z-10 flex flex-col gap-[96px] p-[24px] mobile:p-[48px]">
+        <div
+          className="relative z-10 flex flex-col gap-[96px] p-[24px] mobile:p-[48px]"
+          style={{ opacity: exitOpacity }}
+        >
           <p className="text-[24px] leading-[1.5] max-w-[520px]">
             {WORDS.map((word, i) => (
               <span
@@ -80,7 +95,15 @@ export function Hero() {
               </span>
             ))}
           </p>
-          <div className="flex items-end justify-between">
+
+          <div
+            className="flex items-end justify-between"
+            style={{
+              opacity: headlineOpacity,
+              transform: `translateY(${headlineY}px)`,
+              transition: "opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)",
+            }}
+          >
             <h1 className="font-display text-[clamp(60px,18vw,200px)] leading-[0.95] tracking-[-4px]">
               Summer<br /> in Bloom
             </h1>
