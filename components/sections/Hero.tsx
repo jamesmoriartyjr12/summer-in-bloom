@@ -7,13 +7,10 @@ const TEXT =
   "We built this fund to give our LPs exposure to the success of our studio, where we work side by side with early-stage companies and guide them through hypergrowth.";
 const WORDS = TEXT.split(" ");
 
-// Paragraph writes in across 0–0.60
-// Headline appears at 0.60–0.72
-// Everything fades out at 0.85+
-const PARA_END = 0.60;
+const PARA_END   = 0.60;
 const HEAD_START = 0.60;
-const HEAD_FULL = 0.72;
-const FADE_START = 0.85;
+const HEAD_FULL  = 0.72;
+const EXIT_START = 0.82;
 
 function useScrollProgress(ref: React.RefObject<HTMLDivElement | null>) {
   const [progress, setProgress] = useState(0);
@@ -36,9 +33,14 @@ export function Hero() {
   const outerRef = useRef<HTMLDivElement>(null);
   const progress = useScrollProgress(outerRef);
 
-  const exitOpacity = progress > FADE_START
-    ? Math.max(0, 1 - (progress - FADE_START) / (1 - FADE_START))
-    : 1;
+  // 0 → 1 during the exit window
+  const exitP = Math.max(0, Math.min(1, (progress - EXIT_START) / (1 - EXIT_START)));
+  const exitOpacity = 1 - exitP;
+
+  // Para exits faster (more parallax lift)
+  const paraExitY  = exitP * -100;
+  // Headline exits slower (stays a beat longer)
+  const headExitY  = exitP * -50;
 
   const getWordOpacity = (index: number) => {
     const wordFraction = index / WORDS.length;
@@ -49,12 +51,12 @@ export function Hero() {
     return 0;
   };
 
-  const headlineOpacity =
-    progress < HEAD_START ? 0
+  const headlineOpacity = progress < HEAD_START
+    ? 0
     : Math.min(1, (progress - HEAD_START) / (HEAD_FULL - HEAD_START));
 
-  const headlineY =
-    progress < HEAD_START ? 40
+  const headlineEntryY = progress < HEAD_START
+    ? 40
     : Math.max(0, 40 * (1 - (progress - HEAD_START) / (HEAD_FULL - HEAD_START)));
 
   return (
@@ -77,11 +79,17 @@ export function Hero() {
 
         <div className="relative z-10 flex-1" />
 
-        <div
-          className="relative z-10 flex flex-col gap-[96px] p-[24px] mobile:p-[48px]"
-          style={{ opacity: exitOpacity }}
-        >
-          <p className="text-[24px] leading-[1.5] max-w-[520px]">
+        <div className="relative z-10 flex flex-col gap-[96px] p-[24px] mobile:p-[48px]">
+
+          {/* Paragraph — exits upward faster */}
+          <p
+            className="text-[24px] leading-[1.5] max-w-[520px]"
+            style={{
+              opacity: exitOpacity,
+              transform: `translateY(${paraExitY}px)`,
+              transition: "opacity 0.1s linear, transform 0.1s linear",
+            }}
+          >
             {WORDS.map((word, i) => (
               <span
                 key={i}
@@ -96,11 +104,12 @@ export function Hero() {
             ))}
           </p>
 
+          {/* Headline — enters after text, exits upward slower */}
           <div
             className="flex items-end justify-between"
             style={{
-              opacity: headlineOpacity,
-              transform: `translateY(${headlineY}px)`,
+              opacity: headlineOpacity * exitOpacity,
+              transform: `translateY(${headlineEntryY + headExitY}px)`,
               transition: "opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)",
             }}
           >
@@ -109,6 +118,7 @@ export function Hero() {
             </h1>
             <span className="font-display text-l1 pb-[6px]">Flagship Fund One</span>
           </div>
+
         </div>
       </Section>
     </div>
