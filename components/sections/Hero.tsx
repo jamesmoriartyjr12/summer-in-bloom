@@ -5,9 +5,10 @@ import { Section } from "../Section";
 
 const LINES = [
   "We built this fund",
-  "to give our LPs exposure to the success of our studio,",
-  "where we work side by side with early-stage companies",
-  "and guide them through hypergrowth.",
+  "to give our LPs exposure",
+  "to the success of our studio,",
+  "where we guide early-stage companies",
+  "through hypergrowth.",
 ];
 
 function useScrollProgress(ref: React.RefObject<HTMLDivElement | null>) {
@@ -32,18 +33,18 @@ export function Hero() {
   const progress = useScrollProgress(outerRef);
 
   const getOpacity = (i: number) => {
-    const step = 0.65 / LINES.length;
+    const step = 0.6 / LINES.length;
     const start = i * step;
-    const end = start + 0.12;
-    if (progress > 0.85) {
-      return Math.max(0, 1 - (progress - 0.85) / 0.15);
+    const end = start + 0.1;
+    if (progress > 0.82) {
+      return Math.max(0, 1 - (progress - 0.82) / 0.18);
     }
     return Math.min(1, Math.max(0, (progress - start) / (end - start)));
   };
 
   const getY = (i: number) => {
-    const step = 0.65 / LINES.length;
-    return progress < i * step ? 14 : 0;
+    const step = 0.6 / LINES.length;
+    return progress < i * step ? 60 : 0;
   };
 
   return (
@@ -67,7 +68,7 @@ export function Hero() {
         <div className="relative z-10 flex-1" />
 
         <div className="relative z-10 flex flex-col gap-[96px] p-[24px] mobile:p-[48px]">
-          <p className="text-[24px] leading-[1.4] max-w-[448px]">
+          <p className="text-[40px] leading-[1.25]">
             {LINES.map((line, i) => (
               <span
                 key={i}
@@ -75,7 +76,7 @@ export function Hero() {
                 style={{
                   opacity: getOpacity(i),
                   transform: `translateY(${getY(i)}px)`,
-                  transition: "opacity 0.5s ease, transform 0.5s ease",
+                  transition: "opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)",
                 }}
               >
                 {line}

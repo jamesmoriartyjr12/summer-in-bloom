@@ -108,6 +108,8 @@ export function SideNav() {
       <motion.nav
         aria-label="Section navigation"
         style={{ y }}
+        animate={{ opacity: activeId === "hero" ? 0 : 1, pointerEvents: activeId === "hero" ? "none" : "auto" }}
+        transition={{ duration: 0.4 }}
         className="max-[599px]:hidden fixed left-0 top-[96px] z-50 px-[16px] w-[200px]"
       >
         <ul className="flex flex-col gap-[8px]">
@@ -158,6 +160,8 @@ export function SideNav() {
           aria-label={isOpen ? "Close menu" : "Open menu"}
           onClick={() => setIsOpen((v) => !v)}
           style={{ y, color: isDark ? "#EBEBEB" : "#000000" }}
+          animate={{ opacity: activeId === "hero" ? 0 : 1, pointerEvents: activeId === "hero" ? "none" : "auto" }}
+          transition={{ duration: 0.4 }}
           className="fixed left-[16px] top-[96px] z-50 p-[8px]"
         >
           <AnimatePresence mode="wait" initial={false}>
