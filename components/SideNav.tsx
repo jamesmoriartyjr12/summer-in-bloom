@@ -11,13 +11,13 @@ type NavItem = {
 };
 
 const NAV_ITEMS: NavItem[] = [
-  { id: "the-studio", label: "The Studio" },
-  { id: "fund-thesis", label: "Fund Thesis" },
-  { id: "about-us", label: "About Us" },
-  { id: "current-portfolio", label: "Current Portfolio" },
-  { id: "in-the-news", label: "In the News" },
+  { id: "the-studio", label: "Studio" },
+  { id: "fund-thesis", label: "Thesis" },
+  { id: "about-us", label: "About" },
+  { id: "current-portfolio", label: "Portfolio" },
+  { id: "in-the-news", label: "News" },
   { id: "fund-details-2", label: "Fund Details" },
-  { id: "contact", label: "Contact" },
+  { id: "contact", label: "Join us" },
 ];
 
 function scrollDuration(id: SectionId): number {
