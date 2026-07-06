@@ -24,7 +24,7 @@ export function TheStudio() {
         <div className="pl-[76px] mobile:pl-[200px] desktop:pl-[248px] xl:pl-[320px] pr-[24px] mobile:pr-[48px] flex flex-col gap-[24px]">
           <p className="text-l2 font-medium uppercase">The Studio • Execution Meets Capital</p>
           <h2 className="font-display text-h2 leading-none tracking-[-1.6px] max-w-[850px]">
-            We build category defining leaders.
+            We don&apos;t write checks and wait. We build, scale, and distribute product alongside founders.
           </h2>
         </div>
 
@@ -56,9 +56,8 @@ export function TheStudio() {
 
             <div className="flex flex-col gap-[24px] pr-[48px]">
               <p className="text-p1">
-                We don&apos;t write checks and wait. We build, scale, and
-                distribute product alongside founders. We forward deploy design
-                engineers and growth teams to build, scale and distribute.
+                We forward deploy design engineers and growth teams to build,
+                scale and distribute.
               </p>
               <p className="text-p1">
                 We&apos;ve built category-defining products across hyperscale
