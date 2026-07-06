@@ -26,6 +26,10 @@ export function TheStudio() {
           <h2 className="font-display text-h2 leading-none tracking-[-1.6px] max-w-[850px]">
             We don&apos;t write checks and wait.
           </h2>
+          <p className="text-p1 max-w-[520px]">
+            We build, scale, and distribute companies into category leaders
+            with forward deployed design engineers, and growth marketers.
+          </p>
         </div>
 
         <SectionContent
@@ -55,11 +59,6 @@ export function TheStudio() {
             </div>
 
             <div className="flex flex-col gap-[24px] pr-[48px]">
-              <p className="text-p1">
-                We build, scale, and distribute companies into category leaders
-                with forward deployed design engineers, and growth marketers.
-              </p>
-            </div>
 
             <div className="flex flex-col mt-[48px]">
               <p className="text-l2 font-medium uppercase">Over 3 years</p>
