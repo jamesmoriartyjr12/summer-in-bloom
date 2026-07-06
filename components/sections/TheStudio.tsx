@@ -58,8 +58,6 @@ export function TheStudio() {
               <div className="absolute inset-0 bg-black/10" />
             </div>
 
-            <div className="flex flex-col gap-[24px] pr-[48px]">
-
             <div className="flex flex-col mt-[48px]">
               <p className="text-l2 font-medium uppercase">Over 3 years</p>
               {STUDIO_STATS.map((stat) => (
