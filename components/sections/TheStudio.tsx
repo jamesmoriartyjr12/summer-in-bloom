@@ -55,18 +55,16 @@ export function TheStudio() {
             </div>
 
             <div className="flex flex-col gap-[24px] pr-[48px]">
-              <p className="text-l2 font-medium uppercase">How we work</p>
-              <p className="text-p1">
-                Our team designed and built category-defining products at
-                DraftKings, Chime Bank, Indeed, Manulife/John Hancock and
-                Meetup. We now deploy that operating expertise directly into
-                portfolio companies.
-              </p>
               <p className="text-p1">
                 We don&apos;t write checks and wait. We build, scale, and
                 distribute product alongside founders. We forward deploy design
-                engineers and growth teams into companies to build, scale and
-                distribute product.
+                engineers and growth teams to build, scale and distribute.
+              </p>
+              <p className="text-p1">
+                We&apos;ve built category-defining products across hyperscale
+                and enterprise companies and have had multiple exits. We are now
+                deploying our thesis on the future of product development
+                directly into our portfolio companies.
               </p>
             </div>
 
