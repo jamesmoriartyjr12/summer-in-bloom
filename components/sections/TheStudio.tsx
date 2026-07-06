@@ -24,7 +24,7 @@ export function TheStudio() {
         <div className="pl-[76px] mobile:pl-[200px] desktop:pl-[248px] xl:pl-[320px] pr-[24px] mobile:pr-[48px] flex flex-col gap-[24px]">
           <p className="text-l2 font-medium uppercase">The Studio</p>
           <h2 className="font-display text-h2 leading-none tracking-[-1.6px] max-w-[850px]">
-            Brick by brick, category defining leaders are being built right here inside of the studio.
+            Execution meets Capital. Where category defining leaders are born.
           </h2>
         </div>
 
