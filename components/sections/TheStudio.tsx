@@ -56,14 +56,8 @@ export function TheStudio() {
 
             <div className="flex flex-col gap-[24px] pr-[48px]">
               <p className="text-p1">
-                We forward deploy design engineers and growth teams to build,
-                scale and distribute.
-              </p>
-              <p className="text-p1">
-                We&apos;ve built category-defining products across hyperscale
-                and enterprise companies and have had multiple exits. We are now
-                deploying our thesis on the future of product development
-                directly into our portfolio companies.
+                We build, scale, and distribute companies into category leaders
+                with forward deployed design engineers, and growth marketers.
               </p>
             </div>
 
