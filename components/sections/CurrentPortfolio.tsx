@@ -18,13 +18,6 @@ const BASE = "/Bloom%20Portfolio%20Images/";
 
 const PORTFOLIO: PortfolioCompany[] = [
   {
-    name: "Orion",
-    stage: "Seed",
-    tags: ["Consumer", "Health"],
-    imageSmall: `${BASE}Orion_Small.png`,
-    imageLarge: `${BASE}Orion_Large.png`,
-  },
-  {
     name: "TeeCommerce",
     stage: "Seed",
     tags: ["Ecomm"],
@@ -32,11 +25,25 @@ const PORTFOLIO: PortfolioCompany[] = [
     imageLarge: `${BASE}TeeCommerce_Large.png`,
   },
   {
+    name: "OuterProduct",
+    stage: "Seed",
+    tags: ["Consumer"],
+    imageSmall: `${BASE}OuterProduct_Small.png`,
+    imageLarge: `${BASE}OuterProduct_Large.png`,
+  },
+  {
     name: "FanFix",
     stage: "Post-Acquisition Growth",
     tags: ["Consumer", "Money"],
     imageSmall: `${BASE}FanFix_Small.png`,
     imageLarge: `${BASE}FanFix_Large.png`,
+  },
+  {
+    name: "Orion",
+    stage: "Seed",
+    tags: ["Consumer", "Health"],
+    imageSmall: `${BASE}Orion_Small.png`,
+    imageLarge: `${BASE}Orion_Large.png`,
   },
   {
     name: "WatchCheck",
@@ -53,15 +60,7 @@ const PORTFOLIO: PortfolioCompany[] = [
     imageLarge: `${BASE}Meridian_Large.png`,
   },
   {
-    name: "Milly",
-    stage: "Seed",
-    tags: ["Marketplace"],
-    imageSmall: `${BASE}Milly_Small.png`,
-    imageLarge: `${BASE}Milly_Large.png`,
-    hidden: true,
-  },
-  {
-    name: "Jamie",
+    name: "Jamie Ai",
     stage: "Seed",
     tags: ["AI"],
     imageSmall: `${BASE}Jamie_Small.png`,
@@ -73,6 +72,13 @@ const PORTFOLIO: PortfolioCompany[] = [
     tags: ["Health", "Money"],
     imageSmall: `${BASE}Sunny_Small.png`,
     imageLarge: `${BASE}Sunny_Large.png`,
+  },
+  {
+    name: "Milly Books",
+    stage: "Seed",
+    tags: ["Marketplace"],
+    imageSmall: `${BASE}Milly_Small.png`,
+    imageLarge: `${BASE}Milly_Large.png`,
   },
   {
     name: "Feno Labs",
