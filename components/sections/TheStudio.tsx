@@ -21,9 +21,10 @@ export function TheStudio() {
       className="relative z-10 bg-chalk text-black py-[200px]"
     >
       <div className="flex flex-col gap-[48px] desktop:gap-[96px]">
-        <div className="pl-[76px] mobile:pl-[200px] desktop:pl-[248px] xl:pl-[320px] pr-[24px] mobile:pr-[48px]">
+        <div className="pl-[76px] mobile:pl-[200px] desktop:pl-[248px] xl:pl-[320px] pr-[24px] mobile:pr-[48px] flex flex-col gap-[24px]">
+          <p className="text-l2 font-medium uppercase">The Studio</p>
           <h2 className="font-display text-h2 leading-none tracking-[-1.6px] max-w-[850px]">
-            A venture studio that operates inside our portfolio.
+            Brick by brick, category defining leaders are being built right here inside of the studio.
           </h2>
         </div>
 
