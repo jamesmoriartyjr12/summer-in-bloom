@@ -72,49 +72,48 @@ export function TheStudio() {
           </p>
         </div>
 
-        {/* Parallax stats block — creates scroll space */}
-        <div ref={statsRef} className="relative h-[200vh]">
-          <div className="sticky top-0 h-screen flex items-stretch pl-[76px] mobile:pl-[200px] desktop:pl-[248px] xl:pl-[320px]">
+        {/* Parallax stats block */}
+        <div
+          ref={statsRef}
+          className="relative h-[200vh] flex gap-[48px] items-start pl-[76px] mobile:pl-[200px] desktop:pl-[248px] xl:pl-[320px]"
+        >
+          {/* Image — same size as before, sticky */}
+          <div className="sticky top-[96px] w-[336px] h-[400px] shrink-0 overflow-hidden relative max-[1099px]:hidden">
+            <Image
+              src={STUDIO_IMAGE_SMALL}
+              alt=""
+              fill
+              sizes="336px"
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-black/10" />
+          </div>
 
-            {/* Image — fills the sticky column */}
-            <div className="w-[336px] shrink-0 max-[1099px]:hidden overflow-hidden relative">
-              <Image
-                src={STUDIO_IMAGE_SMALL}
-                alt=""
-                fill
-                sizes="336px"
-                className="object-cover"
-              />
+          {/* Stats — animate in and out against the sticky image */}
+          <div
+            className="flex-1 flex flex-col mt-[48px] pr-[96px]"
+            style={{
+              opacity,
+              transform: `translateY(${translateY}px)`,
+              transition: "opacity 0.05s linear, transform 0.05s linear",
+            }}
+          >
+            {/* Mobile image */}
+            <div className="desktop:hidden aspect-[4/3] w-full overflow-hidden relative mb-[48px]">
+              <Image src={STUDIO_IMAGE_LARGE} alt="" fill className="object-cover" />
               <div className="absolute inset-0 bg-black/10" />
             </div>
 
-            {/* Stats — animate in and out against the sticky image */}
-            <div
-              className="flex-1 flex flex-col justify-center pl-[48px] pr-[96px]"
-              style={{
-                opacity,
-                transform: `translateY(${translateY}px)`,
-                transition: "opacity 0.05s linear, transform 0.05s linear",
-              }}
-            >
-              {/* Mobile image */}
-              <div className="desktop:hidden aspect-[4/3] w-full overflow-hidden relative mb-[48px]">
-                <Image src={STUDIO_IMAGE_LARGE} alt="" fill className="object-cover" />
-                <div className="absolute inset-0 bg-black/10" />
+            {STUDIO_STATS.map((stat) => (
+              <div
+                key={stat.value}
+                className="flex items-center py-[40px] border-b border-beige"
+              >
+                <p className="font-display text-h4 leading-none tracking-[-0.64px]">
+                  {stat.value}
+                </p>
               </div>
-
-              {STUDIO_STATS.map((stat) => (
-                <div
-                  key={stat.value}
-                  className="flex items-center py-[40px] border-b border-beige"
-                >
-                  <p className="font-display text-h4 leading-none tracking-[-0.64px]">
-                    {stat.value}
-                  </p>
-                </div>
-              ))}
-            </div>
-
+            ))}
           </div>
         </div>
 
