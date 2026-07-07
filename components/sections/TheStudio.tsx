@@ -38,15 +38,10 @@ export function TheStudio() {
   const IN_END    = 0.25;
   const OUT_START = 0.75;
 
-  // Purely scroll-driven — no CSS transition
-  const opacity =
-    progress < IN_END    ? progress / IN_END :
-    progress > OUT_START ? 1 - (progress - OUT_START) / (1 - OUT_START) :
-    1;
-
+  // Purely scroll-driven — translate only, no opacity
   const translateY =
-    progress < IN_END    ? 40 * (1 - progress / IN_END) :
-    progress > OUT_START ? -40 * (progress - OUT_START) / (1 - OUT_START) :
+    progress < IN_END    ? 200 * (1 - progress / IN_END) :
+    progress > OUT_START ? -200 * (progress - OUT_START) / (1 - OUT_START) :
     0;
 
   // Sticky top: centered in viewport, but never closer than 100px to the bottom
@@ -85,21 +80,21 @@ export function TheStudio() {
           <div className="absolute inset-0 bg-black/10" />
         </div>
 
-        {/* Desktop: stats — sticky at same height, purely scroll-driven */}
+        {/* Desktop: stats — sticky at same height, scroll-driven translate only */}
         <div
-          className="max-[1099px]:hidden flex-1 flex flex-col justify-center h-[400px] pr-[96px]"
-          style={{
-            position: "sticky",
-            top: stickyTop,
-            opacity,
-            transform: `translateY(${translateY}px)`,
-          }}
+          className="max-[1099px]:hidden flex-1 h-[400px] pr-[96px] overflow-hidden"
+          style={{ position: "sticky", top: stickyTop }}
+        >
+        <div
+          className="flex flex-col justify-center h-full"
+          style={{ transform: `translateY(${translateY}px)` }}
         >
           {STUDIO_STATS.map((stat) => (
             <div key={stat.value} className="flex items-center py-[40px] border-b border-beige">
               <p className="font-display text-h4 leading-none tracking-[-0.64px]">{stat.value}</p>
             </div>
           ))}
+        </div>
         </div>
 
         {/* Mobile: image + stats, no animation */}
