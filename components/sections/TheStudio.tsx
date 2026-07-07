@@ -5,9 +5,9 @@ import { Section } from "../Section";
 import { SectionContent } from "../SectionContent";
 
 const STUDIO_STATS = [
-  { value: "11 companies" },
-  { value: "9 markups" },
-  { value: "3.0x MOIC" },
+  { value: "1.6M Deployed" },
+  { value: "10 Investments" },
+  { value: "8 Markups" },
 ];
 
 const STUDIO_IMAGE_SMALL = "/studio-small.png";
@@ -59,7 +59,6 @@ export function TheStudio() {
             </div>
 
             <div className="flex flex-col mt-[48px]">
-              <p className="text-l2 font-medium uppercase">Over 3 years</p>
               {STUDIO_STATS.map((stat) => (
                 <div
                   key={stat.value}
@@ -70,15 +69,6 @@ export function TheStudio() {
                   </p>
                 </div>
               ))}
-            </div>
-
-            <div className="mt-[48px] pr-[48px]">
-              <p className="text-p1">
-                We invest $1.3M average, now valued at $3.9M. Companies with
-                product-market fit need execution horsepower, not more capital.
-                We become that operating layer, a hired gun embedded in the
-                business.
-              </p>
             </div>
           </div>
         </SectionContent>
