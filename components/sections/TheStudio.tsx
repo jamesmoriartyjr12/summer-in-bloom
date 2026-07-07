@@ -13,7 +13,6 @@ const STUDIO_STATS = [
 const STUDIO_IMAGE_SMALL = "/studio-small.png";
 const STUDIO_IMAGE_LARGE = "/studio-large.png";
 
-// Tracks scroll progress 0→1 through a container taller than the viewport
 function useScrollProgress(ref: React.RefObject<HTMLDivElement | null>) {
   const [progress, setProgress] = useState(0);
   useEffect(() => {
@@ -36,10 +35,10 @@ export function TheStudio() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const progress = useScrollProgress(scrollRef);
 
-  // Text enters at 0→0.25, holds 0.25→0.75, exits 0.75→1.0
   const IN_END    = 0.25;
   const OUT_START = 0.75;
 
+  // Purely scroll-driven — no CSS transition
   const opacity =
     progress < IN_END    ? progress / IN_END :
     progress > OUT_START ? 1 - (progress - OUT_START) / (1 - OUT_START) :
@@ -50,13 +49,17 @@ export function TheStudio() {
     progress > OUT_START ? -40 * (progress - OUT_START) / (1 - OUT_START) :
     0;
 
+  // Sticky top: centered in viewport, but never closer than 100px to the bottom
+  // clamp(96px, 50vh - 200px, 100vh - 500px)
+  const stickyTop = "clamp(96px, calc(50vh - 200px), calc(100vh - 500px))";
+
   return (
     <Section
       id="the-studio"
       theme="light"
-      className="relative z-10 bg-chalk text-black pt-[200px]"
+      className="relative z-10 bg-chalk text-black pt-[200px] pb-[200px]"
     >
-      {/* Headline block — scrolls normally */}
+      {/* Headline block */}
       <div className="pl-[76px] mobile:pl-[200px] desktop:pl-[248px] xl:pl-[320px] pr-[24px] mobile:pr-[48px] flex flex-col gap-[24px] pb-[96px]">
         <p className="text-l2 font-medium uppercase">The Studio • Execution Meets Capital</p>
         <h2 className="font-display text-h2 leading-none tracking-[-1.6px] max-w-[850px]">
@@ -68,47 +71,43 @@ export function TheStudio() {
         </p>
       </div>
 
-      {/* Scroll container — image and text are both sticky, text animates in/out */}
+      {/* Scroll container — 200vh creates space for in/out animation */}
       <div
         ref={scrollRef}
         className="relative h-[200vh] pl-[76px] mobile:pl-[200px] desktop:pl-[248px] xl:pl-[320px] flex gap-[48px] items-start"
       >
-        {/* Mobile image — non-sticky */}
-        <div className="desktop:hidden aspect-[4/3] w-full overflow-hidden relative mb-[48px]">
-          <Image src={STUDIO_IMAGE_LARGE} alt="" fill className="object-cover" />
-          <div className="absolute inset-0 bg-black/10" />
-        </div>
-
-        {/* Image — sticky, centered in viewport */}
-        <div className="sticky max-[1099px]:hidden w-[336px] h-[400px] shrink-0 overflow-hidden relative" style={{ top: "calc(50vh - 200px)" }}>
+        {/* Desktop: sticky image, centered, never within 100px of bottom */}
+        <div
+          className="max-[1099px]:hidden w-[336px] h-[400px] shrink-0 overflow-hidden relative"
+          style={{ position: "sticky", top: stickyTop }}
+        >
           <Image src={STUDIO_IMAGE_SMALL} alt="" fill sizes="336px" className="object-cover" />
           <div className="absolute inset-0 bg-black/10" />
         </div>
 
-        {/* Stats — sticky at same height, animate in/out */}
+        {/* Desktop: stats — sticky at same height, purely scroll-driven */}
         <div
-          className="flex-1 max-[1099px]:hidden flex flex-col justify-center h-[400px] pr-[96px]"
+          className="max-[1099px]:hidden flex-1 flex flex-col justify-center h-[400px] pr-[96px]"
           style={{
             position: "sticky",
-            top: "calc(50vh - 200px)",
+            top: stickyTop,
             opacity,
             transform: `translateY(${translateY}px)`,
           }}
         >
           {STUDIO_STATS.map((stat) => (
-            <div
-              key={stat.value}
-              className="flex items-center py-[40px] border-b border-beige"
-            >
-              <p className="font-display text-h4 leading-none tracking-[-0.64px]">
-                {stat.value}
-              </p>
+            <div key={stat.value} className="flex items-center py-[40px] border-b border-beige">
+              <p className="font-display text-h4 leading-none tracking-[-0.64px]">{stat.value}</p>
             </div>
           ))}
         </div>
 
-        {/* Mobile stats — plain, no animation */}
-        <div className="desktop:hidden flex flex-col pr-[24px]">
+        {/* Mobile: image + stats, no animation */}
+        <div className="desktop:hidden flex flex-col w-full pr-[24px]">
+          <div className="aspect-[4/3] w-full overflow-hidden relative mb-[48px]">
+            <Image src={STUDIO_IMAGE_LARGE} alt="" fill className="object-cover" />
+            <div className="absolute inset-0 bg-black/10" />
+          </div>
           {STUDIO_STATS.map((stat) => (
             <div key={stat.value} className="flex items-center py-[40px] border-b border-beige">
               <p className="font-display text-h4 leading-none tracking-[-0.64px]">{stat.value}</p>
@@ -116,7 +115,6 @@ export function TheStudio() {
           ))}
         </div>
       </div>
-
     </Section>
   );
 }
