@@ -49,7 +49,7 @@ export function AboutUs() {
           {TEAM.map((member, i) => (
             <div key={i} className="flex flex-col gap-[24px]">
               <div
-                className="w-full aspect-[4/5] bg-beige relative overflow-hidden"
+                className="w-[240px] max-w-full aspect-[4/5] bg-beige relative overflow-hidden"
                 style={{
                   clipPath:
                     "polygon(28px 0, 100% 0, 100% calc(100% - 28px), calc(100% - 28px) 100%, 0 100%, 0 28px)",
