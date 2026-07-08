@@ -13,7 +13,7 @@ type NavItem = {
 const NAV_ITEMS: NavItem[] = [
   { id: "the-studio", label: "Studio" },
   { id: "fund-thesis", label: "Thesis" },
-  { id: "about-us", label: "About" },
+  { id: "about-us", label: "Team" },
   { id: "current-portfolio", label: "Portfolio" },
   { id: "in-the-news", label: "News" },
   { id: "fund-details-2", label: "Fund Details" },
