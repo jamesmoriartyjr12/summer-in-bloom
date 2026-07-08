@@ -45,9 +45,9 @@ export function AboutUs() {
           Built by proven operators, to build alongside proven operators.
         </h2>
 
-        <div className="grid grid-cols-1 desktop:grid-cols-3 gap-x-[48px] gap-y-[64px] pr-[24px] mobile:pr-[48px] desktop:pr-[48px]">
+        <div className="flex flex-col desktop:flex-row gap-x-[48px] gap-y-[64px] pr-[24px] mobile:pr-[48px] desktop:pr-[48px]">
           {TEAM.map((member, i) => (
-            <div key={i} className="flex flex-col gap-[24px]">
+            <div key={i} className="flex flex-col gap-[24px] desktop:w-[240px] shrink-0">
               <div
                 className="w-[240px] max-w-full aspect-[4/5] bg-beige relative overflow-hidden"
                 style={{
