@@ -15,21 +15,21 @@ type TeamMember = {
 const TEAM: TeamMember[] = [
   {
     name: "James Moriarty Jr.",
-    role: "Founder",
+    role: "General Partner",
     image: `${BASE}James_Portrait.png`,
-    bio: "Lorem ipsum dolor sit amet consectetur. Sem eu lorem proin diam mauris integer. Feugiat aliquet tempor rhoncus metus dignissim arcu eget. Id enim libero diam faucibus turpis phasellus non. Sed vitae eget nunc fermentum malesuada integer enim. Posuere bibendum vulputate leo non pharetra augue et venenatis.",
+    bio: "Previously: DraftKings, Chime, OnePay",
   },
   {
     name: "Chris Lovett",
-    role: "Head of Growth",
+    role: "Venture Partner and Investor Relations",
     image: `${BASE}Chris_Portrait.png`,
-    bio: "Lorem ipsum dolor sit amet consectetur. Elit ac ultrices sit egestas. Quam sollicitudin semper ornare integer nulla. Tortor iaculis fermentum sagittis massa massa. Lectus commodo nisl ornare at. At ut magna arcu est vitae tellus. Nisl duis adipiscing sit sit egestas pellentesque arcu quis fringilla.",
+    bio: "Previously: DoorDash",
   },
   {
     name: "Moby Masood",
-    role: "Partner",
+    role: "Venture Partner",
     image: `${BASE}Moby_Portrait.png`,
-    bio: "Lorem ipsum dolor sit amet consectetur. Magnis massa amet nunc laoreet. Tellus sed turpis commodo massa nisl tincidunt non duis massa. Quisque ac sollicitudin rhoncus odio mauris sapien. Donec mattis congue eget mus nibh laoreet arcu consectetur non. Ultricies cursus pretium at faucibus etiam arcu hac lorem.",
+    bio: "Previously: Snowflake",
   },
 ];
 
