@@ -11,7 +11,6 @@ const STUDIO_STATS = [
 ];
 
 const STUDIO_IMAGE_SMALL = "/studio-small.png";
-const STUDIO_IMAGE_LARGE = "/studio-large.png";
 
 function useScrollProgress(ref: React.RefObject<HTMLDivElement | null>) {
   const [progress, setProgress] = useState(0);
@@ -31,8 +30,7 @@ function useScrollProgress(ref: React.RefObject<HTMLDivElement | null>) {
   return progress;
 }
 
-// Maps global progress into a 0→1 value within a sub-window
-function w(p: number, start: number, end: number) {
+function ease(p: number, start: number, end: number) {
   return Math.max(0, Math.min(1, (p - start) / (end - start)));
 }
 
@@ -40,44 +38,36 @@ export function TheStudio() {
   const outerRef = useRef<HTMLDivElement>(null);
   const progress = useScrollProgress(outerRef);
 
-  // Phase 1: headline + subhead slide in (0 → 0.15)
-  const headlineIn = w(progress, 0.00, 0.15);
-  // Phase 2: photo slides in (0.15 → 0.30)
-  const photoIn    = w(progress, 0.15, 0.30);
-  // Phase 3: stats scroll in one by one (0.30 → 0.65)
-  const statsIn    = w(progress, 0.30, 0.65);
-  // Phase 4: all exit together (0.70 → 1.00)
-  const exitP      = w(progress, 0.70, 1.00);
+  // Each phase: 0→1 within its window
+  const headlineIn = ease(progress, 0.00, 0.18); // headline + subhead
+  const photoIn    = ease(progress, 0.18, 0.35); // photo
+  const stat0      = ease(progress, 0.35, 0.52); // first stat
+  const stat1      = ease(progress, 0.46, 0.63); // second stat (overlaps slightly)
+  const stat2      = ease(progress, 0.57, 0.74); // third stat
+  const exitP      = ease(progress, 0.78, 1.00); // all exit upward together
 
-  const headlineY  = (1 - headlineIn) * 80;
-  const photoY     = (1 - photoIn) * 60;
-
-  // Each stat row slides in from 80px below, staggered
-  const statY = (i: number) => {
-    const p = w(statsIn, i * 0.28, i * 0.28 + 0.72);
-    return (1 - p) * 80;
-  };
-
-  // Exit: entire composition slides up off screen
-  const exitY = `${exitP * -100}vh`;
+  // Translate: 0 = final position, 1 = starts 80px below
+  const ty = (p: number) => `${(1 - p) * 80}px`;
 
   return (
-    // Outer div creates scroll space; Section is the full-screen sticky panel
     <div ref={outerRef} className="relative h-[400vh]">
       <Section
         id="the-studio"
         theme="light"
-        className="sticky top-0 h-screen bg-chalk text-black overflow-hidden flex flex-col"
+        className="sticky top-0 h-screen bg-chalk text-black overflow-hidden"
       >
+        {/* Entire composition — exits upward together */}
         <div
-          className="flex-1 flex flex-col pt-[120px] pb-[100px] pl-[76px] mobile:pl-[200px] desktop:pl-[248px] xl:pl-[320px] pr-[48px]"
-          style={{ transform: `translateY(${exitY})` }}
+          className="absolute inset-0 flex flex-col justify-between
+            pt-[120px] pb-[100px]
+            pl-[76px] mobile:pl-[200px] desktop:pl-[248px] xl:pl-[320px] pr-[48px]"
+          style={{ transform: `translateY(${exitP * -100}vh)` }}
         >
 
-          {/* Phase 1: Label + Headline + Subhead */}
+          {/* TOP: Headline + Subhead */}
           <div
             className="flex flex-col gap-[24px]"
-            style={{ transform: `translateY(${headlineY}px)` }}
+            style={{ transform: `translateY(${ty(headlineIn)})` }}
           >
             <p className="text-l2 font-medium uppercase">The Studio • Execution Meets Capital</p>
             <h2 className="font-display text-h2 leading-none tracking-[-1.6px] max-w-[850px]">
@@ -89,46 +79,40 @@ export function TheStudio() {
             </p>
           </div>
 
-          {/* Phase 2 + 3: Photo (slides in) + Stats (lock to photo bottom, scroll in) */}
-          <div
-            className="flex gap-[48px] items-end mt-auto"
-            style={{ transform: `translateY(${photoY}px)` }}
-          >
-            {/* Photo */}
-            <div className="max-[1099px]:hidden w-[336px] h-[400px] shrink-0 overflow-hidden relative">
+          {/* BOTTOM: Photo + Stats, bottom-aligned */}
+          <div className="flex gap-[48px] items-end">
+
+            {/* Photo slides in */}
+            <div
+              className="max-[1099px]:hidden w-[336px] shrink-0 overflow-hidden relative"
+              style={{
+                height: "clamp(240px, 35vh, 400px)",
+                transform: `translateY(${ty(photoIn)})`,
+              }}
+            >
               <Image src={STUDIO_IMAGE_SMALL} alt="" fill sizes="336px" className="object-cover" />
               <div className="absolute inset-0 bg-black/10" />
             </div>
 
-            {/* Stats — h-[400px] so their bottom aligns with photo bottom */}
-            <div className="flex-1 flex flex-col justify-end h-[400px] pr-[96px] max-[1099px]:h-auto">
-              {STUDIO_STATS.map((stat, i) => (
+            {/* Stats — each row slides in individually, bottom-aligned with photo */}
+            <div
+              className="flex-1 pr-[96px] flex flex-col justify-end max-[1099px]:hidden"
+              style={{ height: "clamp(240px, 35vh, 400px)" }}
+            >
+              {[stat0, stat1, stat2].map((p, i) => (
                 <div
-                  key={stat.value}
-                  className="flex items-center py-[40px] border-b border-beige"
-                  style={{ transform: `translateY(${statY(i)}px)` }}
+                  key={STUDIO_STATS[i].value}
+                  className="flex items-center py-[32px] border-b border-beige"
+                  style={{ transform: `translateY(${ty(p)})` }}
                 >
                   <p className="font-display text-h4 leading-none tracking-[-0.64px]">
-                    {stat.value}
+                    {STUDIO_STATS[i].value}
                   </p>
                 </div>
               ))}
             </div>
-          </div>
 
-          {/* Mobile layout */}
-          <div className="desktop:hidden mt-[48px]">
-            <div className="aspect-[4/3] w-full overflow-hidden relative mb-[48px]">
-              <Image src={STUDIO_IMAGE_LARGE} alt="" fill className="object-cover" />
-              <div className="absolute inset-0 bg-black/10" />
-            </div>
-            {STUDIO_STATS.map((stat) => (
-              <div key={stat.value} className="flex items-center py-[40px] border-b border-beige">
-                <p className="font-display text-h4 leading-none tracking-[-0.64px]">{stat.value}</p>
-              </div>
-            ))}
           </div>
-
         </div>
       </Section>
     </div>
