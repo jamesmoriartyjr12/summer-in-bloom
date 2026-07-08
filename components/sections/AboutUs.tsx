@@ -42,7 +42,7 @@ export function AboutUs() {
     >
       <div className="flex flex-col gap-[96px] pl-[76px] mobile:pl-[200px] desktop:pl-[248px] xl:pl-[320px]">
         <h2 className="font-display text-h2 leading-none tracking-[-1.6px] max-w-[800px] pr-[24px] mobile:pr-[48px]">
-          About us
+          Built by proven operators, to build alongside proven operators.
         </h2>
 
         <div className="grid grid-cols-1 desktop:grid-cols-3 gap-x-[48px] gap-y-[64px] pr-[24px] mobile:pr-[48px] desktop:pr-[48px]">
