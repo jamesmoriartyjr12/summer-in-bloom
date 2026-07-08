@@ -1,7 +1,10 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
+import Image from "next/image";
 import { Section } from "../Section";
+
+const STUDIO_IMAGE_SMALL = "/studio-small.png";
 
 function useScrollProgress(ref: React.RefObject<HTMLDivElement | null>) {
   const [progress, setProgress] = useState(0);
@@ -25,11 +28,13 @@ export function TheStudio() {
   const outerRef = useRef<HTMLDivElement>(null);
   const progress = useScrollProgress(outerRef);
 
-  // Headline scrolls in over first 40% of the container, then holds
+  // Phase 1: headline scrolls in (0 → 0.4), then holds
   const headlineP = Math.min(1, progress / 0.4);
-
-  // Starts one full viewport-height below its resting spot, scrolls up to 0
   const headlineY = (1 - headlineP) * 100;
+
+  // Phase 2: photo scrolls in after headline locks (0.4 → 0.65), then holds
+  const photoP = Math.min(1, Math.max(0, (progress - 0.4) / 0.25));
+  const photoY = (1 - photoP) * 100;
 
   return (
     <div ref={outerRef} className="relative h-[300vh]">
@@ -55,6 +60,20 @@ export function TheStudio() {
             with forward deployed design engineers, and growth marketers.
           </p>
         </div>
+        {/* Photo — slides in after headline locks, rests 100px from bottom */}
+        <div
+          className="absolute left-0 right-0 pl-[76px] mobile:pl-[200px] desktop:pl-[248px] xl:pl-[320px] max-[1099px]:hidden"
+          style={{
+            bottom: "100px",
+            transform: `translateY(${photoY}vh)`,
+          }}
+        >
+          <div className="w-[336px] h-[400px] overflow-hidden relative">
+            <Image src={STUDIO_IMAGE_SMALL} alt="" fill sizes="336px" className="object-cover" />
+            <div className="absolute inset-0 bg-black/10" />
+          </div>
+        </div>
+
       </Section>
     </div>
   );
