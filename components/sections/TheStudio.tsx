@@ -40,7 +40,7 @@ export function TheStudio() {
       >
         {/* Headline + subhead — rests 100px from top */}
         <div
-          className="absolute right-[48px] pl-[76px] mobile:pl-[200px] desktop:pl-[248px] xl:pl-[320px]"
+          className="absolute left-0 right-[48px] pl-[76px] mobile:pl-[200px] desktop:pl-[248px] xl:pl-[320px]"
           style={{
             top: "100px",
             transform: `translateY(${headlineY}vh)`,
