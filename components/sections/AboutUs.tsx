@@ -45,14 +45,11 @@ export function AboutUs() {
           About us
         </h2>
 
-        <div className="flex flex-col">
+        <div className="grid grid-cols-1 desktop:grid-cols-3 gap-x-[48px] gap-y-[64px] pr-[24px] mobile:pr-[48px] desktop:pr-[48px]">
           {TEAM.map((member, i) => (
-            <div
-              key={i}
-              className={`flex flex-col desktop:flex-row desktop:items-center gap-[48px] desktop:gap-[48px] border-b border-beige pr-[0] desktop:pr-[48px] ${i === 0 ? "pb-[48px]" : "py-[48px]"}`}
-            >
+            <div key={i} className="flex flex-col gap-[24px]">
               <div
-                className="w-full desktop:w-[336px] shrink-0 aspect-[4/5] bg-beige relative overflow-hidden"
+                className="w-full aspect-[4/5] bg-beige relative overflow-hidden"
                 style={{
                   clipPath:
                     "polygon(28px 0, 100% 0, 100% calc(100% - 28px), calc(100% - 28px) 100%, 0 100%, 0 28px)",
@@ -60,14 +57,12 @@ export function AboutUs() {
               >
                 <Image src={member.image} alt={member.name} fill className="object-cover" unoptimized />
               </div>
-              <div className="flex flex-col gap-[32px] flex-1 min-w-0 pr-[24px] mobile:pr-[48px] desktop:pr-0">
-                <div className="flex items-center justify-between">
-                  <p className="font-condensed uppercase text-h4 leading-[0.9] tracking-[-0.5px]">
-                    {member.name}
-                  </p>
-                  <div className="bg-[rgba(196,195,182,0.5)] self-start flex items-center px-[12px] py-[6px] rounded-full shrink-0">
-                    <p className="text-[12px] font-medium leading-[1.35] uppercase">{member.role}</p>
-                  </div>
+              <div className="flex flex-col gap-[16px]">
+                <p className="font-condensed uppercase text-h4 leading-[0.9] tracking-[-0.5px]">
+                  {member.name}
+                </p>
+                <div className="bg-[rgba(196,195,182,0.5)] self-start flex items-center px-[12px] py-[6px] rounded-full">
+                  <p className="text-[12px] font-medium leading-[1.35] uppercase">{member.role}</p>
                 </div>
                 <p className="text-[16px] leading-[1.5]">{member.bio}</p>
               </div>
