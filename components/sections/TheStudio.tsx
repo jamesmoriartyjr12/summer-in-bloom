@@ -6,6 +6,12 @@ import { Section } from "../Section";
 
 const STUDIO_IMAGE_SMALL = "/studio-small.png";
 
+const STATS = [
+  { value: "1.6M", label: "Deployed" },
+  { value: "10", label: "Investments" },
+  { value: "8", label: "Markups" },
+];
+
 function useScrollProgress(ref: React.RefObject<HTMLDivElement | null>) {
   const [progress, setProgress] = useState(0);
   useEffect(() => {
@@ -35,6 +41,13 @@ export function TheStudio() {
   // Phase 2: photo scrolls in after headline locks (0.25 → 0.5), then holds
   const photoP = Math.min(1, Math.max(0, (progress - 0.25) / 0.25));
   const photoY = (1 - photoP) * 100;
+
+  // Phase 3: stats stagger in one by one (0.5 → 0.8)
+  const statY = STATS.map((_, i) => {
+    const start = 0.5 + i * 0.1;
+    const p = Math.min(1, Math.max(0, (progress - start) / 0.1));
+    return (1 - p) * 100;
+  });
 
   return (
     <div ref={outerRef} className="relative h-[300vh]">
@@ -72,6 +85,24 @@ export function TheStudio() {
             <Image src={STUDIO_IMAGE_SMALL} alt="" fill sizes="336px" className="object-cover" />
             <div className="absolute inset-0 bg-black/10" />
           </div>
+        </div>
+
+        {/* Stats — stagger in one by one after photo locks */}
+        <div
+          className="absolute right-[48px] flex flex-col w-[220px]"
+          style={{ bottom: "100px" }}
+        >
+          {STATS.map((stat, i) => (
+            <div
+              key={stat.label}
+              style={{ transform: `translateY(${statY[i]}vh)` }}
+            >
+              <div className="border-t border-black/20 py-[20px]">
+                <p className="font-display text-h3 leading-none tracking-[-1.28px]">{stat.value}</p>
+                <p className="text-p2 mt-[8px] text-taupe uppercase">{stat.label}</p>
+              </div>
+            </div>
+          ))}
         </div>
 
       </Section>
