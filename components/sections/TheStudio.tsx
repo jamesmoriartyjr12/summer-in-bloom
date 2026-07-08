@@ -87,9 +87,11 @@ export function TheStudio() {
           </div>
         </div>
 
-        {/* Stats — stagger in one by one after photo locks */}
+        {/* Stats — stagger in one by one after photo locks.
+            Left edge: photo-indent + photo-width + 40px gap.
+            Right edge: 40px from screen edge (so border-t spans full width). */}
         <div
-          className="absolute right-[48px] flex flex-col w-[220px]"
+          className="absolute left-[452px] mobile:left-[576px] desktop:left-[624px] xl:left-[696px] right-[40px] flex flex-col"
           style={{ bottom: "100px" }}
         >
           {STATS.map((stat, i) => (
