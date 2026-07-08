@@ -42,12 +42,9 @@ export function TheStudio() {
   const photoP = Math.min(1, Math.max(0, (progress - 0.25) / 0.25));
   const photoY = (1 - photoP) * 100;
 
-  // Phase 3: stats stagger in one by one (0.5 → 0.8)
-  const statY = STATS.map((_, i) => {
-    const start = 0.5 + i * 0.1;
-    const p = Math.min(1, Math.max(0, (progress - start) / 0.1));
-    return (1 - p) * 100;
-  });
+  // Phase 3: all stats enter together (0.5 → 0.7)
+  const statsP = Math.min(1, Math.max(0, (progress - 0.5) / 0.2));
+  const statsY = (1 - statsP) * 100;
 
   return (
     <div ref={outerRef} className="relative h-[300vh]">
@@ -94,10 +91,10 @@ export function TheStudio() {
           className="absolute left-[452px] mobile:left-[576px] desktop:left-[624px] xl:left-[696px] right-[40px] flex flex-col"
           style={{ bottom: "100px" }}
         >
-          {STATS.map((stat, i) => (
+          {STATS.map((stat) => (
             <div
               key={stat.label}
-              style={{ transform: `translateY(${statY[i]}vh)` }}
+              style={{ transform: `translateY(${statsY}vh)` }}
             >
               <div className="border-t border-black/20 py-[20px]">
                 <p className="font-display text-h3 leading-none tracking-[-1.28px]">{stat.value}</p>
