@@ -52,7 +52,7 @@ export function AboutUs() {
               className={`flex flex-col desktop:flex-row desktop:items-center gap-[48px] desktop:gap-[48px] border-b border-beige pr-[0] desktop:pr-[48px] ${i === 0 ? "pb-[48px]" : "py-[48px]"}`}
             >
               <div
-                className="w-full desktop:w-[336px] shrink-0 aspect-[14/9] bg-beige relative overflow-hidden"
+                className="w-full desktop:w-[336px] shrink-0 aspect-[4/5] bg-beige relative overflow-hidden"
                 style={{
                   clipPath:
                     "polygon(28px 0, 100% 0, 100% calc(100% - 28px), calc(100% - 28px) 100%, 0 100%, 0 28px)",
