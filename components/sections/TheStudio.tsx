@@ -28,12 +28,12 @@ export function TheStudio() {
   const outerRef = useRef<HTMLDivElement>(null);
   const progress = useScrollProgress(outerRef);
 
-  // Phase 1: headline scrolls in (0 → 0.4), then holds
-  const headlineP = Math.min(1, progress / 0.4);
+  // Phase 1: headline scrolls in (0 → 0.25), then holds
+  const headlineP = Math.min(1, progress / 0.25);
   const headlineY = (1 - headlineP) * 100;
 
-  // Phase 2: photo scrolls in after headline locks (0.4 → 0.65), then holds
-  const photoP = Math.min(1, Math.max(0, (progress - 0.4) / 0.25));
+  // Phase 2: photo scrolls in after headline locks (0.25 → 0.5), then holds
+  const photoP = Math.min(1, Math.max(0, (progress - 0.25) / 0.25));
   const photoY = (1 - photoP) * 100;
 
   return (
@@ -62,7 +62,7 @@ export function TheStudio() {
         </div>
         {/* Photo — slides in after headline locks, rests 100px from bottom */}
         <div
-          className="absolute left-0 right-0 pl-[76px] mobile:pl-[200px] desktop:pl-[248px] xl:pl-[320px] max-[1099px]:hidden"
+          className="absolute left-0 right-0 pl-[76px] mobile:pl-[200px] desktop:pl-[248px] xl:pl-[320px]"
           style={{
             bottom: "100px",
             transform: `translateY(${photoY}vh)`,
