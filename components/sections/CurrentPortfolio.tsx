@@ -4,11 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Section } from "../Section";
 import { SectionContent } from "../SectionContent";
+import { ARTICLES } from "./InTheNews";
 
 type PortfolioCompany = {
   name: string;
   stage: string;
   tags: string[];
+  description: string;
   imageSmall: string;
   imageLarge: string;
   hidden?: boolean;
@@ -21,6 +23,7 @@ const PORTFOLIO: PortfolioCompany[] = [
     name: "TeeCommerce",
     stage: "Seed",
     tags: ["Ecomm"],
+    description: "Digital pro shops for clubs with zero inventory risk",
     imageSmall: `${BASE}TeeCommerce_Small.png`,
     imageLarge: `${BASE}TeeCommerce_Large.png`,
   },
@@ -28,6 +31,7 @@ const PORTFOLIO: PortfolioCompany[] = [
     name: "OuterProduct",
     stage: "Seed",
     tags: ["Consumer"],
+    description: "AI analytics that turn any data into smarter decisions",
     imageSmall: `${BASE}OuterProduct_Small.png`,
     imageLarge: `${BASE}OuterProduct_Large.png`,
   },
@@ -35,6 +39,7 @@ const PORTFOLIO: PortfolioCompany[] = [
     name: "FanFix",
     stage: "Growth",
     tags: ["Consumer", "Money"],
+    description: "Monetize exclusive posts, chats and fan access",
     imageSmall: `${BASE}FanFix_Small.png`,
     imageLarge: `${BASE}FanFix_Large.png`,
   },
@@ -42,6 +47,7 @@ const PORTFOLIO: PortfolioCompany[] = [
     name: "Orion",
     stage: "Seed",
     tags: ["Consumer", "Health"],
+    description: "Personalized sleep system boosting deep sleep & REM",
     imageSmall: `${BASE}Orion_Small.png`,
     imageLarge: `${BASE}Orion_Large.png`,
   },
@@ -49,6 +55,7 @@ const PORTFOLIO: PortfolioCompany[] = [
     name: "WatchCheck",
     stage: "Seed",
     tags: ["Consumer"],
+    description: "Luxury watch care reimagined with trusted precision",
     imageSmall: `${BASE}WatchCheck_Small.png`,
     imageLarge: `${BASE}WatchCheck_Large.png`,
   },
@@ -56,6 +63,7 @@ const PORTFOLIO: PortfolioCompany[] = [
     name: "Meridian",
     stage: "Seed",
     tags: ["Money"],
+    description: "Connecting banks worldwide to instant local payments",
     imageSmall: `${BASE}Meridian_Small.png`,
     imageLarge: `${BASE}Meridian_Large.png`,
   },
@@ -63,6 +71,7 @@ const PORTFOLIO: PortfolioCompany[] = [
     name: "Jamie Ai",
     stage: "Seed",
     tags: ["AI"],
+    description: "Creating better content, driving bigger sales",
     imageSmall: `${BASE}Jamie_Small.png`,
     imageLarge: `${BASE}Jamie_Large.png`,
   },
@@ -70,6 +79,7 @@ const PORTFOLIO: PortfolioCompany[] = [
     name: "Sunny Benefits",
     stage: "Seed",
     tags: ["Health", "Money"],
+    description: "VIP healthcare experience for members and employees",
     imageSmall: `${BASE}Sunny_Small.png`,
     imageLarge: `${BASE}Sunny_Large.png`,
   },
@@ -77,6 +87,7 @@ const PORTFOLIO: PortfolioCompany[] = [
     name: "Milly Books",
     stage: "Seed",
     tags: ["Marketplace"],
+    description: "One-line description coming soon",
     imageSmall: `${BASE}Milly_Small.png`,
     imageLarge: `${BASE}Milly_Large.png`,
   },
@@ -84,6 +95,7 @@ const PORTFOLIO: PortfolioCompany[] = [
     name: "Feno Labs",
     stage: "Seed",
     tags: ["AI Healthcare", "Dental Tech"],
+    description: "One-line description coming soon",
     imageSmall: `${BASE}Feno_Small.png`,
     imageLarge: `${BASE}Feno_Large.png`,
   },
@@ -147,6 +159,7 @@ export function CurrentPortfolio() {
                 <p className="font-display text-h3 leading-none tracking-[-1.28px]">
                   {company.name}
                 </p>
+                <p className="text-p1 pt-[12px]">{company.description}</p>
               </div>
               <div className="flex flex-col desktop:flex-row desktop:items-center desktop:justify-between gap-[12px] py-[24px] border-b border-beige">
                 <div className="flex flex-col gap-[12px]">
@@ -171,6 +184,23 @@ export function CurrentPortfolio() {
                   </div>
                 </div>
               </div>
+              {(() => {
+                const article = ARTICLES.find((a) => a.company === company.name);
+                if (!article) return null;
+                return (
+                  <div className="flex flex-col gap-[12px] py-[24px] border-b border-beige">
+                    <p className="text-p2">In the News</p>
+                    <a
+                      href={article.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-display text-h5 leading-tight tracking-[-0.48px] underline-offset-4 decoration-[1.5px] hover:underline"
+                    >
+                      {article.publication}: {article.headline}
+                    </a>
+                  </div>
+                );
+              })()}
             </div>
           ))}
         </div>

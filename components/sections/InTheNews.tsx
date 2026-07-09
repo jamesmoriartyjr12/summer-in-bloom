@@ -5,7 +5,7 @@ import { Section } from "../Section";
 
 const BASE = "/Press%20Images/";
 
-type Article = {
+export type Article = {
   publication: string;
   headline: string;
   image: string;
@@ -13,7 +13,7 @@ type Article = {
   url: string;
 };
 
-const ARTICLES: Article[] = [
+export const ARTICLES: Article[] = [
   {
     publication: "Forbes",
     headline: "This Under 30 Raised $18 Million To Make Sleeping Cool—Literally",
