@@ -33,7 +33,7 @@ const PORTFOLIO: PortfolioCompany[] = [
   },
   {
     name: "FanFix",
-    stage: "Post-Acquisition Growth",
+    stage: "Growth",
     tags: ["Consumer", "Money"],
     imageSmall: `${BASE}FanFix_Small.png`,
     imageLarge: `${BASE}FanFix_Large.png`,
