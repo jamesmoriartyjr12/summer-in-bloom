@@ -159,18 +159,13 @@ export function CurrentPortfolio() {
                 <p className="font-display text-h3 leading-none tracking-[-1.28px]">
                   {company.name}
                 </p>
-                <p className="text-p1 pt-[12px]">{company.description}</p>
               </div>
-              <div className="flex flex-col desktop:flex-row desktop:items-center desktop:justify-between gap-[12px] py-[24px] border-b border-beige">
-                <div className="flex flex-col gap-[12px]">
-                  <p className="text-p2">Stage</p>
-                  <div className="bg-orange text-black inline-flex items-center px-[12px] py-[6px] rounded-full w-fit">
-                    <p className="text-[12px] font-medium leading-[1.35] uppercase">
-                      {company.stage}
-                    </p>
-                  </div>
+              <div className="flex flex-col desktop:flex-row desktop:items-start gap-[24px] desktop:gap-[48px] py-[24px] border-b border-beige">
+                <div className="flex flex-col gap-[12px] flex-1 min-w-0">
+                  <p className="text-p2">Description</p>
+                  <p className="text-p1">{company.description}</p>
                 </div>
-                <div className="flex flex-col gap-[12px] desktop:items-end">
+                <div className="flex flex-col gap-[12px] shrink-0 desktop:items-end">
                   <p className="text-p2">Vertical</p>
                   <div className="flex items-center gap-[8px] desktop:justify-end">
                     {company.tags.map((tag) => (
@@ -181,6 +176,14 @@ export function CurrentPortfolio() {
                         <p className="text-[12px] font-medium leading-[1.35] uppercase">{tag}</p>
                       </div>
                     ))}
+                  </div>
+                </div>
+                <div className="flex flex-col gap-[12px] shrink-0">
+                  <p className="text-p2">Stage</p>
+                  <div className="bg-orange text-black inline-flex items-center px-[12px] py-[6px] rounded-full w-fit">
+                    <p className="text-[12px] font-medium leading-[1.35] uppercase">
+                      {company.stage}
+                    </p>
                   </div>
                 </div>
               </div>
