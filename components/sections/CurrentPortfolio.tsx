@@ -151,23 +151,25 @@ export function CurrentPortfolio() {
                   {company.name}
                 </p>
               </div>
-              <div className="flex flex-col gap-[12px] py-[24px] border-b border-beige">
-                <p className="text-p2">Stage</p>
-                <p className="font-display text-h5 leading-none tracking-[-0.48px]">
-                  {company.stage}
-                </p>
-              </div>
-              <div className="flex flex-col gap-[12px] py-[24px] border-b border-beige">
-                <p className="text-p2">Vertical</p>
-                <div className="flex items-center gap-[8px]">
-                  {company.tags.map((tag) => (
-                    <div
-                      key={tag}
-                      className="bg-[rgba(196,195,182,0.5)] flex items-center px-[12px] py-[6px] rounded-full shrink-0"
-                    >
-                      <p className="text-[12px] font-medium leading-[1.35] uppercase">{tag}</p>
-                    </div>
-                  ))}
+              <div className="flex flex-col desktop:flex-row desktop:items-center desktop:justify-between gap-[12px] py-[24px] border-b border-beige">
+                <div className="flex flex-col gap-[12px]">
+                  <p className="text-p2">Stage</p>
+                  <p className="font-display text-h5 leading-none tracking-[-0.48px]">
+                    {company.stage}
+                  </p>
+                </div>
+                <div className="flex flex-col gap-[12px] desktop:items-end">
+                  <p className="text-p2">Vertical</p>
+                  <div className="flex items-center gap-[8px] desktop:justify-end">
+                    {company.tags.map((tag) => (
+                      <div
+                        key={tag}
+                        className="bg-[rgba(196,195,182,0.5)] flex items-center px-[12px] py-[6px] rounded-full shrink-0"
+                      >
+                        <p className="text-[12px] font-medium leading-[1.35] uppercase">{tag}</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
