@@ -7,7 +7,7 @@ const BASE = "/Portraits/";
 
 type TeamMember = {
   name: string;
-  role: string;
+  roles: string[];
   image: string;
   bio: string;
 };
@@ -15,19 +15,19 @@ type TeamMember = {
 const TEAM: TeamMember[] = [
   {
     name: "James Moriarty Jr.",
-    role: "General Partner",
+    roles: ["General Partner"],
     image: `${BASE}James_Portrait.png`,
     bio: "Previously: DraftKings, Chime, OnePay",
   },
   {
     name: "Chris Lovett",
-    role: "Venture Partner and Investor Relations",
+    roles: ["Venture Partner", "Investor Relations"],
     image: `${BASE}Chris_Portrait.png`,
     bio: "Previously: DoorDash",
   },
   {
     name: "Moby Masood",
-    role: "Venture Partner",
+    roles: ["Venture Partner"],
     image: `${BASE}Moby_Portrait.png`,
     bio: "Previously: Snowflake",
   },
@@ -61,8 +61,15 @@ export function AboutUs() {
                 <p className="font-condensed uppercase text-h4 leading-[0.9] tracking-[-0.5px]">
                   {member.name}
                 </p>
-                <div className="bg-[rgba(196,195,182,0.5)] self-start flex items-center px-[12px] py-[6px] rounded-full">
-                  <p className="text-[12px] font-medium leading-[1.35] uppercase">{member.role}</p>
+                <div className="flex flex-wrap items-center gap-[8px]">
+                  {member.roles.map((role) => (
+                    <div
+                      key={role}
+                      className="bg-[rgba(196,195,182,0.5)] flex items-center px-[12px] py-[6px] rounded-full"
+                    >
+                      <p className="text-[12px] font-medium leading-[1.35] uppercase">{role}</p>
+                    </div>
+                  ))}
                 </div>
                 <p className="text-[16px] leading-[1.5]">{member.bio}</p>
               </div>
