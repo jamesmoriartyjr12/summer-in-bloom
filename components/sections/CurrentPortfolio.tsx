@@ -154,9 +154,11 @@ export function CurrentPortfolio() {
               <div className="flex flex-col desktop:flex-row desktop:items-center desktop:justify-between gap-[12px] py-[24px] border-b border-beige">
                 <div className="flex flex-col gap-[12px]">
                   <p className="text-p2">Stage</p>
-                  <p className="font-display text-h5 leading-none tracking-[-0.48px]">
-                    {company.stage}
-                  </p>
+                  <div className="bg-orange text-black inline-flex items-center px-[16px] py-[8px] rounded-full w-fit">
+                    <p className="font-display text-h5 leading-none tracking-[-0.48px]">
+                      {company.stage}
+                    </p>
+                  </div>
                 </div>
                 <div className="flex flex-col gap-[12px] desktop:items-end">
                   <p className="text-p2">Vertical</p>
