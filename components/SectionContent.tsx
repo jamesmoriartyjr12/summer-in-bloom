@@ -7,26 +7,25 @@ import { ReactNode } from "react";
 //   - 48px gap between nav and the left column (desktop only)
 //   - Left column: 336px fixed, hidden below 900px
 //   - Right column: flex-1, expands to fill remaining width
+//   - Right inset mirrors the left inset at every breakpoint, so content
+//     sits on a symmetric grid
 //
 // Pass `left` to populate the left column and reserve its space.
-// Omit it and the content spans the full width (no spacer rendered).
 
 type SectionContentProps = {
   left?: ReactNode;
   children: ReactNode;
   className?: string;
-  flushRight?: boolean; // remove right padding so content extends to the page edge
 };
 
 export function SectionContent({
   left,
   children,
   className,
-  flushRight = false,
 }: SectionContentProps) {
   return (
     <div
-      className={`flex gap-[48px] items-start pl-[76px] mobile:pl-[200px] desktop:pl-[248px] xl:pl-[320px] ${flushRight ? "" : "pr-[48px]"} ${className ?? ""}`}
+      className={`flex gap-[48px] items-start pl-[76px] mobile:pl-[200px] desktop:pl-[248px] xl:pl-[320px] pr-[76px] mobile:pr-[200px] desktop:pr-[248px] xl:pr-[320px] ${className ?? ""}`}
     >
       {left && (
         <div className="w-[336px] shrink-0 self-stretch max-[1099px]:hidden">

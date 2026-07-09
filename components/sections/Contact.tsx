@@ -25,7 +25,7 @@ export function Contact() {
       theme="dark"
       className="relative z-10 bg-black text-chalk py-[200px]"
     >
-      <SectionContent flushRight>
+      <SectionContent>
         <div className="flex flex-col gap-[96px]">
           <h2 className="font-display text-h2 leading-none tracking-[-1.6px]">
             Talk to us

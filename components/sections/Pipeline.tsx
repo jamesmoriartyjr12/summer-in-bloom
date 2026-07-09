@@ -32,7 +32,6 @@ export function Pipeline() {
       className="relative z-10 bg-chalk text-black pt-[96px] pb-[200px]"
     >
       <SectionContent
-        flushRight
         left={
           <div className="sticky top-[96px] h-[400px] overflow-hidden bg-beige relative">
             <div className="absolute bottom-[24px] left-[24px] bg-chalk rounded-[8px] w-[48px] h-[48px]" />
@@ -51,7 +50,7 @@ export function Pipeline() {
                   <div className="absolute bottom-[24px] left-[24px] bg-chalk rounded-[8px] w-[48px] h-[48px]" />
                 )}
               </div>
-              <div className="flex flex-col gap-[24px] mobile:flex-row mobile:items-start mobile:justify-between desktop:pt-[48px] pt-0 pb-[24px] pr-[24px] mobile:pr-[48px]">
+              <div className="flex flex-col gap-[24px] mobile:flex-row mobile:items-start mobile:justify-between desktop:pt-[48px] pt-0 pb-[24px]">
                 <p className="font-display text-h4 leading-none tracking-[-0.64px]">
                   {company.name}
                 </p>
@@ -73,7 +72,7 @@ export function Pipeline() {
                   {company.targetValuation}
                 </p>
               </div>
-              <p className="text-p1 pt-[24px] pr-[24px] mobile:pr-[48px]">{company.description}</p>
+              <p className="text-p1 pt-[24px]">{company.description}</p>
             </div>
           ))}
         </div>

@@ -40,12 +40,12 @@ export function AboutUs() {
       theme="light"
       className="relative z-10 bg-chalk text-black pt-[200px] pb-[96px]"
     >
-      <div className="flex flex-col gap-[96px] pl-[76px] mobile:pl-[200px] desktop:pl-[248px] xl:pl-[320px]">
-        <h2 className="font-display text-h2 leading-none tracking-[-1.6px] max-w-[800px] pr-[24px] mobile:pr-[48px]">
+      <div className="flex flex-col gap-[96px] pl-[76px] mobile:pl-[200px] desktop:pl-[248px] xl:pl-[320px] pr-[76px] mobile:pr-[200px] desktop:pr-[248px] xl:pr-[320px]">
+        <h2 className="font-display text-h2 leading-none tracking-[-1.6px] max-w-[800px]">
           Built by proven operators, to build alongside proven operators.
         </h2>
 
-        <div className="flex flex-col desktop:flex-row gap-x-[48px] gap-y-[64px] pr-[24px] mobile:pr-[48px] desktop:pr-0 desktop:w-1/2 desktop:mx-auto">
+        <div className="flex flex-col desktop:flex-row gap-x-[48px] gap-y-[64px] desktop:w-1/2 desktop:mx-auto">
           {TEAM.map((member, i) => (
             <div key={i} className="flex flex-col gap-[24px] flex-1 min-w-0">
               <div

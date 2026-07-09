@@ -129,7 +129,7 @@ export function CurrentPortfolio() {
       theme="light"
       className="relative z-10 bg-chalk text-black pt-[200px] pb-[96px]"
     >
-      <SectionContent flushRight left={<StickyImage activeIndex={activeIndex} />}>
+      <SectionContent left={<StickyImage activeIndex={activeIndex} />}>
         <div className="flex flex-col gap-[96px] desktop:gap-[400px]">
           {VISIBLE_PORTFOLIO.map((company, i) => (
             <div
@@ -146,7 +146,7 @@ export function CurrentPortfolio() {
                   <p className="text-[12px] font-medium leading-[1.35] uppercase text-[#ebebeb] whitespace-nowrap">Markup</p>
                 </div>
               </div>
-              <div className="desktop:pt-[48px] pt-0 pb-[24px] pr-[24px] mobile:pr-[48px]">
+              <div className="desktop:pt-[48px] pt-0 pb-[24px]">
                 <p className="font-display text-h3 leading-none tracking-[-1.28px]">
                   {company.name}
                 </p>

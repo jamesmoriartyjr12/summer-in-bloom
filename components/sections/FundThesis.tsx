@@ -28,10 +28,10 @@ export function FundThesis() {
         />
         <div className="absolute inset-0 bg-black/35" />
       </div>
-      <SectionContent flushRight className="relative z-10 pr-[24px] mobile:pr-[48px]">
+      <SectionContent className="relative z-10">
         <div className="flex flex-col gap-[48px]">
           <p className="text-l2 font-medium uppercase">Fund thesis</p>
-          <h2 className="font-display text-h2 leading-none tracking-[-1.6px]">
+          <h2 className="font-display text-h2 leading-none tracking-[-1.6px] max-w-[850px]">
             Backed by the track record and reputation of Bloom.
           </h2>
           <div className="flex flex-col gap-[24px] text-p1">

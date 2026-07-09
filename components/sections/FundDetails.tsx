@@ -24,7 +24,7 @@ export function FundDetails({ id = "fund-details" as const }: { id?: "fund-detai
     >
       <div className="flex flex-col gap-[48px] desktop:gap-[96px]">
         {/* Title — starts at image edge, spans both columns */}
-        <div className="pl-[76px] mobile:pl-[200px] desktop:pl-[248px] xl:pl-[320px] pr-[24px] mobile:pr-[48px]">
+        <div className="pl-[76px] mobile:pl-[200px] desktop:pl-[248px] xl:pl-[320px] pr-[76px] mobile:pr-[200px] desktop:pr-[248px] xl:pr-[320px]">
           <h2 className="font-display text-h2 leading-none tracking-[-1.6px] max-w-[850px]">
             Led by proven operators.
           </h2>
@@ -32,7 +32,6 @@ export function FundDetails({ id = "fund-details" as const }: { id?: "fund-detai
 
         {/* Image + metric list */}
         <SectionContent
-          flushRight
           left={
             <div className="sticky top-[96px] h-[400px] overflow-hidden">
               <Image
