@@ -130,7 +130,7 @@ export function CurrentPortfolio() {
       className="relative z-10 bg-chalk text-black pt-[200px] pb-[96px]"
     >
       <SectionContent left={<StickyImage activeIndex={activeIndex} />}>
-        <div className="flex flex-col gap-[96px] desktop:gap-[96px]">
+        <div className="flex flex-col gap-[96px] desktop:gap-[24px]">
           {VISIBLE_PORTFOLIO.map((company, i) => (
             <div
               key={company.name}
