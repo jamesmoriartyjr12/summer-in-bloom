@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { BIZ_UDPMincho, Anton } from "next/font/google";
+import { BIZ_UDPMincho } from "next/font/google";
 import "./globals.css";
 
 // BIZ UDPMincho is the display serif from the Figma design.
@@ -10,15 +10,6 @@ const bizUDPMincho = BIZ_UDPMincho({
   variable: "--font-display",
   display: "swap",
   fallback: ["Georgia", "Times New Roman", "serif"],
-});
-
-// Anton — bold condensed all-caps sans, used for the team card name treatment.
-const anton = Anton({
-  weight: ["400"],
-  subsets: ["latin"],
-  variable: "--font-condensed",
-  display: "swap",
-  fallback: ["Arial Narrow", "Arial", "sans-serif"],
 });
 
 export const metadata: Metadata = {
@@ -33,7 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${bizUDPMincho.variable} ${anton.variable}`}>
+    <html lang="en" className={bizUDPMincho.variable}>
       <body>{children}</body>
     </html>
   );

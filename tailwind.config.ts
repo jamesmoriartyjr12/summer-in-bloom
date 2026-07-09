@@ -22,8 +22,6 @@ const config: Config = {
       fontFamily: {
         // Display serif — BIZ UDPMincho (loaded via next/font)
         display: ["var(--font-display)", "serif"],
-        // Condensed display sans — Anton (loaded via next/font), used for team card names
-        condensed: ["var(--font-condensed)", "sans-serif"],
         // Body sans — Helvetica Neue with sensible fallbacks
         sans: [
           '"Helvetica Neue"',

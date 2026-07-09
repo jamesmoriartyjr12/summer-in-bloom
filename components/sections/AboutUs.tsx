@@ -58,7 +58,7 @@ export function AboutUs() {
                 <Image src={member.image} alt={member.name} fill className="object-cover" unoptimized />
               </div>
               <div className="flex flex-col gap-[16px]">
-                <p className="font-condensed uppercase text-h4 leading-[0.9] tracking-[-0.5px]">
+                <p className="font-display text-h4 leading-none tracking-[-0.64px]">
                   {member.name}
                 </p>
                 <div className="flex flex-wrap items-center gap-[8px]">
