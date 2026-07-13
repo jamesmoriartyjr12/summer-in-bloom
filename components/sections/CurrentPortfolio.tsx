@@ -182,7 +182,8 @@ export function CurrentPortfolio() {
                 const article = ARTICLES.find((a) => a.company === company.name);
                 if (!article) return null;
                 return (
-                  <div className="py-[24px] border-b border-beige">
+                  <div className="flex flex-col gap-[12px] py-[24px] border-b border-beige">
+                    <p className="text-p2">{article.publication}</p>
                     <a
                       href={article.url}
                       target="_blank"
