@@ -175,21 +175,27 @@ export function CurrentPortfolio() {
                   ))}
                 </div>
               </div>
-              <div className="py-[24px] border-b border-beige">
-                <p className="font-display text-h5 leading-tight tracking-[-0.48px]">{company.description}</p>
-              </div>
               {(() => {
                 const article = ARTICLES.find((a) => a.company === company.name);
-                if (!article) return null;
+                if (!article) {
+                  return (
+                    <div className="py-[24px] border-b border-beige">
+                      <p className="font-display text-h5 leading-tight tracking-[-0.48px]">{company.description}</p>
+                    </div>
+                  );
+                }
                 return (
-                  <div className="py-[24px] border-b border-beige">
+                  <div className="flex flex-col gap-[12px] py-[24px] border-b border-beige">
+                    <div className="bg-[rgba(196,195,182,0.5)] self-start flex items-center px-[12px] py-[6px] rounded-full">
+                      <p className="text-[12px] font-medium leading-[1.35] uppercase">{article.publication}</p>
+                    </div>
                     <a
                       href={article.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-p1 underline-offset-4 decoration-[1.5px] hover:underline"
+                      className="font-display text-h5 leading-tight tracking-[-0.48px] underline-offset-4 decoration-[1.5px] hover:underline"
                     >
-                      {article.publication}: {article.headline}
+                      {article.headline}
                     </a>
                   </div>
                 );
