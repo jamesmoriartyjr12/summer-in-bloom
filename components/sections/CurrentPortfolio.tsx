@@ -176,7 +176,7 @@ export function CurrentPortfolio() {
                 </div>
               </div>
               <div className="py-[24px] border-b border-beige">
-                <p className="text-p1">{company.description}</p>
+                <p className="font-display text-h5 leading-tight tracking-[-0.48px]">{company.description}</p>
               </div>
               {(() => {
                 const article = ARTICLES.find((a) => a.company === company.name);
@@ -187,7 +187,7 @@ export function CurrentPortfolio() {
                       href={article.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="font-display text-h5 leading-tight tracking-[-0.48px] underline-offset-4 decoration-[1.5px] hover:underline"
+                      className="text-p1 underline-offset-4 decoration-[1.5px] hover:underline"
                     >
                       {article.publication}: {article.headline}
                     </a>
