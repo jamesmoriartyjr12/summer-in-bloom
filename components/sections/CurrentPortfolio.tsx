@@ -186,9 +186,17 @@ export function CurrentPortfolio() {
                 }
                 return (
                   <div className="flex flex-col gap-[12px] py-[24px] border-b border-beige">
-                    <div className="bg-[rgba(196,195,182,0.5)] self-start flex items-center px-[12px] py-[6px] rounded-full">
+                    <a
+                      href={article.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-[rgba(196,195,182,0.5)] hover:bg-[rgba(196,195,182,0.8)] transition-colors self-start flex items-center gap-[6px] px-[12px] py-[6px] rounded-full"
+                    >
                       <p className="text-[12px] font-medium leading-[1.35] uppercase">{article.publication}</p>
-                    </div>
+                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M2.5 7.5L7.5 2.5M7.5 2.5H3.5M7.5 2.5V6.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </a>
                     <a
                       href={article.url}
                       target="_blank"
