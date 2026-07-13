@@ -8,12 +8,18 @@ const BASE = "/Press%20Images/";
 export type Article = {
   publication: string;
   headline: string;
-  image: string;
+  image?: string;
   company: string;
   url: string;
 };
 
 export const ARTICLES: Article[] = [
+  {
+    publication: "Forbes",
+    headline: "Golf Course Service Provider Launches Pro Shops Into Omnichannel Orbit",
+    company: "TeeCommerce",
+    url: "https://www.forbes.com/sites/mikedojc/2023/09/19/golf-course-service-provider-launches-pro-shops-into-omnichannel-orbit/",
+  },
   {
     publication: "Forbes",
     headline: "This Under 30 Raised $18 Million To Make Sleeping Cool—Literally",
@@ -62,9 +68,11 @@ export function InTheNews() {
               key={i}
               className={`flex flex-col desktop:flex-row desktop:items-center gap-[48px] desktop:gap-[48px] border-b border-beige ${i === 0 ? "pb-[48px]" : "py-[48px]"}`}
             >
-              <div className="w-full desktop:w-[336px] shrink-0 aspect-[14/9] bg-beige relative overflow-hidden">
-                <Image src={article.image} alt={article.publication} fill className="object-cover" unoptimized />
-              </div>
+              {article.image && (
+                <div className="w-full desktop:w-[336px] shrink-0 aspect-[14/9] bg-beige relative overflow-hidden">
+                  <Image src={article.image} alt={article.publication} fill className="object-cover" unoptimized />
+                </div>
+              )}
               <div className="flex flex-col gap-[32px] flex-1 min-w-0">
                 <p className="text-l2 font-medium uppercase">{article.publication}</p>
                 <a
