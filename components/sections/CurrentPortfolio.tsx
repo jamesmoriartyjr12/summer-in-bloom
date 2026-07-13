@@ -185,22 +185,23 @@ export function CurrentPortfolio() {
                   );
                 }
                 return (
-                  <div className="flex flex-col desktop:flex-row desktop:items-end gap-[12px] desktop:gap-[24px] py-[24px] border-b border-beige">
+                  <div className="py-[24px] border-b border-beige font-display text-h5 leading-tight tracking-[-0.48px]">
                     <a
                       href={article.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="font-display text-h5 leading-tight tracking-[-0.48px] underline-offset-4 decoration-[1.5px] hover:underline flex-1 min-w-0"
+                      className="underline-offset-4 decoration-[1.5px] hover:underline"
                     >
                       {article.headline}
                     </a>
+                    {" "}
                     <a
                       href={article.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group border border-black hover:bg-black transition-colors self-start desktop:self-auto shrink-0 flex items-center px-[16px] py-[8px] rounded-lg"
+                      className="group border border-black hover:bg-black transition-colors align-middle inline-flex items-center px-[16px] py-[8px] rounded-lg"
                     >
-                      <p className="text-[12px] font-medium leading-[1.35] uppercase text-black group-hover:text-chalk transition-colors">{article.publication}</p>
+                      <span className="text-[12px] font-medium leading-[1.35] uppercase text-black group-hover:text-chalk transition-colors">{article.publication}</span>
                       <span className="w-0 ml-0 group-hover:w-[10px] group-hover:ml-[8px] overflow-hidden transition-all duration-200 flex items-center justify-end shrink-0">
                         <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-black group-hover:text-chalk transition-colors shrink-0">
                           <path d="M2.5 7.5L7.5 2.5M7.5 2.5H3.5M7.5 2.5V6.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
