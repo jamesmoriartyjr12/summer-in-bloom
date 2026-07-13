@@ -47,6 +47,12 @@ export const ARTICLES: Article[] = [
     company: "WatchCheck",
     url: "https://www.nytimes.com/2024/11/07/fashion/watchcheck-repair-and-service-app.html",
   },
+  {
+    publication: "The Verge",
+    headline: "A toothbrush with AI, a camera, and a subscription.",
+    company: "Feno Labs",
+    url: "https://www.theverge.com/gadgets/609541/feno-ai-toothbrush",
+  },
 ];
 
 export function InTheNews() {
