@@ -198,7 +198,7 @@ export function CurrentPortfolio() {
                       href={article.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group border border-black hover:bg-black transition-colors self-start shrink-0 flex items-center px-[16px] py-[8px] rounded-lg"
+                      className="group border border-black hover:bg-black transition-colors self-start desktop:self-auto shrink-0 flex items-center px-[16px] py-[8px] rounded-lg"
                     >
                       <p className="text-[12px] font-medium leading-[1.35] uppercase text-black group-hover:text-chalk transition-colors">{article.publication}</p>
                       <span className="w-0 ml-0 group-hover:w-[10px] group-hover:ml-[8px] overflow-hidden transition-all duration-200 flex items-center justify-end shrink-0">
