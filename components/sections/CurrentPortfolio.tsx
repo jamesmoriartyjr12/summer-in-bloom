@@ -155,7 +155,7 @@ export function CurrentPortfolio() {
                   <p className="text-[12px] font-medium leading-[1.35] uppercase text-[#ebebeb] whitespace-nowrap">Markup</p>
                 </div>
               </div>
-              <div className="desktop:pt-[48px] pt-0 pb-[24px] flex flex-col desktop:flex-row desktop:items-center desktop:justify-between gap-[12px]">
+              <div className="desktop:pt-[48px] pt-0 pb-[24px] flex flex-col desktop:flex-row desktop:items-end desktop:justify-between gap-[12px]">
                 <p className="font-display text-h3 leading-none tracking-[-1.28px]">
                   {company.name}
                 </p>
