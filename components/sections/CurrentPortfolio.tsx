@@ -161,7 +161,7 @@ export function CurrentPortfolio() {
                 </p>
               </div>
               <div className="flex items-center gap-[8px] pt-[12px] pb-[16px]">
-                <div className="bg-orange text-black inline-flex items-center px-[12px] py-[6px] rounded-full w-fit shrink-0">
+                <div className={`${company.stage === "Growth" ? "bg-lime" : "bg-orange"} text-black inline-flex items-center px-[12px] py-[6px] rounded-full w-fit shrink-0`}>
                   <p className="text-[12px] font-medium leading-[1.35] uppercase">
                     {company.stage}
                   </p>
