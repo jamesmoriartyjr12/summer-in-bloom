@@ -94,7 +94,7 @@ const PORTFOLIO: PortfolioCompany[] = [
   {
     name: "Feno Labs",
     stage: "Seed",
-    tags: ["AI Healthcare", "Dental Tech"],
+    tags: ["Health Tech"],
     description: "One-line description coming soon",
     imageSmall: `${BASE}Feno_Small.png`,
     imageLarge: `${BASE}Feno_Large.png`,
