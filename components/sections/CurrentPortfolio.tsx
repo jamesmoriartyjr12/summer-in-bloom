@@ -142,7 +142,7 @@ export function CurrentPortfolio() {
       className="relative z-10 bg-chalk text-black pt-[200px] pb-[96px]"
     >
       <SectionContent left={<StickyImage activeIndex={activeIndex} />}>
-        <div className="flex flex-col gap-[96px] desktop:gap-[24px]">
+        <div className="flex flex-col gap-[64px] desktop:gap-[16px]">
           {VISIBLE_PORTFOLIO.map((company, i) => (
             <div
               key={company.name}
@@ -155,37 +155,37 @@ export function CurrentPortfolio() {
                   <p className="text-[12px] font-medium leading-[1.35] uppercase text-[#ebebeb] whitespace-nowrap">Markup</p>
                 </div>
               </div>
-              <div className="desktop:pt-[48px] pt-0 pb-[24px] flex flex-col desktop:flex-row desktop:items-end desktop:justify-between gap-[12px]">
+              <div className="desktop:pt-[32px] pt-0">
                 <p className="font-display text-h3 leading-none tracking-[-1.28px]">
                   {company.name}
                 </p>
-                <div className="flex items-center gap-[8px] shrink-0">
-                  <div className="bg-orange text-black inline-flex items-center px-[12px] py-[6px] rounded-full w-fit shrink-0">
-                    <p className="text-[12px] font-medium leading-[1.35] uppercase">
-                      {company.stage}
-                    </p>
-                  </div>
-                  {company.tags.map((tag) => (
-                    <div
-                      key={tag}
-                      className="bg-[rgba(196,195,182,0.5)] flex items-center px-[12px] py-[6px] rounded-full shrink-0"
-                    >
-                      <p className="text-[12px] font-medium leading-[1.35] uppercase">{tag}</p>
-                    </div>
-                  ))}
+              </div>
+              <div className="flex items-center gap-[8px] pt-[12px] pb-[16px]">
+                <div className="bg-orange text-black inline-flex items-center px-[12px] py-[6px] rounded-full w-fit shrink-0">
+                  <p className="text-[12px] font-medium leading-[1.35] uppercase">
+                    {company.stage}
+                  </p>
                 </div>
+                {company.tags.map((tag) => (
+                  <div
+                    key={tag}
+                    className="bg-[rgba(196,195,182,0.5)] flex items-center px-[12px] py-[6px] rounded-full shrink-0"
+                  >
+                    <p className="text-[12px] font-medium leading-[1.35] uppercase">{tag}</p>
+                  </div>
+                ))}
               </div>
               {(() => {
                 const article = ARTICLES.find((a) => a.company === company.name);
                 if (!article) {
                   return (
-                    <div className="py-[24px] border-b border-beige">
+                    <div className="pb-[20px] border-b border-beige">
                       <p className="font-display text-h5 leading-tight tracking-[-0.48px]">{company.description}</p>
                     </div>
                   );
                 }
                 return (
-                  <div className="flex flex-col desktop:flex-row desktop:items-end gap-[12px] desktop:gap-[24px] py-[24px] border-b border-beige">
+                  <div className="flex flex-col desktop:flex-row desktop:items-end gap-[12px] desktop:gap-[24px] pb-[20px] border-b border-beige">
                     <a
                       href={article.url}
                       target="_blank"
