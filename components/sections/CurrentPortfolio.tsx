@@ -198,12 +198,14 @@ export function CurrentPortfolio() {
                       href={article.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="bg-black hover:bg-black/80 transition-colors text-chalk self-start desktop:self-center shrink-0 flex items-center gap-[8px] px-[16px] py-[8px] rounded-lg"
+                      className="group border border-black hover:bg-black transition-colors self-start desktop:self-center shrink-0 flex items-center px-[16px] py-[8px] rounded-lg"
                     >
-                      <p className="text-[12px] font-medium leading-[1.35] uppercase">{article.publication}</p>
-                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M2.5 7.5L7.5 2.5M7.5 2.5H3.5M7.5 2.5V6.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
+                      <p className="text-[12px] font-medium leading-[1.35] uppercase text-black group-hover:text-chalk transition-colors">{article.publication}</p>
+                      <span className="w-0 ml-0 group-hover:w-[10px] group-hover:ml-[8px] overflow-hidden transition-all duration-200 flex items-center justify-end shrink-0">
+                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-black group-hover:text-chalk transition-colors shrink-0">
+                          <path d="M2.5 7.5L7.5 2.5M7.5 2.5H3.5M7.5 2.5V6.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </span>
                     </a>
                   </div>
                 );
