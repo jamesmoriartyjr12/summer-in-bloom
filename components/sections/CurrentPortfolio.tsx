@@ -165,26 +165,20 @@ export function CurrentPortfolio() {
                   <p className="text-p2">Description</p>
                   <p className="text-p1">{company.description}</p>
                 </div>
-                <div className="flex flex-col gap-[12px] shrink-0 desktop:items-end">
-                  <p className="text-p2">Vertical</p>
-                  <div className="flex items-center gap-[8px] desktop:justify-end">
-                    {company.tags.map((tag) => (
-                      <div
-                        key={tag}
-                        className="bg-[rgba(196,195,182,0.5)] flex items-center px-[12px] py-[6px] rounded-full shrink-0"
-                      >
-                        <p className="text-[12px] font-medium leading-[1.35] uppercase">{tag}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="flex flex-col gap-[12px] shrink-0">
-                  <p className="text-p2">Stage</p>
-                  <div className="bg-orange text-black inline-flex items-center px-[12px] py-[6px] rounded-full w-fit">
+                <div className="flex items-center gap-[8px] shrink-0">
+                  <div className="bg-orange text-black inline-flex items-center px-[12px] py-[6px] rounded-full w-fit shrink-0">
                     <p className="text-[12px] font-medium leading-[1.35] uppercase">
                       {company.stage}
                     </p>
                   </div>
+                  {company.tags.map((tag) => (
+                    <div
+                      key={tag}
+                      className="bg-[rgba(196,195,182,0.5)] flex items-center px-[12px] py-[6px] rounded-full shrink-0"
+                    >
+                      <p className="text-[12px] font-medium leading-[1.35] uppercase">{tag}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
               {(() => {
