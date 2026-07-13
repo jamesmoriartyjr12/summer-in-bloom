@@ -35,11 +35,10 @@ export const ARTICLES: Article[] = [
     url: "https://www.forbes.com/sites/ianshepherd/2024/08/19/inside-the-100-million-membership-platform-for-gen-z-creators/",
   },
   {
-    publication: "Philippine Daily Inquirer",
-    headline: "GCash woos freelancers with US virtual account",
-    image: `${BASE}Meridian_Article.png`,
+    publication: "Yahoo Finance",
+    headline: "GCash launches new service for dollar transfers to Filipino users",
     company: "Meridian",
-    url: "https://business.inquirer.net/560479/gcash-woos-freelancers-with-us-virtual-account",
+    url: "https://finance.yahoo.com/news/gcash-launches-dollar-transfers-filipino-094348264.html",
   },
   {
     publication: "The New York Times",
