@@ -161,10 +161,6 @@ export function CurrentPortfolio() {
                 </p>
               </div>
               <div className="flex flex-col desktop:flex-row desktop:items-start gap-[24px] desktop:gap-[48px] py-[24px] border-b border-beige">
-                <div className="flex flex-col gap-[12px] flex-1 min-w-0">
-                  <p className="text-p2">Description</p>
-                  <p className="text-p1">{company.description}</p>
-                </div>
                 <div className="flex items-center gap-[8px] shrink-0">
                   <div className="bg-orange text-black inline-flex items-center px-[12px] py-[6px] rounded-full w-fit shrink-0">
                     <p className="text-[12px] font-medium leading-[1.35] uppercase">
@@ -180,6 +176,7 @@ export function CurrentPortfolio() {
                     </div>
                   ))}
                 </div>
+                <p className="text-p1 flex-1 min-w-0">{company.description}</p>
               </div>
               {(() => {
                 const article = ARTICLES.find((a) => a.company === company.name);
