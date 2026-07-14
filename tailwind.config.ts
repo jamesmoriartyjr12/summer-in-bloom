@@ -20,6 +20,7 @@ const config: Config = {
         beige: "#C4C3B6",
         orange: "#FA4C1F",
         lime: "#D8FF34",
+        ink: "#070F18",
       },
       fontFamily: {
         // Display serif — BIZ UDPMincho (loaded via next/font)

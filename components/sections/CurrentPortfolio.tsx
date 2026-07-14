@@ -18,6 +18,12 @@ type PortfolioCompany = {
 
 const BASE = "/Bloom%20Portfolio%20Images/";
 
+const STAGE_STYLES: Record<string, { bg: string; text: string }> = {
+  Growth: { bg: "bg-lime", text: "text-black" },
+  "Series A": { bg: "bg-ink", text: "text-chalk" },
+};
+const DEFAULT_STAGE_STYLE = { bg: "bg-orange", text: "text-black" };
+
 const PORTFOLIO: PortfolioCompany[] = [
   {
     name: "TeeCommerce",
@@ -45,7 +51,7 @@ const PORTFOLIO: PortfolioCompany[] = [
   },
   {
     name: "Orion",
-    stage: "Seed",
+    stage: "Series A",
     tags: ["Consumer", "Health"],
     description: "Personalized sleep system boosting deep sleep & REM",
     imageSmall: `${BASE}Orion_Small.png`,
@@ -161,7 +167,7 @@ export function CurrentPortfolio() {
                 </p>
               </div>
               <div className="flex items-center gap-[8px] pt-[12px] pb-[16px]">
-                <div className={`${company.stage === "Growth" ? "bg-lime" : "bg-orange"} text-black inline-flex items-center px-[12px] py-[6px] rounded-full w-fit shrink-0`}>
+                <div className={`${STAGE_STYLES[company.stage]?.bg ?? DEFAULT_STAGE_STYLE.bg} ${STAGE_STYLES[company.stage]?.text ?? DEFAULT_STAGE_STYLE.text} inline-flex items-center px-[12px] py-[6px] rounded-full w-fit shrink-0`}>
                   <p className="text-[12px] font-medium leading-[1.35] uppercase">
                     {company.stage}
                   </p>
