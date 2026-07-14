@@ -41,11 +41,10 @@ export const ARTICLES: Article[] = [
     url: "https://finance.yahoo.com/news/gcash-launches-dollar-transfers-filipino-094348264.html",
   },
   {
-    publication: "The New York Times",
-    headline: "Does Your Watch Need Care? This Website Wants to Help.",
-    image: `${BASE}WatchCheck_Article.png`,
+    publication: "Forbes",
+    headline: "Need Servicing For Your Luxury Watch? WatchCheck Can Repair More Than 200 Brands",
     company: "WatchCheck",
-    url: "https://www.nytimes.com/2024/11/07/fashion/watchcheck-repair-and-service-app.html",
+    url: "https://www.forbes.com/sites/robertanaas/2024/11/19/need-servicing-for-your-fine-watch-meet-the-watchcheckcom-platform/",
   },
   {
     publication: "The Verge",
