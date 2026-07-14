@@ -84,7 +84,7 @@ const PORTFOLIO: PortfolioCompany[] = [
   {
     name: "Sunny Benefits",
     stage: "Seed",
-    tags: ["Health", "Money"],
+    tags: ["Consumer", "Health Tech"],
     description: "VIP healthcare experience for members and employees",
     imageSmall: `${BASE}Sunny_Small.png`,
     imageLarge: `${BASE}Sunny_Large.png`,
