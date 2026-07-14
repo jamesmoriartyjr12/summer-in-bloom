@@ -63,6 +63,12 @@ export const ARTICLES: Article[] = [
     company: "OuterProduct",
     url: "https://www.science.org/eprint/7VNDJKEZGK3PAKTBJZK9/full?activationRedirect=/doi/full/10.1126/science.aea6792",
   },
+  {
+    publication: "Coverager",
+    headline: "Eat Cake rebrands to Milly Books",
+    company: "Milly Books",
+    url: "https://coverager.com/eat-cake-rebrands-to-milly-books/",
+  },
 ];
 
 export function InTheNews() {
