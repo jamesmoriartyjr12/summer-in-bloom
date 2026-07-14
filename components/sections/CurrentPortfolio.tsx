@@ -28,7 +28,7 @@ const PORTFOLIO: PortfolioCompany[] = [
   {
     name: "TeeCommerce",
     stage: "Seed",
-    tags: ["Ecomm"],
+    tags: ["B2B", "Ecommerce"],
     description: "Digital Pro Shops grows from 6M - 12M in a year",
     imageSmall: `${BASE}TeeCommerce_Small.png`,
     imageLarge: `${BASE}TeeCommerce_Large.png`,
