@@ -28,11 +28,10 @@ export const ARTICLES: Article[] = [
     url: "https://www.forbes.com/sites/alexyork/2025/11/14/this-under-30-raised-18-million-to-make-sleeping-cool-literally/",
   },
   {
-    publication: "Forbes",
-    headline: "Inside The $100 Million Membership Platform For Gen Z Creators",
-    image: `${BASE}FanFix_Article.png`,
+    publication: "Yahoo Finance",
+    headline: "Fanfix Surpasses $300 Million Paid Out to Creators, Marking Major Milestone in the Evolution of the Creator Economy",
     company: "FanFix",
-    url: "https://www.forbes.com/sites/ianshepherd/2024/08/19/inside-the-100-million-membership-platform-for-gen-z-creators/",
+    url: "https://finance.yahoo.com/small-business/articles/fanfix-surpasses-300-million-paid-130600213.html",
   },
   {
     publication: "Yahoo Finance",
