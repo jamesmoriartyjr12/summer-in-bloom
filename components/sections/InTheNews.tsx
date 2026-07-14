@@ -58,6 +58,12 @@ export const ARTICLES: Article[] = [
     company: "Sunny Benefits",
     url: "https://finance.yahoo.com/news/sunny-collaborates-visa-enhance-expand-131700588.html",
   },
+  {
+    publication: "Science",
+    headline: "Toward universal steering and monitoring of AI models",
+    company: "OuterProduct",
+    url: "https://www.science.org/eprint/7VNDJKEZGK3PAKTBJZK9/full?activationRedirect=/doi/full/10.1126/science.aea6792",
+  },
 ];
 
 export function InTheNews() {
