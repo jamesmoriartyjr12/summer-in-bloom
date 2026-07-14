@@ -36,7 +36,7 @@ const PORTFOLIO: PortfolioCompany[] = [
   {
     name: "OuterProduct",
     stage: "Seed",
-    tags: ["Consumer"],
+    tags: ["B2B", "AI"],
     description: "AI analytics that turn any data into smarter decisions",
     imageSmall: `${BASE}OuterProduct_Small.png`,
     imageLarge: `${BASE}OuterProduct_Large.png`,
