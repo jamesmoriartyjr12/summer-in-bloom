@@ -29,7 +29,7 @@ export const ARTICLES: Article[] = [
   },
   {
     publication: "Yahoo Finance",
-    headline: "Fanfix Surpasses $300 Million Paid Out to Creators, Marking Major Milestone in the Evolution of the Creator Economy",
+    headline: "Fanfix Surpasses $300 Million Paid Out to Creators",
     company: "FanFix",
     url: "https://finance.yahoo.com/small-business/articles/fanfix-surpasses-300-million-paid-130600213.html",
   },
