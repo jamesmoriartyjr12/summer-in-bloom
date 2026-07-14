@@ -42,7 +42,7 @@ export const ARTICLES: Article[] = [
   {
     publication: "Forbes",
     headline: "Need Servicing for your luxury watch? WatchCheck repairs more than 200 brands.",
-    company: "WatchCheck",
+    company: "Collectible",
     url: "https://www.forbes.com/sites/robertanaas/2024/11/19/need-servicing-for-your-fine-watch-meet-the-watchcheckcom-platform/",
   },
   {
