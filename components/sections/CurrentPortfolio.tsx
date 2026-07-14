@@ -44,7 +44,7 @@ const PORTFOLIO: PortfolioCompany[] = [
   {
     name: "FanFix",
     stage: "Growth",
-    tags: ["Consumer", "Money"],
+    tags: ["Creator", "Consumer"],
     description: "Monetize exclusive posts, chats and fan access",
     imageSmall: `${BASE}FanFix_Small.png`,
     imageLarge: `${BASE}FanFix_Large.png`,
