@@ -60,7 +60,7 @@ const PORTFOLIO: PortfolioCompany[] = [
   {
     name: "WatchCheck",
     stage: "Seed",
-    tags: ["Consumer"],
+    tags: ["Consumer", "Logistics"],
     description: "Luxury watch care reimagined with trusted precision",
     imageSmall: `${BASE}WatchCheck_Small.png`,
     imageLarge: `${BASE}WatchCheck_Large.png`,
