@@ -53,6 +53,12 @@ export const ARTICLES: Article[] = [
     company: "Feno Labs",
     url: "https://www.theverge.com/gadgets/609541/feno-ai-toothbrush",
   },
+  {
+    publication: "Yahoo Finance",
+    headline: "Sunny Collaborates with Visa to Enhance and Expand Health Benefits Payments",
+    company: "Sunny Benefits",
+    url: "https://finance.yahoo.com/news/sunny-collaborates-visa-enhance-expand-131700588.html",
+  },
 ];
 
 export function InTheNews() {
