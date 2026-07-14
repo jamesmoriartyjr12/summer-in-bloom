@@ -36,7 +36,7 @@ const PORTFOLIO: PortfolioCompany[] = [
   {
     name: "Meridian",
     stage: "Seed",
-    tags: ["Money"],
+    tags: ["Payments", "B2B"],
     description: "Connecting banks worldwide to instant local payments",
     imageSmall: `${BASE}Meridian_Small.png`,
     imageLarge: `${BASE}Meridian_Large.png`,
