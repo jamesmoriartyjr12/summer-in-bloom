@@ -156,7 +156,7 @@ export function CurrentPortfolio() {
               ref={(el) => { companyRefs.current[i] = el; }}
               onMouseEnter={() => setHoveredIndex(i)}
               onMouseLeave={() => setHoveredIndex(null)}
-              className="flex flex-col desktop:px-[24px] desktop:-mx-[24px] desktop:rounded-2xl transition-colors motion-reduce:transition-none desktop:hover:bg-black/[0.03]"
+              className="flex flex-col"
             >
               <div className="desktop:hidden aspect-[4/3] w-full overflow-hidden bg-beige relative mb-[48px]">
                 <Image src={company.imageLarge} alt={company.name} fill className="object-cover" unoptimized />
