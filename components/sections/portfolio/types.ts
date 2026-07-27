@@ -6,6 +6,8 @@ export type PortfolioCompany = {
   imageSmall: string;
   imageLarge: string;
   hidden?: boolean;
+  /** Use centered framing when logo crop would offset the subject (e.g. Feno). */
+  imageFit?: "default" | "centered";
 };
 
 export const STAGE_STYLES: Record<string, { bg: string; text: string }> = {
