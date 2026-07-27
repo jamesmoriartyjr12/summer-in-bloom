@@ -6,7 +6,7 @@ import { SectionContent } from "../SectionContent";
 import { useActiveScrollIndex } from "@/hooks/useActiveScrollIndex";
 import { PortfolioCompanyRow } from "./portfolio/PortfolioCompanyRow";
 import { PortfolioStickyImage } from "./portfolio/PortfolioStickyImage";
-import { TRIGGER_Y, STICKY_IMAGE_WIDTH, type PortfolioCompany } from "./portfolio/types";
+import { STICKY_IMAGE_ZONE, STICKY_IMAGE_WIDTH, type PortfolioCompany } from "./portfolio/types";
 
 const BASE = "/Bloom%20Portfolio%20Images/";
 
@@ -98,7 +98,7 @@ const VISIBLE_PORTFOLIO = PORTFOLIO.filter((c) => !c.hidden);
 export function CurrentPortfolio() {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const companyRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const activeIndex = useActiveScrollIndex(companyRefs, TRIGGER_Y);
+  const activeIndex = useActiveScrollIndex(companyRefs, STICKY_IMAGE_ZONE);
   const displayIndex = hoveredIndex ?? activeIndex;
   const displayCompany = VISIBLE_PORTFOLIO[displayIndex];
 
