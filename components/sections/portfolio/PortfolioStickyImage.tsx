@@ -43,6 +43,7 @@ export function PortfolioStickyImage({ company, index }: PortfolioStickyImagePro
             alt={company.name}
             sizes={`${STICKY_IMAGE_WIDTH}px`}
             priority={index === 0}
+            fit={company.imageFit ?? "default"}
           />
         </motion.div>
       </AnimatePresence>

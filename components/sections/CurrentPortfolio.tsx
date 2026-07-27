@@ -10,7 +10,7 @@ import { STICKY_IMAGE_ZONE, STICKY_IMAGE_WIDTH, type PortfolioCompany } from "./
 
 const BASE = "/Bloom%20Portfolio%20Images/";
 const IMAGE_VERSION = "v=3";
-const img = (file: string) => `${BASE}${file}?${IMAGE_VERSION}`;
+const img = (file: string, version = IMAGE_VERSION) => `${BASE}${file}?${version}`;
 
 const PORTFOLIO: PortfolioCompany[] = [
   {
@@ -50,8 +50,9 @@ const PORTFOLIO: PortfolioCompany[] = [
     stage: "Seed",
     tags: ["Health Tech"],
     description: "One-line description coming soon",
-    imageSmall: img("Feno_Small.png"),
-    imageLarge: img("Feno_Large.png"),
+    imageSmall: img("Feno_Small.png", "v=4"),
+    imageLarge: img("Feno_Large.png", "v=4"),
+    imageFit: "centered",
   },
   {
     name: "OuterProduct",

@@ -89,6 +89,7 @@ export function PortfolioCompanyRow({
             src={company.imageLarge}
             alt={company.name}
             sizes="100vw"
+            fit={company.imageFit ?? "default"}
           />
         </motion.div>
 
