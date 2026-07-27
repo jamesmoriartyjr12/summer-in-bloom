@@ -15,8 +15,11 @@ export const STAGE_STYLES: Record<string, { bg: string; text: string }> = {
 
 export const DEFAULT_STAGE_STYLE = { bg: "bg-orange", text: "text-black" };
 
-// Bottom edge of the sticky image = sticky top (96) + image height (400)
-export const TRIGGER_Y = 496;
+// Sticky image geometry — keep TRIGGER_Y in sync with top + height
+export const STICKY_IMAGE_TOP = 96;
+export const STICKY_IMAGE_HEIGHT = 520;
+export const STICKY_IMAGE_WIDTH = 448;
+export const TRIGGER_Y = STICKY_IMAGE_TOP + STICKY_IMAGE_HEIGHT;
 
 export const SPOTLIGHT_INACTIVE_OPACITY_DESKTOP = 0.4;
 export const SPOTLIGHT_INACTIVE_OPACITY_MOBILE = 0.65;

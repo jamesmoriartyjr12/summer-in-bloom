@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { PORTFOLIO_IMAGE_EASE, type PortfolioCompany } from "./types";
+import { PORTFOLIO_IMAGE_EASE, STICKY_IMAGE_HEIGHT, STICKY_IMAGE_TOP, STICKY_IMAGE_WIDTH, type PortfolioCompany } from "./types";
 
 type PortfolioStickyImageProps = {
   company: PortfolioCompany;
@@ -14,7 +14,10 @@ export function PortfolioStickyImage({ company, index }: PortfolioStickyImagePro
   const direction = index % 2 === 0 ? 1 : -1;
 
   return (
-    <div className="sticky top-[96px] h-[400px] overflow-hidden bg-beige relative will-change-transform">
+    <div
+      className="sticky overflow-hidden bg-beige relative will-change-transform"
+      style={{ top: STICKY_IMAGE_TOP, height: STICKY_IMAGE_HEIGHT }}
+    >
       <AnimatePresence mode="sync">
         <motion.div
           key={company.name}
@@ -40,6 +43,7 @@ export function PortfolioStickyImage({ company, index }: PortfolioStickyImagePro
             alt={company.name}
             fill
             className="object-cover"
+            sizes={`${STICKY_IMAGE_WIDTH}px`}
             unoptimized
           />
           <div className="absolute bottom-[24px] right-[24px] backdrop-blur-[7.5px] bg-[rgba(235,235,235,0.1)] flex items-center px-[12px] py-[6px] rounded-full">

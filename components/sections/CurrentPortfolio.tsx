@@ -6,7 +6,7 @@ import { SectionContent } from "../SectionContent";
 import { useActiveScrollIndex } from "@/hooks/useActiveScrollIndex";
 import { PortfolioCompanyRow } from "./portfolio/PortfolioCompanyRow";
 import { PortfolioStickyImage } from "./portfolio/PortfolioStickyImage";
-import { TRIGGER_Y, type PortfolioCompany } from "./portfolio/types";
+import { TRIGGER_Y, STICKY_IMAGE_WIDTH, type PortfolioCompany } from "./portfolio/types";
 
 const BASE = "/Bloom%20Portfolio%20Images/";
 
@@ -109,6 +109,7 @@ export function CurrentPortfolio() {
       className="relative z-10 bg-chalk text-black pt-[200px] pb-[96px]"
     >
       <SectionContent
+        leftColumnWidth={STICKY_IMAGE_WIDTH}
         left={
           <PortfolioStickyImage
             company={displayCompany}
