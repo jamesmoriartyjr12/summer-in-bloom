@@ -2,11 +2,15 @@
 
 import { useRef, useState } from "react";
 import { Section } from "../Section";
-import { SectionContent } from "../SectionContent";
 import { useActiveScrollIndex } from "@/hooks/useActiveScrollIndex";
+import { PortfolioBackgroundImage } from "./portfolio/PortfolioBackgroundImage";
 import { PortfolioCompanyRow } from "./portfolio/PortfolioCompanyRow";
-import { PortfolioStickyImage } from "./portfolio/PortfolioStickyImage";
-import { TRIGGER_Y, STICKY_IMAGE_WIDTH, type PortfolioCompany } from "./portfolio/types";
+import {
+  PANEL_MIN_HEIGHT,
+  PORTFOLIO_CONTENT_INSET,
+  TRIGGER_Y,
+  type PortfolioCompany,
+} from "./portfolio/types";
 
 const BASE = "/Bloom%20Portfolio%20Images/";
 
@@ -106,18 +110,51 @@ export function CurrentPortfolio() {
     <Section
       id="current-portfolio"
       theme="light"
-      className="relative z-10 bg-chalk text-black pt-[200px] pb-[96px]"
+      className="relative z-10 bg-chalk text-black pt-[200px] pb-0 desktop:pb-[96px]"
     >
-      <SectionContent
-        leftColumnWidth={STICKY_IMAGE_WIDTH}
-        left={
-          <PortfolioStickyImage
+      {/* Desktop: full-bleed background with content scrolling over it */}
+      <div className={`hidden desktop:grid grid-cols-1 ${PORTFOLIO_CONTENT_INSET}`}>
+        <div className="col-start-1 row-start-1 row-end-[-1] sticky top-[96px] h-[calc(100vh-96px)] self-start z-0 overflow-hidden relative">
+          <PortfolioBackgroundImage
             company={displayCompany}
             index={displayIndex}
           />
-        }
-      >
-        <div className="flex flex-col gap-[80px] desktop:gap-[64px]">
+          {/* Readability gradient — content sits on the right */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background:
+                "linear-gradient(to right, rgba(0,0,0,0.08) 0%, rgba(235,235,235,0.15) 42%, rgba(235,235,235,0.88) 62%, rgba(235,235,235,0.96) 100%)",
+            }}
+          />
+        </div>
+
+        {VISIBLE_PORTFOLIO.map((company, i) => (
+          <div
+            key={company.name}
+            ref={(el) => {
+              companyRefs.current[i] = el;
+            }}
+            className="col-start-1 z-10 flex items-end justify-end snap-start"
+            style={{ minHeight: PANEL_MIN_HEIGHT }}
+            onMouseEnter={() => setHoveredIndex(i)}
+            onMouseLeave={() => setHoveredIndex(null)}
+          >
+            <div className="w-full max-w-[560px] xl:max-w-[640px] pb-[10vh] pt-[32px]">
+              <PortfolioCompanyRow
+                company={company}
+                index={i}
+                isActive={displayIndex === i}
+                variant="overlay"
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Mobile / tablet: stacked list with inline images */}
+      <div className={`desktop:hidden ${PORTFOLIO_CONTENT_INSET} pb-[96px]`}>
+        <div className="flex flex-col gap-[80px]">
           {VISIBLE_PORTFOLIO.map((company, i) => (
             <PortfolioCompanyRow
               key={company.name}
@@ -127,12 +164,11 @@ export function CurrentPortfolio() {
               company={company}
               index={i}
               isActive={displayIndex === i}
-              onMouseEnter={() => setHoveredIndex(i)}
-              onMouseLeave={() => setHoveredIndex(null)}
+              variant="stacked"
             />
           ))}
         </div>
-      </SectionContent>
+      </div>
     </Section>
   );
 }
