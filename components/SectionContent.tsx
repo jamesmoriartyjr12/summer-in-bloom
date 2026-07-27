@@ -16,19 +16,25 @@ type SectionContentProps = {
   left?: ReactNode;
   children: ReactNode;
   className?: string;
+  /** Width of the optional left column in px (default 336). */
+  leftColumnWidth?: number;
 };
 
 export function SectionContent({
   left,
   children,
   className,
+  leftColumnWidth = 336,
 }: SectionContentProps) {
   return (
     <div
       className={`flex gap-[48px] items-start pl-[76px] mobile:pl-[200px] desktop:pl-[248px] xl:pl-[320px] pr-[76px] mobile:pr-[200px] desktop:pr-[248px] xl:pr-[320px] ${className ?? ""}`}
     >
       {left && (
-        <div className="w-[336px] shrink-0 self-stretch max-[1099px]:hidden">
+        <div
+          className="shrink-0 self-stretch max-[1099px]:hidden"
+          style={{ width: leftColumnWidth }}
+        >
           {left}
         </div>
       )}
