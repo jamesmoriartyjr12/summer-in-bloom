@@ -26,8 +26,10 @@ export function useActiveScrollIndex(
 
     update();
     window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("lenis-scroll", onScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("lenis-scroll", onScroll);
       if (rafId) cancelAnimationFrame(rafId);
     };
   }, [refs, triggerY]);
