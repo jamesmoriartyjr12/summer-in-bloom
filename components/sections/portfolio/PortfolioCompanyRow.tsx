@@ -92,11 +92,6 @@ export function PortfolioCompanyRow({
             className="object-cover"
             unoptimized
           />
-          <div className="absolute top-[24px] left-[24px] backdrop-blur-[7.5px] bg-[rgba(235,235,235,0.1)] flex items-center px-[12px] py-[6px] rounded-full">
-            <p className="text-[12px] font-medium leading-[1.35] uppercase text-[#ebebeb] whitespace-nowrap">
-              Markup
-            </p>
-          </div>
         </motion.div>
 
         <motion.div
