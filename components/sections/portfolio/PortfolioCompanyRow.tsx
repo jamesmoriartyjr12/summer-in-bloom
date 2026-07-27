@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import { ARTICLES } from "../InTheNews";
+import { PortfolioImage } from "./PortfolioImage";
 import {
   DEFAULT_STAGE_STYLE,
   PORTFOLIO_IMAGE_EASE,
@@ -85,12 +85,10 @@ export function PortfolioCompanyRow({
             ease: PORTFOLIO_IMAGE_EASE,
           }}
         >
-          <Image
+          <PortfolioImage
             src={company.imageLarge}
             alt={company.name}
-            fill
-            className="object-cover"
-            unoptimized
+            sizes="100vw"
           />
         </motion.div>
 

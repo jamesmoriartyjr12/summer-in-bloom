@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { PORTFOLIO_IMAGE_EASE, STICKY_IMAGE_HEIGHT, STICKY_IMAGE_TOP, STICKY_IMAGE_WIDTH, type PortfolioCompany } from "./types";
+import { PortfolioImage } from "./PortfolioImage";
 
 type PortfolioStickyImageProps = {
   company: PortfolioCompany;
@@ -38,13 +38,11 @@ export function PortfolioStickyImage({ company, index }: PortfolioStickyImagePro
             ease: PORTFOLIO_IMAGE_EASE,
           }}
         >
-          <Image
+          <PortfolioImage
             src={company.imageSmall}
             alt={company.name}
-            fill
-            className="object-cover"
             sizes={`${STICKY_IMAGE_WIDTH}px`}
-            unoptimized
+            priority={index === 0}
           />
         </motion.div>
       </AnimatePresence>
