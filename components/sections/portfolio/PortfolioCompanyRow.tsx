@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, useInView, useReducedMotion } from "framer-motion";
-import { ARTICLES } from "../InTheNews";
+import { ARTICLES } from "./articles";
 import { PortfolioImage } from "./PortfolioImage";
 import {
   DEFAULT_STAGE_STYLE,
