@@ -16,7 +16,6 @@ const NAV_ITEMS: NavItem[] = [
   { id: "fund-details-2", label: "Fund Details" },
   { id: "about-us", label: "Team" },
   { id: "current-portfolio", label: "Portfolio" },
-  { id: "in-the-news", label: "News" },
   { id: "contact", label: "Join us" },
 ];
 
@@ -33,7 +32,6 @@ const SECTION_THEMES: Array<{ id: string; theme: "light" | "dark" }> = [
   { id: "fund-details-2", theme: "light" },
   { id: "about-us", theme: "light" },
   { id: "current-portfolio", theme: "light" },
-  { id: "in-the-news", theme: "light" },
   { id: "contact", theme: "dark" },
 ];
 
