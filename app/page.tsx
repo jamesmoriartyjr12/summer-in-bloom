@@ -20,8 +20,8 @@ export default function Page() {
             <Hero />
             <TheStudio />
             <FundThesis />
-            <AboutUs />
             <FundDetails id="fund-details-2" />
+            <AboutUs />
             <CurrentPortfolio />
             <InTheNews />
             <Contact />
