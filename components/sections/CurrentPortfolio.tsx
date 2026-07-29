@@ -59,8 +59,8 @@ const PORTFOLIO: PortfolioCompany[] = [
     stage: "Seed",
     tags: ["B2B", "AI"],
     description: "AI analytics that turn any data into smarter decisions",
-    imageSmall: img("OuterProduct_Small.png"),
-    imageLarge: img("OuterProduct_Large.png"),
+    imageSmall: img("OuterProduct_Small.png", "v=5"),
+    imageLarge: img("OuterProduct_Large.png", "v=5"),
   },
   {
     name: "TeeCommerce",
