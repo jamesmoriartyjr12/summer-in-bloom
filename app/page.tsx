@@ -21,9 +21,9 @@ export default function Page() {
             <TheStudio />
             <FundThesis />
             <AboutUs />
+            <FundDetails id="fund-details-2" />
             <CurrentPortfolio />
             <InTheNews />
-            <FundDetails id="fund-details-2" />
             <Contact />
           </div>
         </main>
