@@ -1,16 +1,5 @@
 import { ReactNode } from "react";
-
-// Universal content wrapper for non-hero sections.
-//
-// Layout rules:
-//   - 200px reserved on the left for the side nav
-//   - 48px gap between nav and the left column (desktop only)
-//   - Left column: 336px fixed, hidden below 900px
-//   - Right column: flex-1, expands to fill remaining width
-//   - Right inset mirrors the left inset at every breakpoint, so content
-//     sits on a symmetric grid
-//
-// Pass `left` to populate the left column and reserve its space.
+import { SECTION_INSET_X } from "@/lib/sectionLayout";
 
 type SectionContentProps = {
   left?: ReactNode;
@@ -18,6 +7,13 @@ type SectionContentProps = {
   className?: string;
   /** Width of the optional left column in px (default 336). */
   leftColumnWidth?: number;
+  /** Breakpoint at which the left column appears (default desktop / 1100px). */
+  leftColumnFrom?: "desktop" | "xl";
+};
+
+const LEFT_COL_HIDDEN: Record<NonNullable<SectionContentProps["leftColumnFrom"]>, string> = {
+  desktop: "max-[1099px]:hidden",
+  xl: "max-[1279px]:hidden",
 };
 
 export function SectionContent({
@@ -25,21 +21,19 @@ export function SectionContent({
   children,
   className,
   leftColumnWidth = 336,
+  leftColumnFrom = "desktop",
 }: SectionContentProps) {
   return (
-    <div
-      className={`flex gap-[48px] items-start pl-[76px] mobile:pl-[200px] desktop:pl-[248px] xl:pl-[320px] pr-[76px] mobile:pr-[200px] desktop:pr-[248px] xl:pr-[320px] ${className ?? ""}`}
-    >
+    <div className={`flex gap-[48px] items-start ${SECTION_INSET_X} ${className ?? ""}`}>
       {left && (
         <div
-          className="shrink-0 self-stretch max-[1099px]:hidden"
+          className={`shrink-0 self-stretch ${LEFT_COL_HIDDEN[leftColumnFrom]}`}
           style={{ width: leftColumnWidth }}
         >
           {left}
         </div>
       )}
 
-      {/* Right column — fills remaining width */}
       <div className="flex-1 min-w-0">{children}</div>
     </div>
   );
