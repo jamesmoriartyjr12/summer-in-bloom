@@ -17,6 +17,8 @@ const FILES = [
   "Sunny_Large.png",
   "Feno_Small.png",
   "Feno_Large.png",
+  "OuterProduct_Small.png",
+  "OuterProduct_Large.png",
   "TeeCommerce_Small.png",
   "TeeCommerce_Large.png",
   "Milly_Small.png",
