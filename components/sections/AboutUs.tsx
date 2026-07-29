@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { Section } from "../Section";
+import { HEADLINE_MEASURE, SECTION_INSET_X, SECTION_PT } from "@/lib/sectionLayout";
 
 const BASE = "/Portraits/";
 
@@ -38,16 +39,16 @@ export function AboutUs() {
     <Section
       id="about-us"
       theme="light"
-      className="relative z-10 bg-chalk text-black pt-[200px] pb-[96px]"
+      className={`relative z-10 bg-chalk text-black pb-[96px] ${SECTION_PT}`}
     >
-      <div className="flex flex-col gap-[96px] pl-[76px] mobile:pl-[200px] desktop:pl-[248px] xl:pl-[320px] pr-[76px] mobile:pr-[200px] desktop:pr-[248px] xl:pr-[320px]">
-        <h2 className="font-display text-h2 leading-none tracking-[-1.6px] max-w-[800px]">
+      <div className={`flex flex-col gap-[96px] ${SECTION_INSET_X}`}>
+        <h2 className={`font-display text-h2 leading-none tracking-[-1.6px] ${HEADLINE_MEASURE}`}>
           Built by proven operators, to build alongside proven operators.
         </h2>
 
-        <div className="flex flex-col desktop:flex-row gap-x-[48px] gap-y-[64px]">
+        <div className="flex flex-col mobile:flex-row mobile:flex-wrap gap-x-[48px] gap-y-[64px]">
           {TEAM.map((member, i) => (
-            <div key={i} className="flex flex-col gap-[24px] flex-1 min-w-0">
+            <div key={i} className="flex flex-col gap-[24px] flex-1 min-w-[240px] mobile:min-w-[280px]">
               <div
                 className="w-full aspect-[4/5] bg-beige relative overflow-hidden"
                 style={{

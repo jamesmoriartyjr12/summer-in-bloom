@@ -106,17 +106,17 @@ export function Hero() {
 
           {/* Headline — enters after text, exits upward slower */}
           <div
-            className="flex items-end justify-between"
+            className="flex flex-col items-start gap-[16px] mobile:flex-row mobile:items-end mobile:justify-between"
             style={{
               opacity: headlineOpacity * exitOpacity,
               transform: `translateY(${headlineEntryY + headExitY}px)`,
               transition: "opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)",
             }}
           >
-            <h1 className="font-display text-[clamp(60px,18vw,200px)] leading-[0.95] tracking-[-4px]">
+            <h1 className="font-display text-[clamp(44px,18vw,200px)] leading-[0.95] tracking-[-2px] mobile:tracking-[-4px]">
               Summer<br /> in Bloom
             </h1>
-            <span className="font-display text-l1 pb-[6px]">Flagship Fund One</span>
+            <span className="font-display text-l1 pb-[6px] shrink-0">Flagship Fund One</span>
           </div>
 
         </div>

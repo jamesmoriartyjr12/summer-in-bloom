@@ -46,11 +46,29 @@ body {
   overflow-x: hidden;
 }
 
+/* Mobile nav — push page when hamburger panel is open */
+.mobile-nav-shift {
+  transition: transform 0.35s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+@media (max-width: 599px) {
+  html.mobile-nav-open .mobile-nav-shift {
+    transform: translateX(200px);
+  }
+}
+
 /* Responsive heading scale — below the 600px mobile breakpoint */
 @media (max-width: 599px) {
-  .text-h1 { font-size: 19vw; }
   .text-h2 { font-size: 48px; }
   .text-h3 { font-size: 32px; }
+  .text-h4 { font-size: 24px; }
   .text-l1 { font-size: 14px; }
+}
+
+/* Tablet type scale — 600px–1099px */
+@media (min-width: 600px) and (max-width: 1099px) {
+  .text-h2 { font-size: 56px; letter-spacing: -1.12px; }
+  .text-h3 { font-size: 44px; letter-spacing: -0.88px; }
+  .text-h4 { font-size: 28px; letter-spacing: -0.56px; }
 }
 

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { Section } from "../Section";
 import { SectionContent } from "../SectionContent";
+import { HEADLINE_MEASURE, SECTION_INSET_X, SECTION_PY } from "@/lib/sectionLayout";
 
 const FUND_DETAILS = [
   { label: "Fund raise", value: "$10,000,000" },
@@ -20,12 +21,11 @@ export function FundDetails({ id = "fund-details" as const }: { id?: "fund-detai
     <Section
       id={id}
       theme="light"
-      className="relative z-10 bg-chalk text-black py-[200px]"
+      className={`relative z-10 bg-chalk text-black ${SECTION_PY}`}
     >
       <div className="flex flex-col gap-[48px] desktop:gap-[96px]">
-        {/* Title — starts at image edge, spans both columns */}
-        <div className="pl-[76px] mobile:pl-[200px] desktop:pl-[248px] xl:pl-[320px] pr-[76px] mobile:pr-[200px] desktop:pr-[248px] xl:pr-[320px]">
-          <h2 className="font-display text-h2 leading-none tracking-[-1.6px] max-w-[850px]">
+        <div className={SECTION_INSET_X}>
+          <h2 className={`font-display text-h2 leading-none tracking-[-1.6px] ${HEADLINE_MEASURE}`}>
             Led by proven operators.
           </h2>
         </div>
@@ -46,7 +46,6 @@ export function FundDetails({ id = "fund-details" as const }: { id?: "fund-detai
           }
         >
           <div className="flex flex-col">
-            {/* Mobile image — hidden on desktop where sticky left column takes over */}
             <div className="desktop:hidden aspect-[4/3] w-full overflow-hidden relative mb-[48px]">
               <Image
                 src={DETAILS_IMAGE_LARGE}

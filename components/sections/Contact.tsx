@@ -2,6 +2,7 @@
 
 import { Section } from "../Section";
 import { SectionContent } from "../SectionContent";
+import { HEADLINE_MEASURE, SECTION_PY } from "@/lib/sectionLayout";
 
 const CONTACTS = [
   {
@@ -23,17 +24,17 @@ export function Contact() {
     <Section
       id="contact"
       theme="dark"
-      className="relative z-10 bg-black text-chalk py-[200px]"
+      className={`relative z-10 bg-black text-chalk ${SECTION_PY}`}
     >
       <SectionContent>
         <div className="flex flex-col gap-[96px]">
-          <h2 className="font-display text-h2 leading-none tracking-[-1.6px]">
+          <h2 className={`font-display text-h2 leading-none tracking-[-1.6px] ${HEADLINE_MEASURE}`}>
             Talk to us
           </h2>
           <div className="flex flex-col gap-[96px]">
             {CONTACTS.map((contact) => (
               <div key={contact.name} className="flex flex-col">
-                <div className="flex flex-col gap-[16px] mobile:flex-row mobile:items-start mobile:justify-between pt-[24px] pb-[8px] pr-[48px]">
+                <div className="flex flex-col gap-[16px] mobile:flex-row mobile:items-start mobile:justify-between pt-[24px] pb-[8px] mobile:pr-[48px]">
                   <p className="font-display text-h4 leading-none tracking-[-0.64px]">
                     {contact.name}
                   </p>
