@@ -3,12 +3,9 @@ import { ReactNode } from "react";
 // Universal content wrapper for non-hero sections.
 //
 // Layout rules:
-//   - 200px reserved on the left for the side nav
-//   - 48px gap between nav and the left column (desktop only)
-//   - Left column: 336px fixed, hidden below 900px
-//   - Right column: flex-1, expands to fill remaining width
-//   - Right inset mirrors the left inset at every breakpoint, so content
-//     sits on a symmetric grid
+//   - Left inset reserves side-nav space (200px at mobile+, 248/320 at desktop/xl)
+//   - Right inset is a fixed 24px content gutter
+//   - Optional left column (336px default) hidden below 1100px
 //
 // Pass `left` to populate the left column and reserve its space.
 
@@ -25,7 +22,7 @@ export function SectionContent({
 }: SectionContentProps) {
   return (
     <div
-      className={`flex gap-[48px] items-start pl-[76px] mobile:pl-[200px] desktop:pl-[248px] xl:pl-[320px] pr-[76px] mobile:pr-[200px] desktop:pr-[248px] xl:pr-[320px] ${className ?? ""}`}
+      className={`flex gap-[48px] items-start pl-[76px] mobile:pl-[200px] desktop:pl-[248px] xl:pl-[320px] pr-[24px] ${className ?? ""}`}
     >
       {left && (
         <div className="w-[336px] shrink-0 self-stretch max-[1099px]:hidden">
