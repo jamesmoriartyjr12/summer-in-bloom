@@ -13,15 +13,28 @@ const FUND_DETAILS = [
 ];
 
 const DETAILS_IMAGE = "/fund-details-large.png";
+const WAVES_VIDEO = "/waves-video.webm";
 
 export function FundDetails({ id = "fund-details" as const }: { id?: "fund-details" | "fund-details-2" }) {
   return (
     <Section
       id={id}
-      theme="light"
-      className="relative z-10 bg-chalk text-black py-[200px]"
+      theme="dark"
+      className="relative z-10 text-chalk py-[200px] overflow-hidden"
     >
-      <SectionContent>
+      <div className="absolute inset-0 z-0" aria-hidden>
+        <video
+          src={WAVES_VIDEO}
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-black/35" />
+      </div>
+
+      <SectionContent className="relative z-10">
         <div className="flex flex-col gap-[48px] desktop:gap-[96px]">
           <h2 className="font-display text-h2 leading-none tracking-[-1.6px] max-w-[850px]">
             Led by proven operators.
@@ -43,7 +56,7 @@ export function FundDetails({ id = "fund-details" as const }: { id?: "fund-detai
             {FUND_DETAILS.map((row) => (
               <div
                 key={row.label}
-                className="flex flex-col gap-[12px] py-[40px] border-b border-beige w-full"
+                className="flex flex-col gap-[12px] py-[40px] border-b border-chalk-25 w-full"
               >
                 <p className="text-p2">{row.label}</p>
                 <p className="font-display text-h4 leading-none tracking-[-0.64px]">
