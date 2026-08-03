@@ -3,9 +3,9 @@
 import Image from "next/image";
 import { Section } from "../Section";
 import { SectionContent } from "../SectionContent";
+import { WavesBackground } from "../WavesBackground";
 
 const BASE = "/Portraits/";
-const WAVES_VIDEO = "/waves-video.webm";
 
 type TeamMember = {
   name: string;
@@ -42,17 +42,7 @@ export function AboutUs() {
       theme="dark"
       className="relative z-10 text-chalk pt-[200px] pb-[96px] overflow-hidden"
     >
-      <div className="absolute inset-0 z-0" aria-hidden>
-        <video
-          src={WAVES_VIDEO}
-          autoPlay
-          muted
-          loop
-          playsInline
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-black/35" />
-      </div>
+      <WavesBackground />
 
       <SectionContent className="relative z-10">
         <div className="flex flex-col gap-[96px]">

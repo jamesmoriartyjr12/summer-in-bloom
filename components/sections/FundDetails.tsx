@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { Section } from "../Section";
 import { SectionContent } from "../SectionContent";
 
@@ -11,8 +10,6 @@ const FUND_DETAILS = [
   { label: "Management fees", value: "2%" },
   { label: "Fund carry", value: "20%" },
 ];
-
-const DETAILS_IMAGE = "/fund-details-large.png";
 
 export function FundDetails({ id = "fund-details" as const }: { id?: "fund-details" | "fund-details-2" }) {
   return (
@@ -26,17 +23,6 @@ export function FundDetails({ id = "fund-details" as const }: { id?: "fund-detai
           <h2 className="font-display text-h2 leading-none tracking-[-1.6px] max-w-[850px]">
             Led by proven operators.
           </h2>
-
-          <div className="aspect-[4/3] w-full overflow-hidden relative">
-            <Image
-              src={DETAILS_IMAGE}
-              alt=""
-              fill
-              sizes="(max-width: 1099px) 100vw, 896px"
-              className="object-cover"
-            />
-            <div className="absolute inset-0 bg-black/10" />
-          </div>
 
           <div className="flex flex-col">
             <p className="text-l2 font-medium uppercase">Fund details</p>
