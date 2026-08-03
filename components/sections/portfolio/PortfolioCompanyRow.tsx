@@ -155,7 +155,7 @@ export function PortfolioCompanyRow({
           </motion.div>
         ) : (
           <motion.div
-            className="flex flex-col desktop:flex-row desktop:items-end gap-[16px] desktop:gap-[24px] pb-[28px] border-b border-beige"
+            className="flex flex-col gap-[32px] xl:flex-row xl:items-end xl:gap-[24px] pb-[28px] border-b border-beige"
             variants={revealVariants}
             initial={reduceMotion ? false : "hidden"}
             animate={shouldReveal ? "visible" : "hidden"}
@@ -177,7 +177,7 @@ export function PortfolioCompanyRow({
               href={article.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="group border border-black hover:bg-black transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 focus-visible:ring-offset-chalk self-start desktop:self-auto shrink-0 flex items-center px-[16px] py-[8px] rounded-lg"
+              className="group border border-black hover:bg-black transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 focus-visible:ring-offset-chalk self-start xl:self-auto shrink-0 flex items-center px-[16px] py-[8px] rounded-lg"
             >
               <span className="text-[12px] font-medium leading-[1.35] uppercase text-black group-hover:text-chalk transition-colors motion-reduce:transition-none">
                 {article.publication}
