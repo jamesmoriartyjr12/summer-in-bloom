@@ -12,8 +12,7 @@ const FUND_DETAILS = [
   { label: "Fund carry", value: "20%" },
 ];
 
-const DETAILS_IMAGE_SMALL = "/fund-details-small.png";
-const DETAILS_IMAGE_LARGE = "/fund-details-large.png";
+const DETAILS_IMAGE = "/fund-details-large.png";
 
 export function FundDetails({ id = "fund-details" as const }: { id?: "fund-details" | "fund-details-2" }) {
   return (
@@ -22,41 +21,24 @@ export function FundDetails({ id = "fund-details" as const }: { id?: "fund-detai
       theme="light"
       className="relative z-10 bg-chalk text-black py-[200px]"
     >
-      <div className="flex flex-col gap-[48px] desktop:gap-[96px]">
-        {/* Title — starts at image edge, spans both columns */}
-        <div className="pl-[76px] mobile:pl-[200px] desktop:pl-[248px] xl:pl-[320px] pr-[76px] mobile:pr-[200px] desktop:pr-[248px] xl:pr-[320px]">
+      <SectionContent>
+        <div className="flex flex-col gap-[48px] desktop:gap-[96px]">
           <h2 className="font-display text-h2 leading-none tracking-[-1.6px] max-w-[850px]">
             Led by proven operators.
           </h2>
-        </div>
 
-        {/* Image + metric list */}
-        <SectionContent
-          left={
-            <div className="sticky top-[96px] h-[400px] overflow-hidden">
-              <Image
-                src={DETAILS_IMAGE_SMALL}
-                alt=""
-                fill
-                sizes="336px"
-                className="object-cover"
-              />
-              <div className="absolute inset-0 bg-black/10" />
-            </div>
-          }
-        >
+          <div className="aspect-[4/3] w-full overflow-hidden relative">
+            <Image
+              src={DETAILS_IMAGE}
+              alt=""
+              fill
+              sizes="(max-width: 1099px) 100vw, 896px"
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-black/10" />
+          </div>
+
           <div className="flex flex-col">
-            {/* Mobile image — hidden on desktop where sticky left column takes over */}
-            <div className="desktop:hidden aspect-[4/3] w-full overflow-hidden relative mb-[48px]">
-              <Image
-                src={DETAILS_IMAGE_LARGE}
-                alt=""
-                fill
-                className="object-cover"
-              />
-              <div className="absolute inset-0 bg-black/10" />
-            </div>
-
             <p className="text-l2 font-medium uppercase">Fund details</p>
             {FUND_DETAILS.map((row) => (
               <div
@@ -70,8 +52,8 @@ export function FundDetails({ id = "fund-details" as const }: { id?: "fund-detai
               </div>
             ))}
           </div>
-        </SectionContent>
-      </div>
+        </div>
+      </SectionContent>
     </Section>
   );
 }
