@@ -63,9 +63,6 @@ export function AboutUs() {
                   <Image src={member.image} alt={member.name} fill className="object-cover" unoptimized />
                 </div>
                 <div className="flex flex-col gap-[16px]">
-                  <p className="font-display text-h4 leading-none tracking-[-0.64px]">
-                    {member.name}
-                  </p>
                   <div className="flex flex-wrap items-center gap-[8px]">
                     {member.roles.map((role) => (
                       <div
@@ -76,6 +73,9 @@ export function AboutUs() {
                       </div>
                     ))}
                   </div>
+                  <p className="font-display text-h4 leading-none tracking-[-0.64px]">
+                    {member.name}
+                  </p>
                   <p className="text-[16px] leading-[1.5]">{member.bio}</p>
                 </div>
               </div>
