@@ -29,8 +29,8 @@ function scrollDuration(id: SectionId): number {
 const SECTION_THEMES: Array<{ id: string; theme: "light" | "dark" }> = [
   { id: "the-studio", theme: "light" },
   { id: "fund-thesis", theme: "dark" },
-  { id: "fund-details-2", theme: "dark" },
-  { id: "about-us", theme: "light" },
+  { id: "fund-details-2", theme: "light" },
+  { id: "about-us", theme: "dark" },
   { id: "current-portfolio", theme: "light" },
   { id: "contact", theme: "dark" },
 ];
