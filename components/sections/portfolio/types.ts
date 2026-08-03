@@ -26,6 +26,9 @@ export const STICKY_IMAGE_ZONE = {
   bottom: STICKY_IMAGE_TOP + STICKY_IMAGE_HEIGHT,
 } as const;
 
+/** Cap for the portfolio two-column row on large viewports (image + gap + content). */
+export const PORTFOLIO_LAYOUT_MAX_WIDTH = 1440;
+
 export const SPOTLIGHT_INACTIVE_OPACITY_DESKTOP = 0.4;
 export const SPOTLIGHT_INACTIVE_OPACITY_MOBILE = 0.65;
 
