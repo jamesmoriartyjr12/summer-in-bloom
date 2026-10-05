@@ -1,12 +1,12 @@
 # Summer in Bloom
 
-First three sections of the Bloom Ventures fund intro: Hero, Fund Details, Fund Thesis.
+The Bloom site: a single scrolling page for the studio, the fund, the portfolio, and press. Preview deploys live on Vercel. bloomgrowthagency.com stays on the current public site until a later cutover.
 
 ## Stack
 
 - **Next.js 14** (App Router) + TypeScript
 - **Tailwind CSS** with design tokens from Figma
-- **Framer Motion** for the side nav transitions
+- **Framer Motion** for nav transitions
 - **Lenis** for smooth scroll
 - **BIZ UDPMincho** loaded via `next/font/google` (self-hosted at build time)
 
@@ -19,42 +19,45 @@ npm run dev
 
 Open <http://localhost:3000>.
 
-## Project structure
+## Page
 
+`app/page.tsx` composes the sections in order:
+
+1. Hero
+2. Studio
+3. Thesis
+4. Team
+5. Portfolio
+6. News
+7. Fund Details
+8. Join us
+
+Top nav and side nav sit outside the section flow. Each `<Section>` registers itself with `SectionContext`. The side nav reads the active section to mark the current item and to switch between light and dark themes.
+
+## What to edit
+
+| Change | Where |
+| --- | --- |
+| Portfolio companies | `content/portfolio.ts` |
+| Press articles | `content/news.ts` |
+| Layout and motion | `components/sections/` |
+| New images and video | `public/`, following `design/INTAKE.md` |
+
+Do not commit Figma asset URLs. Export the file into `public/` and reference that path.
+
+## How changes ship
+
+James merges. Agents may open pull requests. They do not merge, and they do not change the production domain.
+
+The rules for unattended edits are in `AGENTS.md`. Marco's visual source is Figma. Kayla's video, graphics, and motion notes follow `design/INTAKE.md`.
+
+Pull requests run lint, `tsc --noEmit`, and `next build` in GitHub Actions. Vercel posts a preview URL on the pull request. Production deploys only from `main`.
+
+## Scripts
+
+```bash
+npm run dev
+npm run lint
+npx tsc --noEmit
+npm run build
 ```
-app/
-  layout.tsx          # Font loading, metadata
-  page.tsx            # Page composition
-  globals.css         # Base styles + Lenis CSS
-components/
-  LenisProvider.tsx   # Smooth scroll setup
-  SectionContext.tsx  # Tracks active section + theme
-  Section.tsx         # Section wrapper with IntersectionObserver
-  SideNav.tsx         # Persistent sticky nav, theme-aware
-  sections/
-    Hero.tsx
-    FundDetails.tsx
-    FundThesis.tsx
-tailwind.config.ts    # Design tokens
-```
-
-## How the side nav works
-
-The side nav is a single persistent element rendered outside the section flow. It's hidden over the hero and fades in once the Fund Details section enters the viewport.
-
-Each `<Section>` registers itself with the `SectionContext` via an `IntersectionObserver`. The observer fires when a section's center crosses the middle of the viewport. The context tracks the active section's `id` and `theme` (`light` | `dark`), and the side nav reads from that to:
-
-- Update which dot is filled
-- Smoothly transition text and dot colors between light and dark themes
-
-Click handlers on each nav item use `scrollIntoView({ behavior: "smooth" })` which Lenis intercepts and applies its own easing to.
-
-## TODO before production
-
-1. **Hero video** — drop your video file into `public/hero.mp4` (and an optional poster at `public/hero-poster.jpg`). The `<video>` tag is already wired up. If you'd prefer an embed (Vimeo/Cloudflare Stream) instead, swap the `<video>` block in `components/sections/Hero.tsx` for an iframe.
-
-2. **Background image for Fund Thesis** — currently pulled from a Figma temp URL (expires in 7 days). Download the source asset, drop it in `public/`, and update the `THESIS_IMAGE` constant. Same for `DETAILS_IMAGE` in `FundDetails.tsx`.
-
-3. **Responsive rules** — desktop only so far. Need to define breakpoints and how the side nav, type sizes, and image layouts adapt on tablet / mobile.
-
-4. **Additional sections** — Pipeline, Current Portfolio, Contact. The `Section` + `SectionContext` plumbing is ready; just add them to `app/page.tsx` and they'll register with the side nav automatically.
