@@ -26,11 +26,10 @@ Open <http://localhost:3000>.
 1. Hero
 2. Studio
 3. Thesis
-4. Team
-5. Portfolio
-6. News
-7. Fund Details
-8. Join us
+4. Fund Details
+5. Team
+6. Portfolio
+7. Join us
 
 Top nav and side nav sit outside the section flow. Each `<Section>` registers itself with `SectionContext`. The side nav reads the active section to mark the current item and to switch between light and dark themes.
 

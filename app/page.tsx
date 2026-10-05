@@ -8,7 +8,6 @@ import { FundDetails } from "@/components/sections/FundDetails";
 import { FundThesis } from "@/components/sections/FundThesis";
 import { CurrentPortfolio } from "@/components/sections/CurrentPortfolio";
 import { AboutUs } from "@/components/sections/AboutUs";
-import { InTheNews } from "@/components/sections/InTheNews";
 import { Contact } from "@/components/sections/Contact";
 
 export default function Page() {
@@ -20,10 +19,9 @@ export default function Page() {
             <Hero />
             <TheStudio />
             <FundThesis />
+            <FundDetails id="fund-details-2" />
             <AboutUs />
             <CurrentPortfolio />
-            <InTheNews />
-            <FundDetails id="fund-details-2" />
             <Contact />
           </div>
         </main>

@@ -2,6 +2,7 @@
 
 import { Section } from "../Section";
 import { SectionContent } from "../SectionContent";
+import { WavesBackground } from "../WavesBackground";
 
 const PARAGRAPHS = [
   "Our integrated performance driven Product Studio with a track record of building early stage companies into category leaders.",
@@ -17,17 +18,7 @@ export function FundThesis() {
       theme="dark"
       className="relative z-20 text-chalk py-[200px] overflow-hidden"
     >
-      <div className="absolute inset-0 z-0" aria-hidden>
-        <video
-          src="/waves-video.webm"
-          autoPlay
-          muted
-          loop
-          playsInline
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-black/35" />
-      </div>
+      <WavesBackground />
       <SectionContent className="relative z-10">
         <div className="flex flex-col gap-[48px]">
           <p className="text-l2 font-medium uppercase">Fund thesis</p>

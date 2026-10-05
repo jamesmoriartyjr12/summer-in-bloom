@@ -15,7 +15,7 @@ Each delivery names:
 - Filename, saved with a stable name under `public/` (images) or shared outside the repo (video masters and motion samples)
 - Poster frame, if it is video
 - Aspect ratio
-- Where it plays (section id: `hero`, `the-studio`, `fund-thesis`, `about-us`, `current-portfolio`, `in-the-news`, `fund-details-2`, `contact`)
+- Where it plays (section id: `hero`, `the-studio`, `fund-thesis`, `fund-details-2`, `about-us`, `current-portfolio`, `contact`)
 - The motion plan in a few sentences: what moves, when, and what it should feel like
 
 Current production video files are `public/summer-bloom-hero.webm` and `public/waves-video.webm`. Replace those only in a reviewed pull request.

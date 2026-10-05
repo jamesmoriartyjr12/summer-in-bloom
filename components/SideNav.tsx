@@ -13,10 +13,9 @@ type NavItem = {
 const NAV_ITEMS: NavItem[] = [
   { id: "the-studio", label: "Studio" },
   { id: "fund-thesis", label: "Thesis" },
+  { id: "fund-details-2", label: "Fund Details" },
   { id: "about-us", label: "Team" },
   { id: "current-portfolio", label: "Portfolio" },
-  { id: "in-the-news", label: "News" },
-  { id: "fund-details-2", label: "Fund Details" },
   { id: "contact", label: "Join us" },
 ];
 
@@ -30,10 +29,9 @@ function scrollDuration(id: SectionId): number {
 const SECTION_THEMES: Array<{ id: string; theme: "light" | "dark" }> = [
   { id: "the-studio", theme: "light" },
   { id: "fund-thesis", theme: "dark" },
-  { id: "about-us", theme: "light" },
-  { id: "current-portfolio", theme: "light" },
-  { id: "in-the-news", theme: "light" },
   { id: "fund-details-2", theme: "light" },
+  { id: "about-us", theme: "dark" },
+  { id: "current-portfolio", theme: "light" },
   { id: "contact", theme: "dark" },
 ];
 
