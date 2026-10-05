@@ -4,7 +4,7 @@ Production images live in `public/` under stable names. Copy and press links liv
 
 ## Marco — visual design
 
-Figma is the visual source. Do not commit Figma MCP or `figma.com` asset URLs. Those links expire. Export the asset and add it under `public/` with a stable filename, then point the component or content file at that path.
+The brand system is `design/BRAND.md`. The brand hub is the written system. The Figma explorations file is the website sample set. Do not commit Figma MCP or `figma.com` asset URLs. Those links expire. Export the asset and add it under `public/` with a stable filename, then point the component or content file at that path.
 
 Motion samples stay outside the repo. They are large, and they are references. Send the sample with a note that names the section and the moment it refers to. Implementing that motion is a reviewed change, not an unattended edit.
 

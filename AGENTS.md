@@ -8,7 +8,9 @@ James merges. He is the only person who merges to `main` or changes the producti
 
 Marco owns visual design. His Figma file is the visual source of truth. Motion samples he sends are references for a later, reviewed implementation. They are not code to copy and they are not a ticket to change timing on their own.
 
-Kayla owns video, graphics, and the motion plan: what moves, when it moves, and what it should feel like. Asset handoff rules live in `design/INTAKE.md`.
+Kayla owns video, graphics, and the motion plan: what moves, when it moves, and what it should feel like. Asset handoff rules live in `design/INTAKE.md`. The brand system lives in `design/BRAND.md`.
+
+A weekday creative-director review reads the preview and open pull requests against that brand file. It writes a review. It does not edit the site, open a code pull request, or merge.
 
 ## Safe to change in an unattended pull request
 

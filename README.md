@@ -49,7 +49,9 @@ Do not commit Figma asset URLs. Export the file into `public/` and reference tha
 
 James merges. Agents may open pull requests. They do not merge, and they do not change the production domain.
 
-The rules for unattended edits are in `AGENTS.md`. Marco's visual source is Figma. Kayla's video, graphics, and motion notes follow `design/INTAKE.md`.
+The rules for unattended edits are in `AGENTS.md`. The brand system is in `design/BRAND.md`. Marco's visual source is the brand hub plus the Figma website explorations. Kayla's video, graphics, and motion notes follow `design/INTAKE.md`.
+
+A weekday creative-director review reads the preview against the brand file and posts a review. It does not change the site.
 
 Pull requests run lint, `tsc --noEmit`, and `next build` in GitHub Actions. Vercel posts a preview URL on the pull request. Production deploys only from `main`.
 
