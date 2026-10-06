@@ -496,6 +496,7 @@ export function Hero() {
               style={{
                 fontFamily: DISPLAY_STACK,
                 fontWeight: 800,
+                fontSynthesis: "none",
               }}
             >
               {LINE.split("").map((char, i) => (

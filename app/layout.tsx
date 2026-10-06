@@ -18,8 +18,9 @@ const manifold = localFont({
   weight: "800",
   style: "normal",
   variable: "--font-manifold",
-  display: "swap",
-  fallback: ["Arial Black", "sans-serif"],
+  display: "block",
+  adjustFontFallback: false,
+  fallback: ["sans-serif"],
 });
 
 const archivo = localFont({

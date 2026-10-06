@@ -40,6 +40,10 @@ Reviews use `design/MOTION.md`. That file is the Motion install from Double Dutc
 
 ## Log
 
+### 2026-10-06 — The display face loads
+
+The opening line is Manifold Extended CF Heavy, the file in `fonts/manifold-extended/`. The preview was dropping that face: the fallback name Arial Black was minified to `Arial #000`, the font declaration was thrown out, and the line inherited Helvetica. The fallback is a generic sans now, and the line does not synthesize a bold.
+
 ### 2026-10-06 — Above the cut
 
 The line sits higher above the bottom crop, so more of the word on the left stays readable. The path still drops through that edge on the right.
