@@ -251,6 +251,9 @@ export function Hero() {
     };
 
     let measured: { fontSize: number; offsets: number[]; total: number } | null = null;
+    const charX = new Float64Array(LINE.length);
+    const charY = new Float64Array(LINE.length);
+    const charAngle = new Float64Array(LINE.length);
     const measure = (fontSize: number) => {
       if (measured && measured.fontSize === fontSize) return measured;
       const tracking = fontSize * -0.04;
@@ -286,14 +289,11 @@ export function Hero() {
 
       const wordWidth = total - wordStart;
       const restLeft = Math.min((LOCK_X / FRAME_W) * vw, vw - wordWidth - 24);
-      const restInk = bandH - Math.max(2, fontSize * 0.02);
-      const gate = SENTENCE.point(GATE_D);
+      const restInk = bandH - Math.max(12, fontSize * 0.48);
       const arc = fontSize * 0.85;
-      const hold = vw * 0.78;
-      const probe = SENTENCE.point(GATE_D + hold / pathScale);
-      const natural = Math.max(1, (probe.y - gate.y) * pathScale);
-      const gain = Math.min(1, arc / natural);
       band.style.height = `${bandH}px`;
+      band.style.overflow = "visible";
+      band.style.clipPath = "inset(-100vh 0 0 0)";
       const openRemaining = wordStart - restLeft + 48;
       const enterRemaining = openRemaining + vw + 320;
       const remaining =
@@ -305,13 +305,59 @@ export function Hero() {
         handoff > 0 ? `inset(0 ${handoff * 100}% 0 0)` : `inset(${(1 - openE) * 46}% 0 ${(1 - openE) * 46}% 0)`;
 
       if (mark) mark.style.opacity = String(1 - openE);
+      const lineLeft = restLeft - wordStart + remaining;
+      const locked = openE >= 1 && lineT >= 1;
+      // One curve across the whole viewport. The left is the shallow part of that same path.
+      const span = vw * 0.95;
+      const shift = vw * 0.35;
+      const tAt = (x: number) => (x + shift) / span;
+      const dropAt = (t: number) => arc * t * t;
+      const baseDrop = dropAt(tAt(0));
+      const at = (x: number) => {
+        const t = tAt(x);
+        const slope = (2 * arc * t) / span;
+        return {
+          y: restInk + dropAt(t) - baseDrop,
+          angle: (Math.atan(slope) * 180) / Math.PI,
+        };
+      };
+      let cursor = 0;
+      while (cursor < LINE.length) {
+        if (LINE[cursor] === " ") {
+          cursor += 1;
+          continue;
+        }
+        const start = cursor;
+        let end = cursor;
+        while (end < LINE.length && LINE[end] !== " ") end += 1;
+        const last = Math.min(LINE.length, end + 1);
+        const endAlong = last < offsets.length ? offsets[last] : total;
+        const centerAlong = (offsets[start] + endAlong) * 0.5;
+        const centerX = lineLeft + centerAlong;
+        const pose = at(centerX);
+        let baseline = pose.y;
+        let angle = pose.angle;
+        if (locked && start >= LOCK_AT) {
+          baseline += (restInk - baseline) * handoff;
+          angle *= 1 - handoff;
+        }
+        const rad = (angle * Math.PI) / 180;
+        const cos = Math.cos(rad);
+        const sin = Math.sin(rad);
+        for (let i = start; i < last; i++) {
+          const dx = offsets[i] - centerAlong;
+          charX[i] = centerX + dx * cos;
+          charY[i] = baseline + dx * sin;
+          charAngle[i] = angle;
+        }
+        cursor = last;
+      }
       if (beats) {
         const phone = vw < 600;
         const beatScale = phone ? Math.max(pathScale, 0.58) : pathScale;
         beats.style.top = `${bandTop + bandH + (phone ? 20 : 36 * pathScale)}px`;
         beats.style.opacity = String(openE * (1 - handoff));
         beats.style.setProperty("--hero-s", String(beatScale));
-        const origin = restLeft - wordStart + remaining;
         const lockX = phone ? 24 : 48;
         const gap = phone ? 16 : 36 * pathScale;
         if (meta) {
@@ -321,7 +367,7 @@ export function Hero() {
         }
         const places = [...beats.querySelectorAll<HTMLElement>("[data-word]")].map((beat) => {
           const at = LINE.toLowerCase().indexOf(beat.dataset.word ?? "");
-          return { beat, x: origin + (offsets[at] ?? 0), width: Math.max(beat.offsetWidth, 1) };
+          return { beat, x: charX[at] ?? 0, width: Math.max(beat.offsetWidth, 1) };
         });
         let holder = -1;
         for (let i = 0; i < places.length; i++) {
@@ -355,23 +401,15 @@ export function Hero() {
         }
       }
 
-      const locked = openE >= 1 && lineT >= 1;
       for (let i = 0; i < chars.length; i++) {
         const span = chars[i];
         const isLock = i >= LOCK_AT && i < LOCK_END;
-        const x = restLeft + (offsets[i] - wordStart) + remaining;
-        const placed = SENTENCE.point(GATE_D + (Math.max(0, x) / pathScale) * gain);
-        let baseline = restInk + (placed.y - gate.y) * pathScale;
-        let angle = placed.angle - gate.angle;
-        if (isLock && locked) {
-          baseline += (restInk - baseline) * handoff;
-          angle *= 1 - handoff;
-        }
+        const baseline = charY[i];
         const drop = baseline - restInk;
         const onPath = drop <= arc ? 1 : Math.max(0, 1 - (drop - arc) / (fontSize * 0.55));
         const opacity = locked && isLock ? 1 : locked ? (1 - handoff) * onPath : onPath;
         span.style.transformOrigin = "0% 100%";
-        span.style.transform = `translate(${x}px, ${baseline - fontSize}px) rotate(${angle}deg)`;
+        span.style.transform = `translate(${charX[i]}px, ${baseline - fontSize}px) rotate(${charAngle[i]}deg)`;
         span.style.opacity = String(Math.max(0, opacity));
       }
       if (rule) rule.style.transform = `scaleX(${0.2 + 0.75 * Math.max(lineT, handoff)})`;
@@ -449,7 +487,8 @@ export function Hero() {
 
           <div
             ref={bandRef}
-            className="pointer-events-none absolute left-0 right-0 z-30 overflow-hidden"
+            className="pointer-events-none absolute left-0 right-0 z-30"
+            style={{ clipPath: "inset(-100vh 0 0 0)" }}
           >
             <h1
               ref={lineRef}

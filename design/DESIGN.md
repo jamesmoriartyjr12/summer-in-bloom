@@ -40,6 +40,14 @@ Reviews use `design/MOTION.md`. That file is the Motion install from Double Dutc
 
 ## Log
 
+### 2026-10-06 — Above the cut
+
+The line sits higher above the bottom crop, so more of the word on the left stays readable. The path still drops through that edge on the right.
+
+### 2026-10-06 — One path
+
+The mask cuts only the bottom of the line. The whole sentence stays on one curve. The left of the viewport is the shallow part of that curve, and the drop steepens toward the right. A word takes the tangent at its center, so its letters turn together.
+
 ### 2026-10-06 — Marco on the opening
 
 Marco looked at the opening on 6 October. The headline has to be Manifold Extended CF, the very extended face. The mask was clipping the tops of the letters, and the type was too small for the curve to read. The line is larger so the letters clearly rise on the path. The tops sit inside the band. The drop below the band still cuts.
