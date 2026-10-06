@@ -39,6 +39,7 @@ Top nav and side nav sit outside the section flow. Each `<Section>` registers it
 | --- | --- |
 | Portfolio companies | `content/portfolio.ts` |
 | Press articles | `content/news.ts` |
+| Website direction | `design/DESIGN.md` |
 | Layout and motion | `components/sections/` |
 | New images and video | `public/`, following `design/INTAKE.md` |
 
@@ -46,11 +47,11 @@ Do not commit Figma asset URLs. Export the file into `public/` and reference tha
 
 ## How changes ship
 
-James merges. Agents may open pull requests. They do not merge, and they do not change the production domain.
+James merges. Before he opens another section or presses merge, he types `/mia` in the Cursor chat he is already in. That chat answers as Mia, from `docs/engineering.md` and the open pull requests. Agents may open pull requests. They do not merge, and they do not change the production domain.
 
-The rules for unattended edits are in `AGENTS.md`. The brand system is in `design/BRAND.md`. Marco's visual source is the brand hub plus the Figma website explorations. Kayla's video, graphics, and motion notes follow `design/INTAKE.md`.
+The rules for unattended edits are in `AGENTS.md`. The case study of how it was built is in `docs/how-this-was-built.md`. Meeting notes live in `docs/meetings.md`. The brand system is in `design/BRAND.md`. The living website direction is in `design/DESIGN.md`. The creative director's notebook is in `design/NOTEBOOK.md`. Marco's visual source is the brand hub plus the Figma website explorations. Kayla's video, graphics, and motion notes follow `design/INTAKE.md`.
 
-A weekday creative-director review reads the preview against the brand file and posts a review. It does not change the site.
+The project coordinator runs the work and partners with the creative director. In `#bloom-web-2026`, the team can mention Mia or Simon, the creative director, and get a short reply from that person. One lead engineer owns the build. The map is in `docs/engineering.md`. Every pull request goes through the creative director before it is merged. On a visual change, that comment is about the Vercel preview. A weekday pass studies one reference, writes what it learned in `design/NOTEBOOK.md`, and, when the direction should change, opens a pull request that edits only that notebook and `design/DESIGN.md`.
 
 Pull requests run lint, `tsc --noEmit`, and `next build` in GitHub Actions. Vercel posts a preview URL on the pull request. Production deploys only from `main`.
 

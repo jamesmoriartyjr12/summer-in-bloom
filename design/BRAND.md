@@ -44,4 +44,4 @@ Margin is the longest side of the format divided by 25. The eyebrow is the entry
 
 ## Who uses this
 
-Marco's visual design and Kayla's motion plan are judged against this file. The weekday creative-director review reads the preview and open pull requests against it, then writes a review. It does not edit the site.
+Marco's visual design and Kayla's motion plan are judged against this file. Website decisions that can change are recorded in `design/DESIGN.md`, not here.
