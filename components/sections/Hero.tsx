@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import Image from "next/image";
 import { useReducedMotion } from "framer-motion";
 import { PORTFOLIO } from "@/content/portfolio";
 import { Section } from "../Section";
@@ -82,8 +81,15 @@ function easeOut(t: number) {
  */
 const PATH_FONT = 197.5609588623047;
 const FRAME_W = 1920;
+const FRAME_H = 1080;
 const BAND_H = 162;
 const BAND_CENTER_NUDGE = 19;
+/** Loader 39:49. The field starts as a small box on this center line. */
+const SLIT_Y = 533;
+const SLIT_H = 15;
+const BOX_W = 120;
+/** Share of the auto open used to reveal the field from left to right. */
+const REVEAL_PORTION = 0.42;
 const LOCK_X = 372;
 /** Where the viewport's left edge sits on the curve, already into the bend. */
 const GATE_D = 2400;
@@ -170,7 +176,8 @@ export function Hero() {
   const trackRef = useRef<HTMLDivElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
   const photoRef = useRef<HTMLDivElement>(null);
-  const markRef = useRef<HTMLImageElement>(null);
+  const photoFillRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const bandRef = useRef<HTMLDivElement>(null);
   const lineRef = useRef<HTMLHeadingElement>(null);
   const ruleRef = useRef<HTMLSpanElement>(null);
@@ -186,7 +193,8 @@ export function Hero() {
     const track = trackRef.current;
     const frame = frameRef.current;
     const photo = photoRef.current;
-    const mark = markRef.current;
+    const photoFill = photoFillRef.current;
+    const video = videoRef.current;
     const band = bandRef.current;
     const line = lineRef.current;
     const rule = ruleRef.current;
@@ -196,16 +204,23 @@ export function Hero() {
     const stack = stackRef.current;
     const index = indexRef.current;
     const chars = charsRef.current.filter((span): span is HTMLSpanElement => span !== null);
-    if (!track || !frame || !photo || !band || !line || !meta || !beats || !companies || !stack || chars.length !== LINE.length) return;
+    if (!track || !frame || !photo || !photoFill || !band || !line || !meta || !beats || !companies || !stack || chars.length !== LINE.length) return;
 
     if (reduce) {
       track.style.height = "auto";
       frame.style.position = "relative";
       frame.style.height = "auto";
       photo.style.position = "relative";
+      photo.style.left = "0";
+      photo.style.top = "0";
+      photo.style.width = "100%";
       photo.style.height = "100vh";
       photo.style.clipPath = "none";
-      if (mark) mark.style.display = "none";
+      photoFill.style.top = "0";
+      photoFill.style.left = "0";
+      photoFill.style.width = "100%";
+      photoFill.style.height = "100%";
+      if (video) video.pause();
       band.style.position = "relative";
       band.style.top = "auto";
       band.style.height = "auto";
@@ -242,6 +257,7 @@ export function Hero() {
     let raf = 0;
     let running = true;
     const start = performance.now();
+    video?.play().catch(() => {});
 
     const scrollProgress = () => {
       const rect = track.getBoundingClientRect();
@@ -294,17 +310,35 @@ export function Hero() {
       band.style.height = `${bandH}px`;
       band.style.overflow = "visible";
       band.style.clipPath = "inset(-100vh 0 0 0)";
+      const sx = vw / FRAME_W;
+      const sy = vh / FRAME_H;
+      const boxH = SLIT_H * sy;
+      const centerY = (SLIT_Y + SLIT_H / 2) * sy;
+      const startW = BOX_W * sx;
+      const reveal = easeOut(Math.max(0, Math.min(1, open / REVEAL_PORTION)));
+      const scaleT = easeOut(Math.max(0, Math.min(1, (open - REVEAL_PORTION) / (1 - REVEAL_PORTION))));
+      const revealedW = startW + (vw - startW) * reveal;
+      const windowH = boxH + (vh - boxH) * scaleT;
+      const windowTop = centerY - windowH / 2;
+      const wipe = handoff * revealedW;
+      photo.style.left = "0px";
+      photo.style.top = `${windowTop}px`;
+      photo.style.width = `${Math.max(0, revealedW - wipe)}px`;
+      photo.style.height = `${windowH}px`;
+      photo.style.clipPath = "none";
+      photoFill.style.left = "0px";
+      photoFill.style.top = `${-windowTop}px`;
+      photoFill.style.width = `${vw}px`;
+      photoFill.style.height = `${vh}px`;
+
       const openRemaining = wordStart - restLeft + 48;
-      const enterRemaining = openRemaining + vw + 320;
+      const shownRemaining = openRemaining + vw * 0.62;
+      const enterRemaining = shownRemaining + vw * 0.45;
+      const typeIn = openE < 1 ? Math.max(0, (openE - 0.72) / 0.28) : 1;
       const remaining =
         openE < 1
-          ? enterRemaining + (openRemaining - enterRemaining) * openE
-          : openRemaining * (1 - lineT);
-
-      photo.style.clipPath =
-        handoff > 0 ? `inset(0 ${handoff * 100}% 0 0)` : `inset(${(1 - openE) * 46}% 0 ${(1 - openE) * 46}% 0)`;
-
-      if (mark) mark.style.opacity = String(1 - openE);
+          ? enterRemaining + (shownRemaining - enterRemaining) * typeIn
+          : shownRemaining * (1 - lineT);
       const lineLeft = restLeft - wordStart + remaining;
       const locked = openE >= 1 && lineT >= 1;
       // One curve across the whole viewport. The left is the shallow part of that same path.
@@ -356,7 +390,7 @@ export function Hero() {
         const phone = vw < 600;
         const beatScale = phone ? Math.max(pathScale, 0.58) : pathScale;
         beats.style.top = `${bandTop + bandH + (phone ? 20 : 36 * pathScale)}px`;
-        beats.style.opacity = String(openE * (1 - handoff));
+        beats.style.opacity = String((openE < 1 ? 0 : Math.min(1, lineT / 0.08)) * (1 - handoff));
         beats.style.setProperty("--hero-s", String(beatScale));
         const lockX = phone ? 24 : 48;
         const gap = phone ? 16 : 36 * pathScale;
@@ -426,6 +460,7 @@ export function Hero() {
 
       const indexLabel = index?.querySelector("span");
       if (indexLabel) indexLabel.textContent = handoff > 0.5 ? "02" : "01";
+      if (index) index.style.opacity = String(openE < 1 ? 0 : Math.min(1, lineT / 0.08));
     };
 
     const frameTick = (now: number) => {
@@ -465,25 +500,37 @@ export function Hero() {
         <Section id="hero" theme="dark" className="relative h-full">
           <div
             ref={photoRef}
-            className="absolute inset-0"
-            style={{ clipPath: "inset(46% 0 46% 0)" }}
+            className="absolute overflow-hidden"
+            style={{
+              left: 0,
+              top: "calc(100vh * 533 / 1080)",
+              width: "calc(100vw * 120 / 1920)",
+              height: "calc(100vh * 15 / 1080)",
+            }}
           >
-            <Image
-              src="/hero-flowers.png"
-              alt=""
-              fill
-              priority
-              sizes="100vw"
-              className="object-cover"
-            />
+            <div
+              ref={photoFillRef}
+              className="absolute"
+              style={{
+                left: 0,
+                top: "calc(100vh * -533 / 1080)",
+                width: "100vw",
+                height: "100vh",
+              }}
+            >
+              <video
+                ref={videoRef}
+                src="/summer-bloom-hero.webm"
+                poster="/hero-flowers.png"
+                muted
+                loop
+                playsInline
+                preload="auto"
+                aria-hidden
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            </div>
           </div>
-
-          <img
-            ref={markRef}
-            src="/bloom-logo-white.svg"
-            alt=""
-            className="pointer-events-none absolute right-[12%] top-1/2 z-10 h-6 w-auto -translate-y-1/2"
-          />
 
           <div
             ref={bandRef}

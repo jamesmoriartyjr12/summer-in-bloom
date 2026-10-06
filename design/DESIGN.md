@@ -40,6 +40,14 @@ Reviews use `design/MOTION.md`. That file is the Motion install from Double Dutc
 
 ## Log
 
+### 2026-10-06 — The field is the hero film
+
+The opening background is `public/summer-bloom-hero.webm`. The still `hero-flowers.png` is the poster. The box still reveals from the left and then fills the viewport.
+
+### 2026-10-06 — The field opens
+
+The flower field starts as a small box. It reveals from left to right, then scales up until the photograph fills the viewport.
+
 ### 2026-10-06 — The display face loads
 
 The opening line is Manifold Extended CF Heavy, the file in `fonts/manifold-extended/`. The preview was dropping that face: the fallback name Arial Black was minified to `Arial #000`, the font declaration was thrown out, and the line inherited Helvetica. The fallback is a generic sans now, and the line does not synthesize a bold.
