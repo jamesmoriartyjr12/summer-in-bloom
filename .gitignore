@@ -9,3 +9,4 @@ yarn-debug.log*
 yarn-error.log*
 next-env.d.ts
 .vercel
+.secrets/
