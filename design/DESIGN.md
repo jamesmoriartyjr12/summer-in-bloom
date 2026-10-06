@@ -40,6 +40,14 @@ Reviews use `design/MOTION.md`. That file is the Motion install from Double Dutc
 
 ## Log
 
+### 2026-10-06 — Marco on the opening
+
+Marco looked at the opening on 6 October. The headline has to be Manifold Extended CF, the very extended face. The mask was clipping the tops of the letters, and the type was too small for the curve to read. The line is larger so the letters clearly rise on the path. The tops sit inside the band. The drop below the band still cuts.
+
+### 2026-10-06 — Phone opening
+
+James asked for mobile first on 25 September. On a phone the notes under the line were scaling with the display face until they could not be read. They now hold a readable size, and the invest line stacks. The footer studies and the WatchCheck case-study frames from 2 October stay explorations.
+
 ### 2026-10-05 — Featured opening
 
 The first scene to build is the header that rolls into the companies list. Loader, then an auto open, then a scroll-linked line. The display line is “Purposely designed to build and scale companies.” Timing stays with Kayla. The orange deck under Companies stays out of this pass.

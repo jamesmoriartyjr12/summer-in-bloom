@@ -286,7 +286,7 @@ export function Hero() {
 
       const wordWidth = total - wordStart;
       const restLeft = Math.min((LOCK_X / FRAME_W) * vw, vw - wordWidth - 24);
-      const restInk = bandH - Math.max(4, fontSize * 0.08);
+      const restInk = bandH - Math.max(2, fontSize * 0.02);
       const gate = SENTENCE.point(GATE_D);
       const arc = fontSize * 0.85;
       const hold = vw * 0.78;
@@ -306,12 +306,19 @@ export function Hero() {
 
       if (mark) mark.style.opacity = String(1 - openE);
       if (beats) {
-        beats.style.top = `${bandTop + bandH + 36 * pathScale}px`;
+        const phone = vw < 600;
+        const beatScale = phone ? Math.max(pathScale, 0.58) : pathScale;
+        beats.style.top = `${bandTop + bandH + (phone ? 20 : 36 * pathScale)}px`;
         beats.style.opacity = String(openE * (1 - handoff));
-        beats.style.setProperty("--hero-s", String(pathScale));
+        beats.style.setProperty("--hero-s", String(beatScale));
         const origin = restLeft - wordStart + remaining;
-        const lockX = 48;
-        const gap = 36 * pathScale;
+        const lockX = phone ? 24 : 48;
+        const gap = phone ? 16 : 36 * pathScale;
+        if (meta) {
+          meta.style.width = phone
+            ? `${Math.max(180, vw - lockX - 20)}px`
+            : "calc(1197px * var(--hero-s))";
+        }
         const places = [...beats.querySelectorAll<HTMLElement>("[data-word]")].map((beat) => {
           const at = LINE.toLowerCase().indexOf(beat.dataset.word ?? "");
           return { beat, x: origin + (offsets[at] ?? 0), width: Math.max(beat.offsetWidth, 1) };
@@ -446,7 +453,7 @@ export function Hero() {
           >
             <h1
               ref={lineRef}
-              className="absolute inset-0 uppercase leading-none tracking-[-0.04em] text-[clamp(52px,7vw,124px)]"
+              className="absolute inset-0 uppercase leading-none tracking-[-0.04em] text-[clamp(72px,10.3vw,188px)]"
               style={{
                 fontFamily: DISPLAY_STACK,
                 fontWeight: 800,
@@ -483,7 +490,7 @@ export function Hero() {
                 fontFamily: "var(--font-archivo), sans-serif",
               }}
             >
-              <div className="flex w-full items-start justify-between gap-6">
+              <div className="flex w-full flex-col items-start gap-2 mobile:flex-row mobile:justify-between mobile:gap-6">
                 <p style={{ maxWidth: "calc(444px * var(--hero-s))" }}>{INVEST}</p>
                 <p className="shrink-0 whitespace-nowrap">est. 2020</p>
                 <p className="shrink-0 whitespace-nowrap">Boston, Massachusetts, u.s.a.</p>
@@ -502,7 +509,7 @@ export function Hero() {
 
           <p
             ref={indexRef}
-            className="absolute bottom-8 left-6 z-30 hidden items-center gap-2 uppercase text-[16px] mobile:flex mobile:left-12"
+            className="absolute bottom-8 left-6 z-30 flex items-center gap-2 uppercase text-[16px] mobile:left-12"
             style={{ fontFamily: "var(--font-jetbrains), ui-monospace, monospace" }}
           >
             <span>01</span>
@@ -528,7 +535,7 @@ export function Hero() {
                 {COMPANIES.map((company) => (
                   <li
                     key={company.name}
-                    className="flex min-h-[120px] items-center justify-between gap-6 border-b border-[#ddd]/10 px-6 py-8 mobile:px-12"
+                    className="flex min-h-[88px] items-center justify-between gap-6 border-b border-[#ddd]/10 px-6 py-6 mobile:min-h-[120px] mobile:px-12 mobile:py-8"
                   >
                     <span
                       className="text-[clamp(28px,2.5vw,40px)] leading-none"
