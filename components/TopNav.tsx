@@ -39,7 +39,8 @@ export function TopNav() {
   const lenis = useLenis();
   const [clock, setClock] = useState<string | null>(null);
   const isDark = theme === "dark";
-  const color = isDark ? "#FFFFFF" : "#000000";
+  const labelColor = isDark ? "#FAF6EC" : "#070F18";
+  const markColor = isDark ? "#FAF6EC" : "#FA4C1F";
 
   useEffect(() => {
     const tick = () => setClock(formatBerlinClock(new Date()));
@@ -50,7 +51,7 @@ export function TopNav() {
 
   const labelStyle = {
     fontFamily: "var(--font-jetbrains), ui-monospace, monospace",
-    color,
+    color: labelColor,
     transition: "color 0.3s ease",
   };
 
@@ -66,14 +67,22 @@ export function TopNav() {
         className="pointer-events-auto shrink-0 cursor-pointer"
         aria-label="Bloom"
       >
-        <img
-          src="/bloom-wordmark.svg"
-          alt=""
-          width={123.081}
-          height={19.0445}
+        <span
+          aria-hidden
           style={{
-            filter: isDark ? "none" : "invert(1)",
-            transition: "filter 0.3s ease",
+            display: "block",
+            width: 123.081,
+            height: 19.0445,
+            backgroundColor: markColor,
+            transition: "background-color 0.3s ease",
+            WebkitMaskImage: "url(/bloom-wordmark.svg)",
+            maskImage: "url(/bloom-wordmark.svg)",
+            WebkitMaskRepeat: "no-repeat",
+            maskRepeat: "no-repeat",
+            WebkitMaskPosition: "center",
+            maskPosition: "center",
+            WebkitMaskSize: "123.081px 19.0445px",
+            maskSize: "123.081px 19.0445px",
           }}
         />
       </button>
