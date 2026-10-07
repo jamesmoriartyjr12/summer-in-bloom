@@ -9,10 +9,8 @@ export const chromeSnap = {
 };
 
 export const headerTravel = {
-  /** The bar stays while the page is inside this distance of the top. */
-  hold: 150,
-  /** One direction must travel this far before the bar commits. */
-  intent: 24,
+  /** The locked word hides the bar once it is this close to the bar's bottom edge. */
+  clearance: 40,
   duration: 0.65,
   ease: [0.22, 1, 0.36, 1] as const,
 };

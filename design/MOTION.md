@@ -70,15 +70,16 @@ Primitives, used before any new wrapper:
 
 The bar leaving the page is not a chrome snap. `duration.snap` stays 200ms for color and the phone mark. The bar's own move uses the header travel tokens.
 
+Downscroll on its own does not move the bar, on a phone or on a desktop. The bar leaves when the locked word `companies` in the opening line reaches 40px from the bottom of the bar. It returns on the same ease when that word drops back below the line.
+
 | Token | Value | Rule |
 | --- | --- | --- |
-| `distance.headerHold` | 150px | The bar stays while the page is inside this distance of the top. |
-| `distance.headerIntent` | 24px | One direction must travel this far before the bar commits. A shorter flick does not move it. |
+| `distance.headerClearance` | 40px | From the bottom edge of the bar to the top of `companies`. The edge is the bar's layout height, so the leaving transform does not move the line. |
 | `duration.header` | 650ms | The whole trip off or back. |
-| `ease.header` | `0.22, 1, 0.36, 1` | Leaves with the scroll, then settles. No fade. No overshoot. Scroll up retargets the same ease from wherever the bar is. |
+| `ease.header` | `0.22, 1, 0.36, 1` | Leaves with the word, then settles. No fade. No overshoot. The return retargets the same ease from wherever the bar is. |
 | Reduced motion | duration 0 | The bar appears or disappears in place. Transforms do not keep running. |
 
-The pattern is Motion's scroll-direction header: hide on the way down, return on the way up, and stay through the top of the page. That example is a 300ms ease-in-out. This bar is longer, and it does not ease in. A spring from rest was measured here and spends the first fifth of a second almost still, then rushes. `ease.header` starts the move with the scroll.
+A spring from rest was measured here and spends the first fifth of a second almost still, then rushes. `ease.header` starts the move as the word crosses the line.
 
 `components/TopNav.tsx` imports these values from `lib/motion.ts`. A second duration on the header is a break.
 

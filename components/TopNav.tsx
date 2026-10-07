@@ -46,13 +46,6 @@ function logoMask(color: string, asset: { width: number; height: number; src: st
   } as const;
 }
 
-function readScrollY(event?: Event): number {
-  if (event instanceof CustomEvent && typeof event.detail?.scroll === "number") {
-    return event.detail.scroll;
-  }
-  return window.scrollY;
-}
-
 function surfaceUnderNav(): "light" | "dark" {
   const x = window.innerWidth / 2;
   const stack = document.elementsFromPoint(x, 32);
@@ -83,6 +76,18 @@ function viewerZone(): string {
   return "America/New_York";
 }
 
+function companiesReachesBar(header: HTMLElement): boolean {
+  const nodes = document.querySelectorAll("[data-header-cue='companies']");
+  let top = Infinity;
+  nodes.forEach((node) => {
+    const box = node.getBoundingClientRect();
+    if (box.width < 0.5 && box.height < 0.5) return;
+    if (box.top < top) top = box.top;
+  });
+  if (!Number.isFinite(top)) return false;
+  return top <= header.offsetHeight + headerTravel.clearance;
+}
+
 function viewerClock(date: Date): string {
   const timeZone = viewerZone();
   const parts = new Intl.DateTimeFormat("en-US", {
@@ -105,9 +110,6 @@ export function TopNav() {
   const [onLight, setOnLight] = useState(false);
   const [compact, setCompact] = useState(false);
   const [logoMotion, setLogoMotion] = useState(false);
-  const lastY = useRef(0);
-  const latestY = useRef(0);
-  const accumulated = useRef(0);
   const headerRef = useRef<HTMLElement>(null);
 
   const labelColor = onLight ? "#070F18" : "#FAF6EC";
@@ -140,32 +142,16 @@ export function TopNav() {
   useEffect(() => {
     let frame = 0;
 
-    const update = (event?: Event) => {
-      latestY.current = readScrollY(event);
+    const update = () => {
       if (frame) return;
       frame = window.requestAnimationFrame(() => {
         frame = 0;
-        const y = latestY.current;
-        const delta = y - lastY.current;
-        lastY.current = y;
-
         const surface = surfaceUnderNav();
         setOnLight((prev) => (prev === (surface === "light") ? prev : surface === "light"));
 
-        if (y < headerTravel.hold) {
-          accumulated.current = 0;
-          setVisible(true);
-          return;
-        }
-
-        accumulated.current += delta;
-        if (accumulated.current > headerTravel.intent) {
-          accumulated.current = 0;
-          setVisible(false);
-        } else if (accumulated.current < -headerTravel.intent) {
-          accumulated.current = 0;
-          setVisible(true);
-        }
+        const header = headerRef.current;
+        const next = header ? !companiesReachesBar(header) : true;
+        setVisible((prev) => (prev === next ? prev : next));
       });
     };
 
