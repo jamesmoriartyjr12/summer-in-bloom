@@ -16,7 +16,7 @@ One scrolling page, in this order: Hero, Studio, Thesis, Fund Details, Team, Por
 
 The opening is one scene. A slit of the flower field opens on load, then one display line — “Purposely designed to build and scale companies.” — travels on the scroll frame’s text path, inside a band that cuts through the letters, until `companies` is in place. That word stays. The companies list replaces the field around it. The list reads from `content/portfolio.ts`. Studio through Join us stay after it. Kayla still owns the auto duration and the scroll distance. Manifold Extended Heavy is the display face for this scene, loaded from `fonts/manifold-extended/`. Archivo and JetBrains Mono for this scene load from `fonts/` as well. The rest of the page stays on Mincho and Helvetica.
 
-The header is the explorations bar. The Bloom wordmark sits on the left, and on a phone it transitions into the Bloom mark. On the right, in JetBrains Mono Medium at 16px, uppercase: Studio, Companies, Fund One, and the viewer's city and local time. It takes its color from the field underneath: Paper type and a Paper mark on a dark field, Ink type and an Orange mark on a light field. Scrolling down moves the bar off; scrolling up brings it back, on the 200ms chrome ease. Studio, Companies, and Fund One are underlined. Studio scrolls to the studio, Companies to the portfolio, and Fund One to fund details. Contact stays on the join-us section at the bottom. The side list remains Studio, Thesis, Fund Details, Team, Portfolio, Join us.
+The header is the explorations bar. The Bloom wordmark sits on the left, and on a phone it transitions into the Bloom mark. On the right, in JetBrains Mono Medium at 16px, uppercase: Studio, Companies, Fund One, and the viewer's city and local time. It takes its color from the field underneath: Paper type and a Paper mark on a dark field, Ink type and an Orange mark on a light field. Scrolling down carries the bar off; scrolling up brings it back, on the header travel in `design/MOTION.md`: 650ms, ease `0.22, 1, 0.36, 1`. The bar stays through the first 150px. Color and the phone mark stay on the 200ms chrome ease. Studio, Companies, and Fund One are underlined. Studio scrolls to the studio, Companies to the portfolio, and Fund One to fund details. Contact stays on the join-us section at the bottom. The side list remains Studio, Thesis, Fund Details, Team, Portfolio, Join us.
 
 Type on the page today is BIZ UDPMincho for display and Helvetica Neue for body, on a chalk field (`#EBEBEB`). The brand system wants Manifold Extended Heavy headlines in all caps, Archivo for body and links, JetBrains Mono for labels, and Paper (`#FAF6EC`) as the light surface. Do not switch the type or the field in an unattended change. A move toward that system is a reviewed design change, recorded here first.
 
@@ -53,6 +53,8 @@ On a phone the wordmark transitions into the Bloom mark, on the same 200ms chrom
 The clock names the city in the viewer's timezone, then the local time. Eastern reads New York. If the browser has no zone, it shows New York.
 
 Contact leaves the header. It stays on the join-us section at the bottom of the page.
+
+The bar no longer snaps off on the 200ms chrome ease. It stays through the first 150px, then travels for 650ms on ease `0.22, 1, 0.36, 1`, leaving with the scroll and settling at the end. Scroll up uses that same ease. The tokens live in `design/MOTION.md` and `lib/motion.ts`.
 
 ### 2026-10-07 — Companies sits on the grid
 

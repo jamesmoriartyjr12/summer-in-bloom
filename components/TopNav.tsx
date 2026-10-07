@@ -2,6 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { chromeSnap, headerTravel } from "@/lib/motion";
 import { SectionId } from "./SectionContext";
 import { useLenis } from "./LenisContext";
 
@@ -22,8 +23,7 @@ function scrollDuration(id: SectionId): number {
   return Math.min(0.6 + distance / 2500, 1.4);
 }
 
-const CHROME_EASE = [0.2, 0.8, 0.2, 1] as const;
-const SCROLL_DELTA = 12;
+const CHROME_EASE = chromeSnap.ease;
 const WORDMARK = { width: 123.081, height: 19.0445, src: "/bloom-wordmark.svg" };
 const MARK = { width: 25.8644 * 1.2, height: 25.8646 * 1.2, src: "/bloom-mark.svg" };
 const COMPACT_QUERY = "(max-width: 599px)";
@@ -152,17 +152,17 @@ export function TopNav() {
         const surface = surfaceUnderNav();
         setOnLight((prev) => (prev === (surface === "light") ? prev : surface === "light"));
 
-        if (y < SCROLL_DELTA) {
+        if (y < headerTravel.hold) {
           accumulated.current = 0;
           setVisible(true);
           return;
         }
 
         accumulated.current += delta;
-        if (accumulated.current > SCROLL_DELTA) {
+        if (accumulated.current > headerTravel.intent) {
           accumulated.current = 0;
           setVisible(false);
-        } else if (accumulated.current < -SCROLL_DELTA) {
+        } else if (accumulated.current < -headerTravel.intent) {
           accumulated.current = 0;
           setVisible(true);
         }
@@ -191,14 +191,17 @@ export function TopNav() {
     lenis?.scrollTo(`#${id}`, { duration: scrollDuration(id) });
   };
 
-  const chrome = reduce || !logoMotion ? { duration: 0 } : { duration: 0.2, ease: CHROME_EASE };
+  const chrome = reduce || !logoMotion ? { duration: 0 } : chromeSnap;
+  const travel = reduce
+    ? { duration: 0 }
+    : { duration: headerTravel.duration, ease: headerTravel.ease };
   const logo = compact ? MARK : WORDMARK;
 
   return (
     <motion.header
       ref={headerRef}
       animate={{ y: visible ? "0%" : "-100%" }}
-      transition={reduce ? { duration: 0 } : { duration: 0.2, ease: CHROME_EASE }}
+      transition={travel}
       aria-hidden={!visible}
       style={{ willChange: "transform" }}
       className={`fixed inset-x-0 top-0 z-[100] flex items-start justify-between gap-[16px] p-[16px] mobile:p-[24px] desktop:p-[48px] ${
