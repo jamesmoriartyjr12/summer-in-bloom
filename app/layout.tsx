@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { BIZ_UDPMincho } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
 // BIZ UDPMincho is the display serif from the Figma design.
@@ -10,6 +11,36 @@ const bizUDPMincho = BIZ_UDPMincho({
   variable: "--font-display",
   display: "swap",
   fallback: ["Georgia", "Times New Roman", "serif"],
+});
+
+const manifold = localFont({
+  src: "../fonts/manifold-extended/ManifoldExtendedCF-Heavy.otf",
+  weight: "800",
+  style: "normal",
+  variable: "--font-manifold",
+  display: "block",
+  adjustFontFallback: false,
+  fallback: ["sans-serif"],
+});
+
+const archivo = localFont({
+  src: [
+    { path: "../fonts/archivo/Archivo-Regular.woff2", weight: "400", style: "normal" },
+    { path: "../fonts/archivo/Archivo-Medium.woff2", weight: "500", style: "normal" },
+    { path: "../fonts/archivo/Archivo-SemiBold.woff2", weight: "600", style: "normal" },
+    { path: "../fonts/archivo/Archivo-Bold.woff2", weight: "700", style: "normal" },
+  ],
+  variable: "--font-archivo",
+  display: "swap",
+});
+
+const jetbrains = localFont({
+  src: [
+    { path: "../fonts/jetbrains-mono/JetBrainsMono-Regular.woff2", weight: "400", style: "normal" },
+    { path: "../fonts/jetbrains-mono/JetBrainsMono-Medium.woff2", weight: "500", style: "normal" },
+  ],
+  variable: "--font-jetbrains",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -24,7 +55,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={bizUDPMincho.variable}>
+    <html lang="en" className={`${bizUDPMincho.variable} ${manifold.variable} ${archivo.variable} ${jetbrains.variable}`}>
       <body>{children}</body>
     </html>
   );
