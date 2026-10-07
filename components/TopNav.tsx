@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { SectionId, useSection } from "./SectionContext";
+import { useEffect, useRef, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import { SectionId } from "./SectionContext";
 import { useLenis } from "./LenisContext";
 
 type NavLink = {
@@ -21,6 +22,29 @@ function scrollDuration(id: SectionId): number {
   return Math.min(0.6 + distance / 2500, 1.4);
 }
 
+const CHROME_EASE = [0.2, 0.8, 0.2, 1] as const;
+const SCROLL_DELTA = 12;
+
+function readScrollY(event?: Event): number {
+  if (event instanceof CustomEvent && typeof event.detail?.scroll === "number") {
+    return event.detail.scroll;
+  }
+  return window.scrollY;
+}
+
+function surfaceUnderNav(): "light" | "dark" {
+  const x = window.innerWidth / 2;
+  const stack = document.elementsFromPoint(x, 32);
+  for (let i = 0; i < stack.length; i++) {
+    const node = stack[i];
+    if (!(node instanceof HTMLElement)) continue;
+    const themed = node.closest<HTMLElement>("[data-nav-theme]");
+    if (!themed) continue;
+    return themed.dataset.navTheme === "light" ? "light" : "dark";
+  }
+  return "dark";
+}
+
 function formatBerlinClock(date: Date): string {
   const parts = new Intl.DateTimeFormat("en-GB", {
     timeZone: "Europe/Berlin",
@@ -35,12 +59,23 @@ function formatBerlinClock(date: Date): string {
 }
 
 export function TopNav() {
-  const { theme } = useSection();
   const lenis = useLenis();
+  const reduce = useReducedMotion();
   const [clock, setClock] = useState<string | null>(null);
-  const isDark = theme === "dark";
-  const labelColor = isDark ? "#FAF6EC" : "#070F18";
-  const markColor = isDark ? "#FAF6EC" : "#FA4C1F";
+  const [visible, setVisible] = useState(true);
+  const [onLight, setOnLight] = useState(false);
+  const lastY = useRef(0);
+  const latestY = useRef(0);
+  const accumulated = useRef(0);
+  const headerRef = useRef<HTMLElement>(null);
+
+  const labelColor = onLight ? "#070F18" : "#FAF6EC";
+  const markColor = onLight ? "#FA4C1F" : "#FAF6EC";
+
+  useEffect(() => {
+    const el = headerRef.current;
+    if (el) el.inert = !visible;
+  }, [visible]);
 
   useEffect(() => {
     const tick = () => setClock(formatBerlinClock(new Date()));
@@ -49,10 +84,54 @@ export function TopNav() {
     return () => window.clearInterval(id);
   }, []);
 
+  useEffect(() => {
+    let frame = 0;
+
+    const update = (event?: Event) => {
+      latestY.current = readScrollY(event);
+      if (frame) return;
+      frame = window.requestAnimationFrame(() => {
+        frame = 0;
+        const y = latestY.current;
+        const delta = y - lastY.current;
+        lastY.current = y;
+
+        const surface = surfaceUnderNav();
+        setOnLight((prev) => (prev === (surface === "light") ? prev : surface === "light"));
+
+        if (y < SCROLL_DELTA) {
+          accumulated.current = 0;
+          setVisible(true);
+          return;
+        }
+
+        accumulated.current += delta;
+        if (accumulated.current > SCROLL_DELTA) {
+          accumulated.current = 0;
+          setVisible(false);
+        } else if (accumulated.current < -SCROLL_DELTA) {
+          accumulated.current = 0;
+          setVisible(true);
+        }
+      });
+    };
+
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("lenis-scroll", update);
+    window.addEventListener("resize", update);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("lenis-scroll", update);
+      window.removeEventListener("resize", update);
+    };
+  }, []);
+
   const labelStyle = {
     fontFamily: "var(--font-jetbrains), ui-monospace, monospace",
     color: labelColor,
-    transition: "color 0.3s ease",
+    transition: "color 0.2s cubic-bezier(0.2, 0.8, 0.2, 1)",
   };
 
   const go = (id: SectionId) => {
@@ -60,11 +139,20 @@ export function TopNav() {
   };
 
   return (
-    <header className="pointer-events-none fixed inset-x-0 top-0 z-[100] flex items-start justify-between gap-[16px] p-[16px] mobile:p-[24px] desktop:p-[48px]">
+    <motion.header
+      ref={headerRef}
+      animate={{ y: visible ? "0%" : "-100%" }}
+      transition={reduce ? { duration: 0 } : { duration: 0.2, ease: CHROME_EASE }}
+      aria-hidden={!visible}
+      style={{ willChange: "transform" }}
+      className={`fixed inset-x-0 top-0 z-[100] flex items-start justify-between gap-[16px] p-[16px] mobile:p-[24px] desktop:p-[48px] ${
+        visible ? "pointer-events-none [&_button]:pointer-events-auto" : "pointer-events-none"
+      }`}
+    >
       <button
         type="button"
         onClick={() => lenis?.scrollTo(0)}
-        className="pointer-events-auto shrink-0 cursor-pointer"
+        className="shrink-0 cursor-pointer"
         aria-label="Bloom"
       >
         <span
@@ -74,7 +162,7 @@ export function TopNav() {
             width: 123.081,
             height: 19.0445,
             backgroundColor: markColor,
-            transition: "background-color 0.3s ease",
+            transition: "background-color 0.2s cubic-bezier(0.2, 0.8, 0.2, 1)",
             WebkitMaskImage: "url(/bloom-wordmark.svg)",
             maskImage: "url(/bloom-wordmark.svg)",
             WebkitMaskRepeat: "no-repeat",
@@ -89,7 +177,7 @@ export function TopNav() {
 
       <nav
         aria-label="Primary"
-        className="pointer-events-auto flex flex-col items-end gap-[16px] min-[700px]:flex-row min-[700px]:items-start min-[700px]:gap-[32px] desktop:gap-[80px]"
+        className="flex flex-col items-end gap-[16px] min-[700px]:flex-row min-[700px]:items-start min-[700px]:gap-[32px] desktop:gap-[80px]"
       >
         <div className="flex flex-col items-end gap-[16px] min-[700px]:items-start">
           {LINKS.map((item) => (
@@ -119,6 +207,6 @@ export function TopNav() {
           Contact
         </button>
       </nav>
-    </header>
+    </motion.header>
   );
 }
