@@ -553,6 +553,7 @@ export function Hero() {
                   ref={(node) => {
                     charsRef.current[i] = node;
                   }}
+                  data-header-cue={i >= LOCK_AT && i < LOCK_END ? "companies" : undefined}
                   className="absolute left-0 top-0 inline-block"
                   style={{ transformOrigin: "0% 100%", transform: "translate3d(110vw, 0, 0)" }}
                 >
