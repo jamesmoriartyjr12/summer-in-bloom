@@ -66,27 +66,35 @@ function surfaceUnderNav(): "light" | "dark" {
   return "dark";
 }
 
-function formatClock(date: Date, timeZone?: string): string {
+function zoneCity(timeZone: string): string | null {
+  const parts = timeZone.split("/");
+  const city = parts[parts.length - 1];
+  if (!city || parts.length < 2 || timeZone.startsWith("Etc/")) return null;
+  return city.replace(/_/g, " ");
+}
+
+function viewerZone(): string {
+  try {
+    const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (zone) return zone;
+  } catch {
+    // The browser has no local zone.
+  }
+  return "America/New_York";
+}
+
+function viewerClock(date: Date): string {
+  const timeZone = viewerZone();
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone,
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
-    timeZoneName: "short",
   }).formatToParts(date);
   const value = (type: Intl.DateTimeFormatPartTypes) =>
     parts.find((part) => part.type === type)?.value ?? "";
-  return `${value("timeZoneName")} ${value("hour")}:${value("minute")} ${value("dayPeriod").toUpperCase()}`;
-}
-
-function viewerClock(date: Date): string {
-  try {
-    const local = formatClock(date);
-    if (local.trim()) return local;
-  } catch {
-    // The browser has no local zone.
-  }
-  return formatClock(date, "America/New_York");
+  const city = zoneCity(timeZone) ?? "New York";
+  return `${city} ${value("hour")}:${value("minute")} ${value("dayPeriod").toUpperCase()}`;
 }
 
 export function TopNav() {
