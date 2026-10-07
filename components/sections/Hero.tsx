@@ -90,7 +90,6 @@ const SLIT_H = 15;
 const BOX_W = 120;
 /** Share of the auto open used to reveal the field from left to right. */
 const REVEAL_PORTION = 0.42;
-const LOCK_X = 372;
 /** Where the viewport's left edge sits on the curve, already into the bend. */
 const GATE_D = 2400;
 type Cubic = [number, number][];
@@ -304,7 +303,9 @@ export function Hero() {
       band.style.top = `${bandTop}px`;
 
       const wordWidth = total - wordStart;
-      const restLeft = Math.min((LOCK_X / FRAME_W) * vw, vw - wordWidth - 24);
+      const row = companies.querySelector("li");
+      const gridLeft = row ? parseFloat(getComputedStyle(row).paddingLeft) || 0 : vw < 600 ? 24 : 48;
+      const restLeft = Math.min(gridLeft, Math.max(0, vw - wordWidth - 24));
       const restInk = bandH - Math.max(12, fontSize * 0.48);
       const arc = fontSize * 0.85;
       band.style.height = `${bandH}px`;
@@ -520,7 +521,7 @@ export function Hero() {
             >
               <video
                 ref={videoRef}
-                src="/summer-bloom-hero.webm"
+                src="/hero-flowers.webm"
                 poster="/hero-flowers.png"
                 muted
                 loop

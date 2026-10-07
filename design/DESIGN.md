@@ -40,9 +40,13 @@ Reviews use `design/MOTION.md`. That file is the Motion install from Double Dutc
 
 ## Log
 
-### 2026-10-06 — The field is the hero film
+### 2026-10-07 — Companies sits on the grid
 
-The opening background is `public/summer-bloom-hero.webm`. The still `hero-flowers.png` is the poster. The box still reveals from the left and then fills the viewport.
+Once `companies` has locked, its left edge is the same inset as the company rows.
+
+### 2026-10-06 — The field stirs
+
+The opening background is a breeze made from `public/hero-flowers.png`, saved as `public/hero-flowers.webm`. The photograph stays the one from the explorations. The still is the poster. The box still reveals from the left and then fills the viewport.
 
 ### 2026-10-06 — The field opens
 
