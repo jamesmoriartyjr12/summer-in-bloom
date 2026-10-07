@@ -14,9 +14,9 @@ A pull request that changes layout, motion, type, color, imagery, or voice updat
 
 One scrolling page, in this order: Hero, Studio, Thesis, Fund Details, Team, Portfolio, Join us. There is no standalone News section. Press links sit on the portfolio rows, from `content/news.ts`.
 
-The opening is one scene. A slit of the flower field opens on load, then one display line — “Purposely designed to build and scale companies.” — travels on the scroll frame’s text path, inside a band that cuts through the letters, until `companies` is in place. That word stays. The companies list replaces the field around it. The list reads from `content/portfolio.ts`. Studio through Join us stay after it. The site nav stays the six labels. Kayla still owns the auto duration and the scroll distance. Manifold Extended Heavy is the display face for this scene, loaded from `fonts/manifold-extended/`. Archivo and JetBrains Mono for this scene load from `fonts/` as well. The rest of the page stays on Mincho and Helvetica.
+The opening is one scene. A slit of the flower field opens on load, then one display line — “Purposely designed to build and scale companies.” — travels on the scroll frame’s text path, inside a band that cuts through the letters, until `companies` is in place. That word stays. The companies list replaces the field around it. The list reads from `content/portfolio.ts`. Studio through Join us stay after it. Kayla still owns the auto duration and the scroll distance. Manifold Extended Heavy is the display face for this scene, loaded from `fonts/manifold-extended/`. Archivo and JetBrains Mono for this scene load from `fonts/` as well. The rest of the page stays on Mincho and Helvetica.
 
-The side nav labels are Studio, Thesis, Fund Details, Team, Portfolio, Join us.
+The header is the explorations bar. The Bloom wordmark sits on the left. On the right, in JetBrains Mono Medium at 16px, uppercase: Studio, Companies, Fund One, the time in Europe/Berlin, and Contact. Studio, Companies, Fund One, and Contact are underlined. Studio scrolls to the studio, Companies to the portfolio, Fund One to fund details, and Contact to join us. The side list remains Studio, Thesis, Fund Details, Team, Portfolio, Join us.
 
 Type on the page today is BIZ UDPMincho for display and Helvetica Neue for body, on a chalk field (`#EBEBEB`). The brand system wants Manifold Extended Heavy headlines in all caps, Archivo for body and links, JetBrains Mono for labels, and Paper (`#FAF6EC`) as the light surface. Do not switch the type or the field in an unattended change. A move toward that system is a reviewed design change, recorded here first.
 
@@ -39,6 +39,10 @@ Voice for any new line: "Create great company." Direct, confident, warm, sharp.
 Reviews use `design/MOTION.md`. That file is the Motion install from Double Dutch Auctions: `motion/react`, shared duration and spring tokens, and the primitives `FadeUp`, `Press`, `SectionReveal`, and `TextRise`. Bloom still runs `framer-motion` 11. Switching packages is a reviewed change. Double Dutch's auction character stays on that site.
 
 ## Log
+
+### 2026-10-07 — Top navigation
+
+The header matches the explorations bar. Bloom wordmark on the left. On the right: Studio, Companies, Fund One, a Europe/Berlin clock, and Contact. Type is JetBrains Mono Medium, 16px, uppercase. The four names are underlined. The side list is unchanged.
 
 ### 2026-10-07 — Companies sits on the grid
 
