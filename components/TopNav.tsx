@@ -251,14 +251,6 @@ export function TopNav() {
         >
           {clock ?? "\u00a0"}
         </p>
-        <button
-          type="button"
-          onClick={() => go("contact")}
-          className="cursor-pointer whitespace-nowrap text-[16px] font-medium uppercase leading-none underline decoration-solid underline-offset-[0.12em]"
-          style={labelStyle}
-        >
-          Contact
-        </button>
       </motion.nav>
     </motion.header>
   );
