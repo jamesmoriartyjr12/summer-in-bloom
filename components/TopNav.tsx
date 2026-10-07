@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { SectionId } from "./SectionContext";
 import { useLenis } from "./LenisContext";
 
@@ -24,6 +24,27 @@ function scrollDuration(id: SectionId): number {
 
 const CHROME_EASE = [0.2, 0.8, 0.2, 1] as const;
 const SCROLL_DELTA = 12;
+const WORDMARK = { width: 123.081, height: 19.0445, src: "/bloom-wordmark.svg" };
+const MARK = { width: 25.8644, height: 25.8646, src: "/bloom-mark.svg" };
+const COMPACT_QUERY = "(max-width: 599px)";
+
+function logoMask(color: string, asset: { width: number; height: number; src: string }) {
+  return {
+    display: "block",
+    width: asset.width,
+    height: asset.height,
+    backgroundColor: color,
+    transition: "background-color 0.2s cubic-bezier(0.2, 0.8, 0.2, 1)",
+    WebkitMaskImage: `url(${asset.src})`,
+    maskImage: `url(${asset.src})`,
+    WebkitMaskRepeat: "no-repeat",
+    maskRepeat: "no-repeat",
+    WebkitMaskPosition: "left top",
+    maskPosition: "left top",
+    WebkitMaskSize: `${asset.width}px ${asset.height}px`,
+    maskSize: `${asset.width}px ${asset.height}px`,
+  } as const;
+}
 
 function readScrollY(event?: Event): number {
   if (event instanceof CustomEvent && typeof event.detail?.scroll === "number") {
@@ -64,6 +85,8 @@ export function TopNav() {
   const [clock, setClock] = useState<string | null>(null);
   const [visible, setVisible] = useState(true);
   const [onLight, setOnLight] = useState(false);
+  const [compact, setCompact] = useState(false);
+  const [logoMotion, setLogoMotion] = useState(false);
   const lastY = useRef(0);
   const latestY = useRef(0);
   const accumulated = useRef(0);
@@ -76,6 +99,18 @@ export function TopNav() {
     const el = headerRef.current;
     if (el) el.inert = !visible;
   }, [visible]);
+
+  useLayoutEffect(() => {
+    const query = window.matchMedia(COMPACT_QUERY);
+    const apply = () => setCompact(query.matches);
+    apply();
+    const frame = window.requestAnimationFrame(() => setLogoMotion(true));
+    query.addEventListener("change", apply);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      query.removeEventListener("change", apply);
+    };
+  }, []);
 
   useEffect(() => {
     const tick = () => setClock(formatBerlinClock(new Date()));
@@ -138,6 +173,9 @@ export function TopNav() {
     lenis?.scrollTo(`#${id}`, { duration: scrollDuration(id) });
   };
 
+  const chrome = reduce || !logoMotion ? { duration: 0 } : { duration: 0.2, ease: CHROME_EASE };
+  const logo = compact ? MARK : WORDMARK;
+
   return (
     <motion.header
       ref={headerRef}
@@ -149,33 +187,30 @@ export function TopNav() {
         visible ? "pointer-events-none [&_button]:pointer-events-auto" : "pointer-events-none"
       }`}
     >
-      <button
+      <motion.button
         type="button"
+        layout
         onClick={() => lenis?.scrollTo(0)}
+        transition={chrome}
         className="shrink-0 cursor-pointer"
         aria-label="Bloom"
       >
-        <span
-          aria-hidden
-          style={{
-            display: "block",
-            width: 123.081,
-            height: 19.0445,
-            backgroundColor: markColor,
-            transition: "background-color 0.2s cubic-bezier(0.2, 0.8, 0.2, 1)",
-            WebkitMaskImage: "url(/bloom-wordmark.svg)",
-            maskImage: "url(/bloom-wordmark.svg)",
-            WebkitMaskRepeat: "no-repeat",
-            maskRepeat: "no-repeat",
-            WebkitMaskPosition: "center",
-            maskPosition: "center",
-            WebkitMaskSize: "123.081px 19.0445px",
-            maskSize: "123.081px 19.0445px",
-          }}
-        />
-      </button>
+        <AnimatePresence mode="popLayout" initial={false}>
+          <motion.span
+            key={logo.src}
+            aria-hidden
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={chrome}
+            style={logoMask(markColor, logo)}
+          />
+        </AnimatePresence>
+      </motion.button>
 
-      <nav
+      <motion.nav
+        layout
+        transition={chrome}
         aria-label="Primary"
         className="flex flex-col items-end gap-[16px] min-[700px]:flex-row min-[700px]:items-start min-[700px]:gap-[32px] desktop:gap-[80px]"
       >
@@ -206,7 +241,7 @@ export function TopNav() {
         >
           Contact
         </button>
-      </nav>
+      </motion.nav>
     </motion.header>
   );
 }
