@@ -25,7 +25,7 @@ function scrollDuration(id: SectionId): number {
 const CHROME_EASE = [0.2, 0.8, 0.2, 1] as const;
 const SCROLL_DELTA = 12;
 const WORDMARK = { width: 123.081, height: 19.0445, src: "/bloom-wordmark.svg" };
-const MARK = { width: 25.8644, height: 25.8646, src: "/bloom-mark.svg" };
+const MARK = { width: 25.8644 * 1.2, height: 25.8646 * 1.2, src: "/bloom-mark.svg" };
 const COMPACT_QUERY = "(max-width: 599px)";
 
 function logoMask(color: string, asset: { width: number; height: number; src: string }) {

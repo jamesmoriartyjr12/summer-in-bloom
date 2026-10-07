@@ -48,7 +48,7 @@ Simon read it the same day. The mark is Paper on a dark field and Orange on a li
 
 The bar reads the field under it and swaps with that field: light type on dark, dark type on light. Scrolling down carries it off the top. Scrolling up brings it back.
 
-On a phone the wordmark transitions into the Bloom mark, on the same 200ms chrome ease. The mark is the mobile lockup, 26px. The brand minimum for the mark is 60px. The lockup size is the one on the phone.
+On a phone the wordmark transitions into the Bloom mark, on the same 200ms chrome ease. The mark is the mobile lockup at 26px, drawn 20% larger, at 31px. The brand minimum for the mark is 60px. The phone size is the one on the bar.
 
 ### 2026-10-07 — Companies sits on the grid
 
