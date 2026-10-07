@@ -66,9 +66,9 @@ function surfaceUnderNav(): "light" | "dark" {
   return "dark";
 }
 
-function formatBerlinClock(date: Date): string {
-  const parts = new Intl.DateTimeFormat("en-GB", {
-    timeZone: "Europe/Berlin",
+function formatClock(date: Date, timeZone?: string): string {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
@@ -77,6 +77,16 @@ function formatBerlinClock(date: Date): string {
   const value = (type: Intl.DateTimeFormatPartTypes) =>
     parts.find((part) => part.type === type)?.value ?? "";
   return `${value("timeZoneName")} ${value("hour")}:${value("minute")} ${value("dayPeriod").toUpperCase()}`;
+}
+
+function viewerClock(date: Date): string {
+  try {
+    const local = formatClock(date);
+    if (local.trim()) return local;
+  } catch {
+    // The browser has no local zone.
+  }
+  return formatClock(date, "America/New_York");
 }
 
 export function TopNav() {
@@ -113,7 +123,7 @@ export function TopNav() {
   }, []);
 
   useEffect(() => {
-    const tick = () => setClock(formatBerlinClock(new Date()));
+    const tick = () => setClock(viewerClock(new Date()));
     tick();
     const id = window.setInterval(tick, 1000);
     return () => window.clearInterval(id);
