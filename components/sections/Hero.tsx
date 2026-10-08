@@ -354,13 +354,6 @@ export function Hero() {
         const reveal = glyph < 0 ? 0 : easeOut(clamp01((glyphTime(glyph) - GLYPH_DELAY_S - glyph * GLYPH_STAGGER_S) / GLYPH_REVEAL_S));
         return { beat, x: at >= 0 ? charX[at] ?? 0 : vw, width: Math.max(beat.offsetWidth, 1), reveal };
       });
-      const companyPlace = places.find((place) => place.beat.dataset.word === "company");
-      const trustedPlace = places.find((place) => place.beat.dataset.word === "trusted");
-      if (companyPlace && trustedPlace) {
-        const approach = lockX + companyPlace.width + gap;
-        trustedPlace.reveal = easeOut(clamp01(swapT / 0.25));
-        trustedPlace.x = approach + (lockX - approach) * swapT;
-      }
       let holder = -1;
       for (let i = 0; i < places.length; i++) {
         if (places[i].x <= lockX && places[i].reveal > 0) holder = i;
@@ -393,6 +386,24 @@ export function Hero() {
           beat.style.transform = `translate3d(${beatX}px, 0, 0)`;
         }
         beat.style.color = fieldSlide > 0 && beatX + width * 0.5 > paperEdge ? INK : "";
+      }
+      const companyPlace = places.find((place) => place.beat.dataset.word === "company");
+      const trustedPlace = places.find((place) => place.beat.dataset.word === "trusted");
+      if (companyPlace && trustedPlace && progress >= LINE_PORTION) {
+        const edge = lockX + companyPlace.width + gap;
+        const from = Math.max(edge + gap, vw * 0.72);
+        const trustedX = from + (lockX - from) * swapT;
+        const travel = Math.max(0, edge - trustedX);
+        const leave = easeOut(clamp01(travel / Math.max(1, edge - lockX)));
+        const investingX = lockX - travel;
+        companyPlace.beat.style.zIndex = "1";
+        companyPlace.beat.style.opacity = String(1 - leave);
+        companyPlace.beat.style.transform = `translate3d(${investingX}px, 0, 0)`;
+        companyPlace.beat.style.color = fieldSlide > 0 && investingX + companyPlace.width * 0.5 > paperEdge ? INK : "";
+        trustedPlace.beat.style.zIndex = "2";
+        trustedPlace.beat.style.opacity = String(easeOut(clamp01(swapT / 0.12)));
+        trustedPlace.beat.style.transform = `translate3d(${trustedX}px, 0, 0)`;
+        trustedPlace.beat.style.color = fieldSlide > 0 && trustedX + trustedPlace.width * 0.5 > paperEdge ? INK : "";
       }
 
       const bottomInset = Math.max(0, boxH - glyphTop - glyphH);

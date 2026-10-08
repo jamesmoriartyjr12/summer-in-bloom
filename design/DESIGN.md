@@ -40,6 +40,10 @@ Reviews use `design/MOTION.md`. That file is the Motion install from Double Dutc
 
 ## Log
 
+### 2026-10-08 — Trusted enters like the other notes
+
+Investing holds the slot under `company`. “Trusted by ambitious…” comes in from the right, and investing slides out and fades only as that line reaches the slot. The two notes do not sit together under the word.
+
 ### 2026-10-08 — Company stays, and trusted replaces investing
 
 The word `company` parks at the note inset and stays the only headline. “Trusted by ambitious…” comes into that same slot with the note swap that investing used, while the cards keep traveling. The film no longer draws a second `COMPANIES.`
