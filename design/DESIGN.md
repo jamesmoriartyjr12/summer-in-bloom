@@ -40,6 +40,10 @@ Reviews use `design/MOTION.md`. That file is the Motion install from Double Dutc
 
 ## Log
 
+### 2026-10-08 — The artwork row is eight across
+
+The row is WatchCheck, Feno, Milly, and Orion, then that same four again. It still scales from the right until the eight cards span the screen, and the page scrolls on after that.
+
 ### 2026-10-08 — The artwork scales across, then the page scrolls
 
 The cards grow from the right until the row is the full width of the screen. The hero stays pinned for that horizontal scale. Vertical scrolling starts after the row is complete.

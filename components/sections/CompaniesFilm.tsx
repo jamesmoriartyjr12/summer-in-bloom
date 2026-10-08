@@ -26,7 +26,7 @@ type Card = {
   c: Spot;
 };
 
-const CARDS: Card[] = [
+const ROW: Card[] = [
   {
     id: "watchcheck",
     name: "WatchCheck",
@@ -74,6 +74,8 @@ const CARDS: Card[] = [
   },
 ];
 
+const CARDS: Card[] = [...ROW, ...ROW.map((card) => ({ ...card, id: `${card.id}-2`, detail: undefined }))];
+
 const MONO = "var(--font-jetbrains), ui-monospace, monospace";
 const SANS = "var(--font-archivo), sans-serif";
 
@@ -89,10 +91,10 @@ type FilmNodes = {
 const cache = new WeakMap<HTMLElement, FilmNodes>();
 
 function readNodes(root: HTMLElement): FilmNodes | null {
-  const cached = cache.get(root);
-  if (cached) return cached;
   const cards = [...root.querySelectorAll<HTMLElement>("[data-film-card]")];
   if (cards.length !== CARDS.length) return null;
+  const cached = cache.get(root);
+  if (cached && cached.cards.length === cards.length) return cached;
   const nodes = { cards };
   cache.set(root, nodes);
   return nodes;
