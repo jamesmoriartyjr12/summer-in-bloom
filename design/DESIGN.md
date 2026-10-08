@@ -14,9 +14,9 @@ A pull request that changes layout, motion, type, color, imagery, or voice updat
 
 One scrolling page, in this order: Hero, Studio, Thesis, Fund Details, Team, Portfolio, Join us. There is no standalone News section. Press links sit on the portfolio rows, from `content/news.ts`.
 
-The opening is one scene. The display line is “Purposely designed to create great company.” “Purposely” plays in on its own, the whole word on screen. Scroll plays the rest of the line: each letter opens upward from the baseline and the line travels left. Under the line, the invest note stays on “purposely,” the design list on “designed,” the build list on “create,” and investing on “company.” On scroll, the companies list replaces the field. The list reads from `content/portfolio.ts`. Studio through Join us stay after it. The site nav stays the six labels. Manifold Extended Heavy is the display face for this scene, loaded from `fonts/manifold-extended/`. Archivo and JetBrains Mono for this scene load from `fonts/` as well. The rest of the page stays on Mincho and Helvetica.
+The opening is one scene. A slit of the flower field opens on load. The display line is “Purposely designed to create great company.” “Purposely” plays in on its own, the whole word on screen. Scroll plays the rest of the line: each letter opens upward from the baseline and the line travels left. Under the line, the invest note stays on “purposely,” the design list on “designed,” the build list on “create,” and investing on “company.” On scroll, the companies list replaces the field. The list reads from `content/portfolio.ts`. Studio through Join us stay after it. Manifold Extended Heavy is the display face for this scene, loaded from `fonts/manifold-extended/`. Archivo and JetBrains Mono for this scene load from `fonts/` as well. The rest of the page stays on Mincho and Helvetica.
 
-The side nav labels are Studio, Thesis, Fund Details, Team, Portfolio, Join us.
+The header is the explorations bar. The Bloom wordmark sits on the left, and on a phone it transitions into the Bloom mark. On the right, in JetBrains Mono Medium at 16px, uppercase: Studio, Companies, Fund One, and the viewer's city and local time. It takes its color from the field underneath: Paper type and a Paper mark on a dark field, Ink type and an Orange mark on a light field. The bar stays through downscroll. It travels off, on the header travel in `design/MOTION.md` — 650ms, ease `0.22, 1, 0.36, 1` — when the word `company` comes within 40px of the bottom of the bar, on a phone and on a desktop. It returns on that same ease once the word drops back below the line. Color and the phone mark stay on the 200ms chrome ease. Studio, Companies, and Fund One are underlined. Studio scrolls to the studio, Companies to the portfolio, and Fund One to fund details. Contact stays on the join-us section at the bottom. The side list remains Studio, Thesis, Fund Details, Team, Portfolio, Join us.
 
 Type on the page today is BIZ UDPMincho for display and Helvetica Neue for body, on a chalk field (`#EBEBEB`). The brand system wants Manifold Extended Heavy headlines in all caps, Archivo for body and links, JetBrains Mono for labels, and Paper (`#FAF6EC`) as the light surface. Do not switch the type or the field in an unattended change. A move toward that system is a reviewed design change, recorded here first.
 
@@ -42,7 +42,11 @@ Reviews use `design/MOTION.md`. That file is the Motion install from Double Dutc
 
 ### 2026-10-08 — The header line opens from the baseline
 
-“Purposely” animates in until the whole word is on screen. Scroll continues straight into “designed”: the line eases off together, and the next note fades in with its first letter. The notes stay hooked to purposely, designed, create, and company.
+The flower field and the explorations bar stay. “Purposely” plays in until the whole word is on screen. Scroll continues straight into “designed”: the line eases off together, and the next note fades in with its first letter. The notes stay hooked to purposely, designed, create, and company.
+
+### 2026-10-07 — Top navigation
+
+The header matches the explorations bar. Bloom wordmark on the left. On the right: Studio, Companies, Fund One, and the viewer's city and local time. Type is JetBrains Mono Medium, 16px, uppercase. The names are underlined. The side list is unchanged. The bar stays until `company` reaches 40px from the bottom of the bar, then travels on the 650ms header ease.
 
 ### 2026-10-07 — Companies sits on the grid
 

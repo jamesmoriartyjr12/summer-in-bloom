@@ -72,6 +72,8 @@ const GLYPH_AT: number[] = [];
 const GLYPH_DELAY_S = 0.1;
 const GLYPH_STAGGER_S = 0.2;
 const GLYPH_REVEAL_S = 0.4;
+const COMPANY_AT = LINE.toLowerCase().indexOf("company");
+const COMPANY_END = COMPANY_AT + "company".length;
 const FIRST_WORD = LINE.slice(0, LINE.indexOf(" "));
 const FIRST_WORD_LETTERS = FIRST_WORD.length;
 /** Elapsed time when every letter of the first word has opened. */
@@ -86,7 +88,13 @@ const DESIGN_FONT = 197.56;
 /** Share of the track used to travel the line. The rest hands off to the companies list. */
 const LINE_PORTION = 0.7;
 const HANDOFF_PORTION = 0.82;
+const FRAME_W = 1920;
 const FRAME_H = 1080;
+const SLIT_Y = 533;
+const SLIT_H = 15;
+const BOX_W = 120;
+const REVEAL_PORTION = 0.42;
+const AUTO_OPEN_MS = 1100;
 
 const DISPLAY_STACK = "var(--font-manifold), sans-serif";
 const COMPANIES = PORTFOLIO.filter((company) => !company.hidden);
@@ -182,6 +190,7 @@ export function Hero() {
     }
 
     let running = true;
+    video?.play().catch(() => {});
     let introFrom = performance.now();
     let introDone = false;
     let fittedVw = -1;
@@ -245,7 +254,6 @@ export function Hero() {
         ? introT
         : nextStart + clamp01(progress / LINE_PORTION) * (TRAVEL_END_S - nextStart);
       if (!presenting) introDone = true;
-      photo.style.visibility = "hidden";
 
       if (glyphH <= 0) measureGlyph();
       const lineWidth = line.scrollWidth;
@@ -255,6 +263,28 @@ export function Hero() {
       const speed = lineWidth > 0 && travelSpan > 0 ? (fitX - endX) / travelSpan : TRAVEL_PX_PER_S * (fontSize / DESIGN_FONT);
       const held = presenting || progress <= 0;
       const x = held ? fitX : fitX - (travelPx(elapsed, speed) - travelPx(nextStart, speed));
+      const fieldOpen = Math.min(1, (performance.now() - introFrom) / AUTO_OPEN_MS);
+      const sx = vw / FRAME_W;
+      const sy = vh / FRAME_H;
+      const boxH = SLIT_H * sy;
+      const centerY = (SLIT_Y + SLIT_H / 2) * sy;
+      const startW = BOX_W * sx;
+      const fieldReveal = easeOut(Math.min(1, fieldOpen / REVEAL_PORTION));
+      const scaleT = easeOut(Math.max(0, Math.min(1, (fieldOpen - REVEAL_PORTION) / (1 - REVEAL_PORTION))));
+      const revealedW = startW + (vw - startW) * fieldReveal;
+      const windowH = boxH + (vh - boxH) * scaleT;
+      const windowTop = centerY - windowH / 2;
+      const wipe = handoff * revealedW;
+      photo.style.visibility = "visible";
+      photo.style.left = "0px";
+      photo.style.top = `${windowTop}px`;
+      photo.style.width = `${Math.max(0, revealedW - wipe)}px`;
+      photo.style.height = `${windowH}px`;
+      photo.style.clipPath = "none";
+      photoFill.style.left = "0px";
+      photoFill.style.top = `${-windowTop}px`;
+      photoFill.style.width = `${vw}px`;
+      photoFill.style.height = `${vh}px`;
       const glyphTime = (at: number) => {
         if (at < FIRST_WORD_LETTERS) return presenting ? elapsed : Math.max(elapsed, WORD_DONE_S);
         return held ? 0 : elapsed;
@@ -344,9 +374,10 @@ export function Hero() {
     };
 
     const tick = () => {
-      if (!running || introDone) return;
+      if (!running) return;
       apply(scrollProgress());
-      if (!introDone) raf = requestAnimationFrame(tick);
+      const fieldStillOpening = performance.now() - introFrom < AUTO_OPEN_MS;
+      if (!introDone || fieldStillOpening) raf = requestAnimationFrame(tick);
     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -426,6 +457,7 @@ export function Hero() {
                 ref={(node) => {
                   charsRef.current[i] = node;
                 }}
+                data-header-cue={i >= COMPANY_AT && i < COMPANY_END ? "companies" : undefined}
                 className="inline-block"
                 style={{ clipPath: char === " " ? "none" : "inset(100% 0 0 0)" }}
               >
