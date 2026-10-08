@@ -14,7 +14,7 @@ A pull request that changes layout, motion, type, color, imagery, or voice updat
 
 One scrolling page, in this order: Hero, Studio, Thesis, Fund Details, Team, Portfolio, Join us. There is no standalone News section. Press links sit on the portfolio rows, from `content/news.ts`.
 
-The opening is one scene. A slit of the flower field opens on load. The display line is “Purposely designed to create great company.” “Purposely” plays in on its own, the whole word on screen. Scroll plays the rest of the line: each letter opens upward from the baseline and the line travels left. Under the line, the invest note stays on “purposely,” the design list on “designed,” the build list on “create,” and investing on “company.” On scroll, the companies list replaces the field. The list reads from `content/portfolio.ts`. Studio through Join us stay after it. Manifold Extended Heavy is the display face for this scene, loaded from `fonts/manifold-extended/`. Archivo and JetBrains Mono for this scene load from `fonts/` as well. The rest of the page stays on Mincho and Helvetica.
+The opening is one scene. A slit of the flower field opens on load. The display line is “Purposely designed to create great companies.” “Purposely” plays in on its own, the whole word on screen. Scroll plays the rest of the line: each letter opens upward from the baseline and the line travels left. Under the line, the invest note stays on “purposely,” the design list on “designed,” the build list on “create,” and investing on “companies.” As `companies` comes into view, the flower field travels left. It reaches 80.64% off, the shift measured on frame `187:34`, then keeps going until the field is fully out of view and Paper is the ground. The word is `companies.` It slides to the rest in frame `227:182`, left at `-1107` on the 1920 stage, so the tail of the word stays on the left. Letters and notes turn Ink once they cross onto that Paper. “Trusted by ambitious…” is two lines. It slides in on the investing line and pushes that block out before the cards move. The cards keep the size of four across the screen. Scroll moves through all eight, and vertical scrolling starts once the last card is in. The portfolio section later still reads from `content/portfolio.ts`. Studio through Join us stay after it. Manifold Extended Heavy is the display face for this scene, loaded from `fonts/manifold-extended/`. Archivo and JetBrains Mono for this scene load from `fonts/` as well. The rest of the page stays on Mincho and Helvetica.
 
 The header is the explorations bar. The Bloom wordmark sits on the left, and on a phone it transitions into the Bloom mark. On the right, in JetBrains Mono Medium at 16px, uppercase: Studio, Companies, Fund One, and the viewer's city and local time. It takes its color from the field underneath: Paper type and a Paper mark on a dark field, Ink type and an Orange mark on a light field. The bar stays through downscroll. It travels off, on the header travel in `design/MOTION.md` — 650ms, ease `0.22, 1, 0.36, 1` — when the word `company` comes within 40px of the bottom of the bar, on a phone and on a desktop. It returns on that same ease once the word drops back below the line. Color and the phone mark stay on the 200ms chrome ease. Studio, Companies, and Fund One are underlined. Studio scrolls to the studio, Companies to the portfolio, and Fund One to fund details. Contact stays on the join-us section at the bottom. The side list remains Studio, Thesis, Fund Details, Team, Portfolio, Join us.
 
@@ -39,6 +39,42 @@ Voice for any new line: "Create great company." Direct, confident, warm, sharp.
 Reviews use `design/MOTION.md`. That file is the Motion install from Double Dutch Auctions: `motion/react`, shared duration and spring tokens, and the primitives `FadeUp`, `Press`, `SectionReveal`, and `TextRise`. Bloom still runs `framer-motion` 11. Switching packages is a reviewed change. Double Dutch's auction character stays on that site.
 
 ## Log
+
+### 2026-10-08 — The eight cards keep their size
+
+Each card stays the width of a four-across row. Scroll travels through the eight, and the page moves on after the last card is in view.
+
+### 2026-10-08 — The artwork row is eight across
+
+The row is WatchCheck, Feno, Milly, and Orion, then that same four again. It still scales from the right until the eight cards span the screen, and the page scrolls on after that.
+
+### 2026-10-08 — The artwork scales across, then the page scrolls
+
+The cards grow from the right until the row is the full width of the screen. The hero stays pinned for that horizontal scale. Vertical scrolling starts after the row is complete.
+
+### 2026-10-08 — Companies rests, and the field is gone
+
+The headline is `companies.` Frame `227:182` is the rest: the word sits at left `-1107`, the flower field is fully off, and Paper is the ground. Trusted by slides in from the right. The pill and the triangle travel above the type, and the cards cover that line.
+
+### 2026-10-08 — The pill stays off the type
+
+Investing leaves the slot before the trusted line appears. The pill and the triangle come in with that line, after the word is gone.
+
+### 2026-10-08 — Trusted enters like the other notes
+
+Investing holds the slot under `company`. “Trusted by ambitious…” comes in from the right, and investing slides out and fades only as that line reaches the slot. The two notes do not sit together under the word.
+
+### 2026-10-08 — Company stays, and trusted replaces investing
+
+The word `company` parks at the note inset and stays the only headline. “Trusted by ambitious…” comes into that same slot with the note swap that investing used, while the cards keep traveling. The film no longer draws a second `COMPANIES.`
+
+### 2026-10-08 — The companies film
+
+The ink list at the end of the opening is replaced by the card film. Frames `187:181`, `210:404`, and `227:182`. `COMPANIES.` and the cards travel left together until the row is packed, then WatchCheck lifts, the note and the press marks come in, and Feno, Milly, and Orion ease back and dim. Paper stays underneath. The cards are WatchCheck, Feno, Milly, and Orion, from those frames.
+
+### 2026-10-08 — The field leaves with company
+
+Frame `187:34`. The flower field stays full while the line is still crossing “designed.” Once `company` enters from the right, the field travels left with that word. At the end of the word’s travel it sits 80.64% of the viewport off the left edge, and Paper shows in the space it leaves. Letters and notes turn Ink once they cross onto that Paper, and stay Paper while they are still on the field. Reduced motion leaves the field in place.
 
 ### 2026-10-08 — The header line opens from the baseline
 
