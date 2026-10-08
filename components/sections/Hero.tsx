@@ -84,6 +84,12 @@ const TRAVEL_END_S = 8;
 const TRAVEL_ARRIVE_S = 7.4;
 const TRAVEL_PX_PER_S = 570;
 const DESIGN_FONT = 197.56;
+/**
+ * Frame 187:34. The flower field is full-bleed until `company` enters,
+ * then it sits at left -80.64% and Paper shows through.
+ */
+const FIELD_SHIFT = 0.8064;
+const INK = "#070F18";
 
 /** Share of the track used to travel the line. The rest hands off to the companies list. */
 const LINE_PORTION = 0.7;
@@ -161,7 +167,10 @@ export function Hero() {
       photoFill.style.left = "0";
       photoFill.style.width = "100%";
       photoFill.style.height = "100%";
-      if (video) video.pause();
+      if (video) {
+        video.pause();
+        video.style.transform = "none";
+      }
       line.style.position = "relative";
       line.style.top = "auto";
       line.style.transform = "none";
@@ -190,7 +199,10 @@ export function Hero() {
     }
 
     let running = true;
-    video?.play().catch(() => {});
+    if (video) {
+      video.style.willChange = "transform";
+      video.play().catch(() => {});
+    }
     let introFrom = performance.now();
     let introDone = false;
     let fittedVw = -1;
@@ -302,6 +314,21 @@ export function Hero() {
         cursor += chars[i].offsetWidth;
       }
 
+      const companyLeft = charX[COMPANY_AT] ?? vw;
+      const companyRest =
+        fitX - (travelPx(TRAVEL_END_S, speed) - travelPx(nextStart, speed)) + (companyLeft - x);
+      const slideSpan = vw - companyRest;
+      const fieldSlide = slideSpan > 8 ? clamp01((vw - companyLeft) / slideSpan) : 0;
+      const paperEdge = vw * (1 - FIELD_SHIFT * fieldSlide);
+      if (video) {
+        video.style.transform =
+          fieldSlide > 0 ? `translate3d(${(-FIELD_SHIFT * fieldSlide * 100).toFixed(3)}%,0,0)` : "none";
+      }
+      for (let i = 0; i < chars.length; i++) {
+        const mid = charX[i] + chars[i].offsetWidth * 0.5;
+        chars[i].style.color = fieldSlide > 0 && mid > paperEdge ? INK : "";
+      }
+
       const scale = fontSize / DESIGN_FONT;
       beats.style.top = `${lineTop + glyphTop + glyphH + (phone ? 20 : 28 * scale)}px`;
       beats.style.opacity = String(fade);
@@ -327,22 +354,26 @@ export function Hero() {
       const span = Math.max(1, edge - lockX);
       const leave = easeOut(clamp01(travel / span));
       for (let i = 0; i < places.length; i++) {
-        const { beat, x: wordX, reveal } = places[i];
+        const { beat, x: wordX, width, reveal } = places[i];
         beat.style.transition = "none";
         beat.style.zIndex = i === holder + 1 ? "2" : "1";
+        let beatX = wordX;
         if (holder >= 0 && i === holder && replacing) {
+          beatX = lockX - travel;
           beat.style.opacity = String((1 - leave) * reveal);
-          beat.style.transform = `translate3d(${lockX - travel}px, 0, 0)`;
+          beat.style.transform = `translate3d(${beatX}px, 0, 0)`;
         } else if (holder >= 0 && i === holder) {
+          beatX = lockX;
           beat.style.opacity = String(reveal);
-          beat.style.transform = `translate3d(${lockX}px, 0, 0)`;
+          beat.style.transform = `translate3d(${beatX}px, 0, 0)`;
         } else if (i > holder) {
           beat.style.opacity = String(reveal);
-          beat.style.transform = `translate3d(${wordX}px, 0, 0)`;
+          beat.style.transform = `translate3d(${beatX}px, 0, 0)`;
         } else {
           beat.style.opacity = "0";
-          beat.style.transform = `translate3d(${wordX}px, 0, 0)`;
+          beat.style.transform = `translate3d(${beatX}px, 0, 0)`;
         }
+        beat.style.color = fieldSlide > 0 && beatX + width * 0.5 > paperEdge ? INK : "";
       }
 
       const bottomInset = Math.max(0, boxH - glyphTop - glyphH);
@@ -396,6 +427,7 @@ export function Hero() {
     return () => {
       running = false;
       cancelAnimationFrame(raf);
+      if (video) video.style.willChange = "";
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("lenis-scroll", onScroll);
       window.removeEventListener("resize", onScroll);
@@ -418,7 +450,7 @@ export function Hero() {
           >
             <div
               ref={photoFillRef}
-              className="absolute"
+              className="absolute bg-[#FAF6EC]"
               style={{
                 left: 0,
                 top: "calc(100vh * -533 / 1080)",
