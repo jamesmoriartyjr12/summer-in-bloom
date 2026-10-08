@@ -278,6 +278,7 @@ export function Hero() {
       const filmT = clamp01((progress - HANDOFF_PORTION) / (1 - HANDOFF_PORTION));
       const stage = Math.min(vw / FRAME_W, vh / FRAME_H);
       const originX = (vw - FRAME_W * stage) / 2;
+      const originY = (vh - FRAME_H * stage) / 2;
       const packedAt = HANDOFF_PORTION + (1 - HANDOFF_PORTION) * FILM_SPLIT;
       const wordT = clamp01((progress - LINE_PORTION) / (packedAt - LINE_PORTION));
       const introT = (performance.now() - introFrom) / 1000;
@@ -402,38 +403,32 @@ export function Hero() {
         }
         beat.style.color = fieldSlide > 0 && beatX + width * 0.5 > paperEdge ? INK : "";
       }
-      const companyPlace = places.find((place) => place.beat.dataset.word === "company");
+      const companyPlace = places.find((place) => place.beat.dataset.word === "companies");
       const trustedPlace = places.find((place) => place.beat.dataset.word === "trusted");
       if (companyPlace && trustedPlace && progress >= LINE_PORTION) {
-        const leave = easeOut(clamp01(filmT / 0.45));
-        const investingX = lockX - leave * (companyPlace.width + gap);
+        const cardBottom = originY + filmMix(205, 205, 185, filmT) * stage + 740 * stage;
+        const beatsTop = parseFloat(beats.style.top) || 0;
+        const rowH = trustedPlace.beat.offsetHeight || 37 * stage;
+        const indexTop = vh - 56;
+        const rowY = Math.min(cardBottom + gap, indexTop - gap - rowH);
+        const slide = clamp01(filmT / FILM_SPLIT);
+        const rowX = vw + (lockX - vw) * slide;
+        const edge = lockX + companyPlace.width + gap;
+        const travel = Math.max(0, edge - rowX);
+        const leave = easeOut(clamp01(travel / Math.max(1, edge - lockX)));
+        const investingX = lockX - travel;
         companyPlace.beat.style.zIndex = "1";
         companyPlace.beat.style.opacity = String(1 - leave);
         companyPlace.beat.style.transform = `translate3d(${investingX}px, 0, 0)`;
         companyPlace.beat.style.color = videoShift > 0 && investingX + companyPlace.width * 0.5 > paperEdge ? INK : "";
+        const room = Math.max(120, vw - lockX - 24);
+        const natural = trustedPlace.beat.scrollWidth || room;
+        const fit = Math.min(1, room / natural);
         trustedPlace.beat.style.zIndex = "3";
         trustedPlace.beat.style.opacity = "1";
-        trustedPlace.beat.style.transform = "translate3d(0, 0, 0)";
-        const copy = trustedPlace.beat.querySelector<HTMLElement>("[data-trusted='copy']");
-        const copyX = originX + filmMix(886, 77, 77, filmT) * stage;
-        if (copy) {
-          copy.style.transform = `translate3d(${copyX}px, 0, 0)`;
-          copy.style.width = `${600 * stage}px`;
-          copy.style.fontSize = `${24 * stage}px`;
-          copy.style.zIndex = "1";
-          copy.style.color = videoShift > 0 && copyX + 300 * stage > paperEdge ? INK : "";
-        }
-        const mark = (selector: string, start: number, end: number, w: number, h: number) => {
-          const el = trustedPlace.beat.querySelector<HTMLElement>(selector);
-          if (!el) return;
-          const markX = originX + filmMix(start, end, end, filmT) * stage;
-          el.style.transform = `translate3d(${markX}px, 0, 0)`;
-          el.style.width = `${w * stage}px`;
-          el.style.height = `${h * stage}px`;
-          el.style.zIndex = "2";
-        };
-        mark("[data-trusted='pill']", 467, -312, 128, 37);
-        mark("[data-trusted='triangle']", 816, -3, 40, 37);
+        trustedPlace.beat.style.transformOrigin = "left center";
+        trustedPlace.beat.style.transform = `translate3d(${rowX}px, ${rowY - beatsTop}px, 0) scale(${fit})`;
+        trustedPlace.beat.style.color = videoShift > 0 ? INK : "";
       }
 
       const bottomInset = Math.max(0, boxH - glyphTop - glyphH);
@@ -450,7 +445,7 @@ export function Hero() {
 
       companies.style.opacity = String(handoff);
       companies.style.visibility = handoff > 0.02 ? "visible" : "hidden";
-      placeFilm(companies, filmT, stage, originX, (vh - FRAME_H * stage) / 2);
+      placeFilm(companies, filmT, stage, originX, originY);
 
       if (index) {
         index.style.opacity = String(clamp01(elapsed / 0.4));
@@ -595,17 +590,23 @@ export function Hero() {
             </div>
             <BeatOptions word="designed" items={DESIGN_OPTIONS} />
             <BeatOptions word="create" items={BUILD_OPTIONS} />
-            <BeatOptions word="company" items={SCALE_OPTIONS} />
-            <div data-word="trusted" className="absolute left-0 top-0">
-              <p
-                data-trusted="copy"
-                className="absolute left-0 top-0 uppercase leading-[1.2]"
-                style={{ fontFamily: "var(--font-archivo), sans-serif", zIndex: 1 }}
-              >
-                {TRUSTED}
-              </p>
-              <img data-trusted="pill" src="/companies/mark-pill.svg" alt="" className="absolute left-0 top-0" style={{ zIndex: 2 }} />
-              <img data-trusted="triangle" src="/companies/mark-triangle.svg" alt="" className="absolute left-0 top-0" style={{ zIndex: 2 }} />
+            <BeatOptions word="companies" items={SCALE_OPTIONS} />
+            <div
+              data-word="trusted"
+              className="absolute left-0 top-0 flex items-center whitespace-nowrap uppercase leading-none"
+              style={{ gap: "calc(16px * var(--hero-s))" }}
+            >
+              <img
+                src="/companies/mark-pill.svg"
+                alt=""
+                style={{ width: "calc(128px * var(--hero-s))", height: "calc(37px * var(--hero-s))", flexShrink: 0 }}
+              />
+              <img
+                src="/companies/mark-triangle.svg"
+                alt=""
+                style={{ width: "calc(40px * var(--hero-s))", height: "calc(37px * var(--hero-s))", flexShrink: 0 }}
+              />
+              <p style={{ fontFamily: "var(--font-archivo), sans-serif", fontSize: "calc(24px * var(--hero-s))" }}>{TRUSTED}</p>
             </div>
           </div>
 
