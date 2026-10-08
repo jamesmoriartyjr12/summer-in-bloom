@@ -108,16 +108,16 @@ function pin(el: HTMLElement, x: number, y: number) {
   el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
 }
 
-const START_SCALE = 0.62;
+/** How many cards fit across the screen. The rest of the row is scrolled into view. */
+const VISIBLE = ROW.length;
 
-/** The row grows from the right until its width is the viewport. `t` 1 is that moment. */
+/** Cards stay at this size. `t` 0 holds the row off the right. `t` 1 brings the last card in. */
 export function filmFrame(t: number, vw: number, vh: number) {
-  const n = CARDS.length;
-  const grown = START_SCALE + (1 - START_SCALE) * Math.max(0, Math.min(1, t));
-  const cardW = (vw / n) * grown;
+  const clamped = Math.max(0, Math.min(1, t));
+  const cardW = vw / VISIBLE;
   const cardH = cardW * (CARD_H / CARD_W);
-  const rowW = cardW * n;
-  const rowX = vw - rowW * Math.max(0, Math.min(1, t));
+  const rowW = cardW * CARDS.length;
+  const rowX = vw - rowW * clamped;
   const rowY = Math.max(0, (vh - cardH) / 2);
   return { cardW, cardH, rowX, rowY, rowW };
 }
