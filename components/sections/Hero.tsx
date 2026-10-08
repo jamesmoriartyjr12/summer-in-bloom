@@ -72,6 +72,8 @@ const GLYPH_AT: number[] = [];
 const GLYPH_DELAY_S = 0.1;
 const GLYPH_STAGGER_S = 0.2;
 const GLYPH_REVEAL_S = 0.4;
+/** At rest the first letter is already opening, so the screen is not empty. */
+const REST_ELAPSED_S = 0.32;
 const TRAVEL_RAMP_S = 0.5;
 const TRAVEL_END_S = 8;
 const TRAVEL_PX_PER_S = 570;
@@ -211,7 +213,8 @@ export function Hero() {
       const fontSize = parseFloat(getComputedStyle(line).fontSize) || DESIGN_FONT;
       const handoff = clamp01((progress - LINE_PORTION) / (HANDOFF_PORTION - LINE_PORTION));
       const fade = 1 - handoff;
-      const elapsed = clamp01(progress / LINE_PORTION) * TRAVEL_END_S;
+      const elapsed =
+        REST_ELAPSED_S + clamp01(progress / LINE_PORTION) * (TRAVEL_END_S - REST_ELAPSED_S);
       photo.style.visibility = "hidden";
 
       if (glyphH <= 0) measureGlyph();
