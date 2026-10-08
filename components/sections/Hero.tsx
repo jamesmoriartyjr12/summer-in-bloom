@@ -72,13 +72,16 @@ const GLYPH_AT: number[] = [];
 const GLYPH_DELAY_S = 0.1;
 const GLYPH_STAGGER_S = 0.2;
 const GLYPH_REVEAL_S = 0.4;
-/** At rest the first letter is already opening, so the screen is not empty. */
-const REST_ELAPSED_S = 0.32;
+const FIRST_WORD = LINE.slice(0, LINE.indexOf(" "));
+const FIRST_WORD_LETTERS = FIRST_WORD.length;
+/** Elapsed time when every letter of the first word has opened. */
+const WORD_DONE_S =
+  GLYPH_DELAY_S + (FIRST_WORD_LETTERS - 1) * GLYPH_STAGGER_S + GLYPH_REVEAL_S;
 const TRAVEL_RAMP_S = 0.5;
 const TRAVEL_END_S = 8;
+const TRAVEL_ARRIVE_S = 7.4;
 const TRAVEL_PX_PER_S = 570;
 const DESIGN_FONT = 197.56;
-const START_X = 0.376;
 
 /** Share of the track used to travel the line. The rest hands off to the companies list. */
 const LINE_PORTION = 0.7;
@@ -179,6 +182,10 @@ export function Hero() {
     }
 
     let running = true;
+    let introFrom = performance.now();
+    let introDone = false;
+    let fittedVw = -1;
+    let raf = 0;
 
     const scrollProgress = () => {
       const rect = track.getBoundingClientRect();
@@ -207,23 +214,50 @@ export function Hero() {
       boxH = box.height;
     };
 
+    const wordWidth = () => {
+      let width = 0;
+      for (let i = 0; i < FIRST_WORD_LETTERS; i++) width += chars[i].offsetWidth;
+      return width;
+    };
+
     const apply = (progress: number) => {
       const vw = window.innerWidth;
       const vh = window.innerHeight;
+      const phone = vw < 600;
+      const pad = phone ? 24 : 48;
+      if (vw !== fittedVw) {
+        line.style.fontSize = "";
+        glyphH = 0;
+        const natural = parseFloat(getComputedStyle(line).fontSize) || DESIGN_FONT;
+        const width = wordWidth();
+        const maxW = Math.max(1, vw - pad * 2);
+        line.style.fontSize = width > maxW ? `${natural * (maxW / width)}px` : "";
+        fittedVw = vw;
+        glyphH = 0;
+      }
       const fontSize = parseFloat(getComputedStyle(line).fontSize) || DESIGN_FONT;
       const handoff = clamp01((progress - LINE_PORTION) / (HANDOFF_PORTION - LINE_PORTION));
       const fade = 1 - handoff;
-      const elapsed =
-        REST_ELAPSED_S + clamp01(progress / LINE_PORTION) * (TRAVEL_END_S - REST_ELAPSED_S);
+      const introT = (performance.now() - introFrom) / 1000;
+      const presenting = !introDone && progress <= 0.01 && introT < WORD_DONE_S;
+      const nextStart = GLYPH_DELAY_S + FIRST_WORD_LETTERS * GLYPH_STAGGER_S;
+      const elapsed = presenting
+        ? introT
+        : nextStart + clamp01(progress / LINE_PORTION) * (TRAVEL_END_S - nextStart);
+      if (!presenting) introDone = true;
       photo.style.visibility = "hidden";
 
       if (glyphH <= 0) measureGlyph();
-      const arrive = 7.4;
-      const factor = 0.5 * TRAVEL_RAMP_S + (arrive - TRAVEL_RAMP_S);
       const lineWidth = line.scrollWidth;
-      const startXpx = vw * START_X;
-      const speed = lineWidth > 0 ? (startXpx - (vw * 1.04 - lineWidth)) / factor : TRAVEL_PX_PER_S * (fontSize / DESIGN_FONT);
-      const x = startXpx - travelPx(elapsed, speed);
+      const fitX = pad;
+      const endX = vw * 1.04 - lineWidth;
+      const travelSpan = travelPx(TRAVEL_ARRIVE_S, 1) - travelPx(nextStart, 1);
+      const speed = lineWidth > 0 && travelSpan > 0 ? (fitX - endX) / travelSpan : TRAVEL_PX_PER_S * (fontSize / DESIGN_FONT);
+      const x = progress <= 0.01 ? fitX : fitX - (travelPx(elapsed, speed) - travelPx(nextStart, speed));
+      const glyphTime = (at: number) => {
+        if (at < FIRST_WORD_LETTERS) return presenting ? elapsed : Math.max(elapsed, WORD_DONE_S);
+        return progress <= 0.01 ? 0 : elapsed;
+      };
       const glyphCenter = glyphTop + glyphH / 2;
       const lineTop = vh * (531 / FRAME_H) - glyphCenter;
       line.style.top = `${lineTop}px`;
@@ -238,7 +272,6 @@ export function Hero() {
       }
 
       const scale = fontSize / DESIGN_FONT;
-      const phone = vw < 600;
       beats.style.top = `${lineTop + glyphTop + glyphH + (phone ? 20 : 28 * scale)}px`;
       beats.style.opacity = String(fade);
       beats.style.setProperty("--hero-s", String(phone ? Math.max(scale, 0.58) : scale));
@@ -247,7 +280,9 @@ export function Hero() {
       meta.style.width = phone ? `${Math.max(180, vw - lockX - 20)}px` : "calc(1197px * var(--hero-s))";
       const places = [...beats.querySelectorAll<HTMLElement>("[data-word]")].map((beat) => {
         const at = LINE.toLowerCase().indexOf(beat.dataset.word ?? "");
-        return { beat, x: at >= 0 ? charX[at] ?? 0 : vw, width: Math.max(beat.offsetWidth, 1) };
+        const glyph = at >= 0 ? GLYPH_AT[at] : -1;
+        const open = glyph >= 0 && easeOut(clamp01((glyphTime(glyph) - GLYPH_DELAY_S - glyph * GLYPH_STAGGER_S) / GLYPH_REVEAL_S)) > 0.04;
+        return { beat, x: at >= 0 ? charX[at] ?? 0 : vw, width: Math.max(beat.offsetWidth, 1), open };
       });
       let holder = -1;
       for (let i = 0; i < places.length; i++) {
@@ -264,7 +299,10 @@ export function Hero() {
         const { beat, x: wordX } = places[i];
         beat.style.transition = "none";
         beat.style.zIndex = i === holder + 1 ? "2" : "1";
-        if (holder >= 0 && i === holder && replacing) {
+        if (!places[i].open) {
+          beat.style.opacity = "0";
+          beat.style.transform = `translate3d(${wordX}px, 0, 0)`;
+        } else if (holder >= 0 && i === holder && replacing) {
           beat.style.opacity = String(1 - leave);
           beat.style.transform = `translate3d(${lockX - travel}px, 0, 0)`;
         } else if (holder >= 0 && i === holder) {
@@ -286,7 +324,7 @@ export function Hero() {
           chars[i].style.clipPath = "none";
           continue;
         }
-        const p = easeOut(clamp01((elapsed - GLYPH_DELAY_S - at * GLYPH_STAGGER_S) / GLYPH_REVEAL_S));
+        const p = easeOut(clamp01((glyphTime(at) - GLYPH_DELAY_S - at * GLYPH_STAGGER_S) / GLYPH_REVEAL_S));
         const top = glyphTop + (1 - p) * glyphH;
         chars[i].style.clipPath = `inset(${top}px 0 ${bottomInset}px 0)`;
       }
@@ -303,7 +341,14 @@ export function Hero() {
 
     const onScroll = () => {
       if (!running) return;
+      if (scrollProgress() > 0.01) introDone = true;
       apply(scrollProgress());
+    };
+
+    const tick = () => {
+      if (!running || introDone) return;
+      apply(scrollProgress());
+      if (!introDone) raf = requestAnimationFrame(tick);
     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -312,12 +357,16 @@ export function Hero() {
     document.fonts.ready.then(() => {
       if (!running) return;
       glyphH = 0;
+      fittedVw = -1;
       apply(scrollProgress());
     });
+    if (scrollProgress() > 0.01) introDone = true;
     apply(scrollProgress());
+    raf = requestAnimationFrame(tick);
 
     return () => {
       running = false;
+      cancelAnimationFrame(raf);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("lenis-scroll", onScroll);
       window.removeEventListener("resize", onScroll);

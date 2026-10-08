@@ -14,7 +14,7 @@ A pull request that changes layout, motion, type, color, imagery, or voice updat
 
 One scrolling page, in this order: Hero, Studio, Thesis, Fund Details, Team, Portfolio, Join us. There is no standalone News section. Press links sit on the portfolio rows, from `content/news.ts`.
 
-The opening is one scene. The display line is “Purposely designed to create great company.” Scroll plays the line: each letter opens upward from the baseline and the line travels left. It does not play on its own. At rest, the first letter is already opening. Under the line, the invest note stays on “purposely,” the design list on “designed,” the build list on “create,” and investing on “company.” On scroll, the companies list replaces the field. The list reads from `content/portfolio.ts`. Studio through Join us stay after it. The site nav stays the six labels. Manifold Extended Heavy is the display face for this scene, loaded from `fonts/manifold-extended/`. Archivo and JetBrains Mono for this scene load from `fonts/` as well. The rest of the page stays on Mincho and Helvetica.
+The opening is one scene. The display line is “Purposely designed to create great company.” “Purposely” plays in on its own, the whole word on screen. Scroll plays the rest of the line: each letter opens upward from the baseline and the line travels left. Under the line, the invest note stays on “purposely,” the design list on “designed,” the build list on “create,” and investing on “company.” On scroll, the companies list replaces the field. The list reads from `content/portfolio.ts`. Studio through Join us stay after it. The site nav stays the six labels. Manifold Extended Heavy is the display face for this scene, loaded from `fonts/manifold-extended/`. Archivo and JetBrains Mono for this scene load from `fonts/` as well. The rest of the page stays on Mincho and Helvetica.
 
 The side nav labels are Studio, Thesis, Fund Details, Team, Portfolio, Join us.
 
@@ -42,7 +42,7 @@ Reviews use `design/MOTION.md`. That file is the Motion install from Double Dutc
 
 ### 2026-10-08 — The header line opens from the baseline
 
-Scroll plays the line. At rest the first letter is already opening, so the screen is not empty. The notes under the line stay hooked to a word: purposely, designed, create, and company.
+“Purposely” animates in until the whole word is on screen. Scroll plays the rest of the line. The notes under the line stay hooked to a word: purposely, designed, create, and company.
 
 ### 2026-10-07 — Companies sits on the grid
 
