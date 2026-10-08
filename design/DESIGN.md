@@ -40,6 +40,10 @@ Reviews use `design/MOTION.md`. That file is the Motion install from Double Dutc
 
 ## Log
 
+### 2026-10-08 — The pill stays off the type
+
+Investing leaves the slot before the trusted line appears. The pill and the triangle come in with that line, after the word is gone.
+
 ### 2026-10-08 — Trusted enters like the other notes
 
 Investing holds the slot under `company`. “Trusted by ambitious…” comes in from the right, and investing slides out and fades only as that line reaches the slot. The two notes do not sit together under the word.

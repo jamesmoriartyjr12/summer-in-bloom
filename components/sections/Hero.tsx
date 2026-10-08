@@ -390,18 +390,20 @@ export function Hero() {
       const companyPlace = places.find((place) => place.beat.dataset.word === "company");
       const trustedPlace = places.find((place) => place.beat.dataset.word === "trusted");
       if (companyPlace && trustedPlace && progress >= LINE_PORTION) {
-        const edge = lockX + companyPlace.width + gap;
-        const from = Math.max(edge + gap, vw * 0.72);
-        const trustedX = from + (lockX - from) * swapT;
-        const travel = Math.max(0, edge - trustedX);
-        const leave = easeOut(clamp01(travel / Math.max(1, edge - lockX)));
-        const investingX = lockX - travel;
-        companyPlace.beat.style.zIndex = "1";
+        const span = companyPlace.width + gap;
+        const leaveT = clamp01(swapT / 0.5);
+        const arriveT = clamp01((swapT - 0.5) / 0.5);
+        const leave = easeOut(leaveT);
+        const arrive = easeOut(arriveT);
+        const investingX = lockX - leave * span;
+        const from = lockX + span;
+        const trustedX = from + (lockX - from) * arrive;
+        companyPlace.beat.style.zIndex = "2";
         companyPlace.beat.style.opacity = String(1 - leave);
         companyPlace.beat.style.transform = `translate3d(${investingX}px, 0, 0)`;
         companyPlace.beat.style.color = fieldSlide > 0 && investingX + companyPlace.width * 0.5 > paperEdge ? INK : "";
-        trustedPlace.beat.style.zIndex = "2";
-        trustedPlace.beat.style.opacity = String(easeOut(clamp01(swapT / 0.12)));
+        trustedPlace.beat.style.zIndex = "1";
+        trustedPlace.beat.style.opacity = String(arrive);
         trustedPlace.beat.style.transform = `translate3d(${trustedX}px, 0, 0)`;
         trustedPlace.beat.style.color = fieldSlide > 0 && trustedX + trustedPlace.width * 0.5 > paperEdge ? INK : "";
       }
