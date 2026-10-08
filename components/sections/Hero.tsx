@@ -5,7 +5,7 @@ import { useReducedMotion } from "framer-motion";
 import { Section } from "../Section";
 import { CompaniesFilm, placeFilm, restFilm } from "./CompaniesFilm";
 
-const LINE = "Purposely designed to create great company.";
+const LINE = "Purposely designed to create great companies.";
 const INVEST = "We invest in emerging companies with ambitious ideas.";
 
 const DESIGN_OPTIONS = [
@@ -74,8 +74,8 @@ const GLYPH_AT: number[] = [];
 const GLYPH_DELAY_S = 0.1;
 const GLYPH_STAGGER_S = 0.2;
 const GLYPH_REVEAL_S = 0.4;
-const COMPANY_AT = LINE.toLowerCase().indexOf("company");
-const COMPANY_END = COMPANY_AT + "company".length;
+const COMPANY_AT = LINE.toLowerCase().indexOf("companies");
+const COMPANY_END = COMPANY_AT + "companies".length;
 const FIRST_WORD = LINE.slice(0, LINE.indexOf(" "));
 const FIRST_WORD_LETTERS = FIRST_WORD.length;
 /** Elapsed time when every letter of the first word has opened. */
@@ -91,6 +91,9 @@ const DESIGN_FONT = 197.56;
  * then it sits at left -80.64% and Paper shows through.
  */
 const FIELD_SHIFT = 0.8064;
+/** Frame 227:182. The word rests here, and the field is fully off. */
+const FILM_SPLIT = 0.78;
+const TITLE_REST = -1107;
 const INK = "#070F18";
 
 /**
@@ -119,6 +122,11 @@ function easeOut(t: number) {
 
 function clamp01(t: number) {
   return Math.max(0, Math.min(1, t));
+}
+
+function filmMix(a: number, b: number, c: number, t: number) {
+  if (t <= FILM_SPLIT) return a + (b - a) * (t / FILM_SPLIT);
+  return b + (c - b) * ((t - FILM_SPLIT) / (1 - FILM_SPLIT));
 }
 
 /** Distance traveled after a half-second ease into the cruise speed. */
@@ -267,8 +275,11 @@ export function Hero() {
       }
       const fontSize = parseFloat(getComputedStyle(line).fontSize) || DESIGN_FONT;
       const handoff = clamp01((progress - LINE_PORTION) / (HANDOFF_PORTION - LINE_PORTION));
-      const swapEnd = HANDOFF_PORTION + (1 - HANDOFF_PORTION) * 0.55;
-      const swapT = easeOut(clamp01((progress - LINE_PORTION) / (swapEnd - LINE_PORTION)));
+      const filmT = clamp01((progress - HANDOFF_PORTION) / (1 - HANDOFF_PORTION));
+      const stage = Math.min(vw / FRAME_W, vh / FRAME_H);
+      const originX = (vw - FRAME_W * stage) / 2;
+      const packedAt = HANDOFF_PORTION + (1 - HANDOFF_PORTION) * FILM_SPLIT;
+      const wordT = clamp01((progress - LINE_PORTION) / (packedAt - LINE_PORTION));
       const introT = (performance.now() - introFrom) / 1000;
       const presenting = !introDone && progress <= 0 && introT < WORD_DONE_S;
       const nextStart = GLYPH_DELAY_S + FIRST_WORD_LETTERS * GLYPH_STAGGER_S;
@@ -290,6 +301,10 @@ export function Hero() {
       for (let i = 0; i < COMPANY_AT; i++) companyOffset += chars[i].offsetWidth;
       const unclampedLeft = x + companyOffset;
       if (!held && unclampedLeft < lockX) x = lockX - companyOffset;
+      if (!held && wordT > 0) {
+        const restLeft = originX + TITLE_REST * stage;
+        x = lockX + (restLeft - lockX) * wordT - companyOffset;
+      }
       const fieldOpen = Math.min(1, (performance.now() - introFrom) / AUTO_OPEN_MS);
       const sx = vw / FRAME_W;
       const sy = vh / FRAME_H;
@@ -332,10 +347,10 @@ export function Hero() {
         fitX - (travelPx(TRAVEL_END_S, speed) - travelPx(nextStart, speed)) + companyOffset;
       const slideSpan = vw - companyRest;
       const fieldSlide = slideSpan > 8 ? clamp01((vw - unclampedLeft) / slideSpan) : 0;
-      const paperEdge = vw * (1 - FIELD_SHIFT * fieldSlide);
+      const videoShift = Math.min(1, FIELD_SHIFT * fieldSlide + (1 - FIELD_SHIFT) * wordT);
+      const paperEdge = vw * (1 - videoShift);
       if (video) {
-        video.style.transform =
-          fieldSlide > 0 ? `translate3d(${(-FIELD_SHIFT * fieldSlide * 100).toFixed(3)}%,0,0)` : "none";
+        video.style.transform = videoShift > 0 ? `translate3d(${(-videoShift * 100).toFixed(3)}%,0,0)` : "none";
       }
       for (let i = 0; i < chars.length; i++) {
         const mid = charX[i] + chars[i].offsetWidth * 0.5;
@@ -390,22 +405,35 @@ export function Hero() {
       const companyPlace = places.find((place) => place.beat.dataset.word === "company");
       const trustedPlace = places.find((place) => place.beat.dataset.word === "trusted");
       if (companyPlace && trustedPlace && progress >= LINE_PORTION) {
-        const span = companyPlace.width + gap;
-        const leaveT = clamp01(swapT / 0.5);
-        const arriveT = clamp01((swapT - 0.5) / 0.5);
-        const leave = easeOut(leaveT);
-        const arrive = easeOut(arriveT);
-        const investingX = lockX - leave * span;
-        const from = lockX + span;
-        const trustedX = from + (lockX - from) * arrive;
-        companyPlace.beat.style.zIndex = "2";
+        const leave = easeOut(clamp01(filmT / 0.45));
+        const investingX = lockX - leave * (companyPlace.width + gap);
+        companyPlace.beat.style.zIndex = "1";
         companyPlace.beat.style.opacity = String(1 - leave);
         companyPlace.beat.style.transform = `translate3d(${investingX}px, 0, 0)`;
-        companyPlace.beat.style.color = fieldSlide > 0 && investingX + companyPlace.width * 0.5 > paperEdge ? INK : "";
-        trustedPlace.beat.style.zIndex = "1";
-        trustedPlace.beat.style.opacity = String(arrive);
-        trustedPlace.beat.style.transform = `translate3d(${trustedX}px, 0, 0)`;
-        trustedPlace.beat.style.color = fieldSlide > 0 && trustedX + trustedPlace.width * 0.5 > paperEdge ? INK : "";
+        companyPlace.beat.style.color = videoShift > 0 && investingX + companyPlace.width * 0.5 > paperEdge ? INK : "";
+        trustedPlace.beat.style.zIndex = "3";
+        trustedPlace.beat.style.opacity = "1";
+        trustedPlace.beat.style.transform = "translate3d(0, 0, 0)";
+        const copy = trustedPlace.beat.querySelector<HTMLElement>("[data-trusted='copy']");
+        const copyX = originX + filmMix(886, 77, 77, filmT) * stage;
+        if (copy) {
+          copy.style.transform = `translate3d(${copyX}px, 0, 0)`;
+          copy.style.width = `${600 * stage}px`;
+          copy.style.fontSize = `${24 * stage}px`;
+          copy.style.zIndex = "1";
+          copy.style.color = videoShift > 0 && copyX + 300 * stage > paperEdge ? INK : "";
+        }
+        const mark = (selector: string, start: number, end: number, w: number, h: number) => {
+          const el = trustedPlace.beat.querySelector<HTMLElement>(selector);
+          if (!el) return;
+          const markX = originX + filmMix(start, end, end, filmT) * stage;
+          el.style.transform = `translate3d(${markX}px, 0, 0)`;
+          el.style.width = `${w * stage}px`;
+          el.style.height = `${h * stage}px`;
+          el.style.zIndex = "2";
+        };
+        mark("[data-trusted='pill']", 467, -312, 128, 37);
+        mark("[data-trusted='triangle']", 816, -3, 40, 37);
       }
 
       const bottomInset = Math.max(0, boxH - glyphTop - glyphH);
@@ -422,9 +450,7 @@ export function Hero() {
 
       companies.style.opacity = String(handoff);
       companies.style.visibility = handoff > 0.02 ? "visible" : "hidden";
-      const filmT = clamp01((progress - HANDOFF_PORTION) / (1 - HANDOFF_PORTION));
-      const stage = Math.min(vw / FRAME_W, vh / FRAME_H);
-      placeFilm(companies, filmT, stage, (vw - FRAME_W * stage) / 2, (vh - FRAME_H * stage) / 2);
+      placeFilm(companies, filmT, stage, originX, (vh - FRAME_H * stage) / 2);
 
       if (index) {
         index.style.opacity = String(clamp01(elapsed / 0.4));
@@ -570,29 +596,16 @@ export function Hero() {
             <BeatOptions word="designed" items={DESIGN_OPTIONS} />
             <BeatOptions word="create" items={BUILD_OPTIONS} />
             <BeatOptions word="company" items={SCALE_OPTIONS} />
-            <div
-              data-word="trusted"
-              className="absolute left-0 top-0 flex items-start uppercase leading-[1.2]"
-              style={{ width: "calc(640px * var(--hero-s))", gap: "calc(16px * var(--hero-s))" }}
-            >
-              <img
-                src="/companies/mark-pill.svg"
-                alt=""
-                style={{ width: "calc(128px * var(--hero-s))", height: "calc(37px * var(--hero-s))", flexShrink: 0 }}
-              />
-              <img
-                src="/companies/mark-triangle.svg"
-                alt=""
-                style={{ width: "calc(40px * var(--hero-s))", height: "calc(37px * var(--hero-s))", flexShrink: 0 }}
-              />
+            <div data-word="trusted" className="absolute left-0 top-0">
               <p
-                style={{
-                  fontFamily: "var(--font-archivo), sans-serif",
-                  fontSize: "calc(24px * var(--hero-s))",
-                }}
+                data-trusted="copy"
+                className="absolute left-0 top-0 uppercase leading-[1.2]"
+                style={{ fontFamily: "var(--font-archivo), sans-serif", zIndex: 1 }}
               >
                 {TRUSTED}
               </p>
+              <img data-trusted="pill" src="/companies/mark-pill.svg" alt="" className="absolute left-0 top-0" style={{ zIndex: 2 }} />
+              <img data-trusted="triangle" src="/companies/mark-triangle.svg" alt="" className="absolute left-0 top-0" style={{ zIndex: 2 }} />
             </div>
           </div>
 

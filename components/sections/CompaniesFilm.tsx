@@ -198,7 +198,7 @@ export function restFilm(root: HTMLElement) {
 
 export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
   return (
-    <div ref={rootRef} className="invisible absolute inset-0 z-20 overflow-hidden text-ink">
+    <div ref={rootRef} className="invisible absolute inset-0 z-40 overflow-hidden text-ink">
       <div data-film="stage" className="relative h-full">
         <div data-film="row">
           {CARDS.map((card) => (
