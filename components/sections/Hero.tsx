@@ -406,17 +406,13 @@ export function Hero() {
       const companyPlace = places.find((place) => place.beat.dataset.word === "companies");
       const trustedPlace = places.find((place) => place.beat.dataset.word === "trusted");
       if (companyPlace && trustedPlace && progress >= LINE_PORTION) {
-        const cardBottom = originY + filmMix(205, 205, 185, filmT) * stage + 740 * stage;
-        const beatsTop = parseFloat(beats.style.top) || 0;
-        const rowH = trustedPlace.beat.offsetHeight || 37 * stage;
-        const indexTop = vh - 56;
-        const rowY = Math.min(cardBottom + gap, indexTop - gap - rowH);
         const slide = clamp01(filmT / FILM_SPLIT);
         const rowX = vw + (lockX - vw) * slide;
-        const edge = lockX + companyPlace.width + gap;
-        const travel = Math.max(0, edge - rowX);
-        const leave = easeOut(clamp01(travel / Math.max(1, edge - lockX)));
+        const slot = lockX + companyPlace.width + gap;
+        const travel = Math.max(0, slot - rowX);
+        const leave = easeOut(clamp01(travel / Math.max(1, slot - lockX)));
         const investingX = lockX - travel;
+        beats.style.zIndex = "50";
         companyPlace.beat.style.zIndex = "1";
         companyPlace.beat.style.opacity = String(1 - leave);
         companyPlace.beat.style.transform = `translate3d(${investingX}px, 0, 0)`;
@@ -424,11 +420,13 @@ export function Hero() {
         const room = Math.max(120, vw - lockX - 24);
         const natural = trustedPlace.beat.scrollWidth || room;
         const fit = Math.min(1, room / natural);
-        trustedPlace.beat.style.zIndex = "3";
+        trustedPlace.beat.style.zIndex = "2";
         trustedPlace.beat.style.opacity = "1";
         trustedPlace.beat.style.transformOrigin = "left center";
-        trustedPlace.beat.style.transform = `translate3d(${rowX}px, ${rowY - beatsTop}px, 0) scale(${fit})`;
+        trustedPlace.beat.style.transform = `translate3d(${rowX}px, 0, 0) scale(${fit})`;
         trustedPlace.beat.style.color = videoShift > 0 ? INK : "";
+      } else {
+        beats.style.zIndex = "";
       }
 
       const bottomInset = Math.max(0, boxH - glyphTop - glyphH);
@@ -593,7 +591,7 @@ export function Hero() {
             <BeatOptions word="companies" items={SCALE_OPTIONS} />
             <div
               data-word="trusted"
-              className="absolute left-0 top-0 flex items-center whitespace-nowrap uppercase leading-none"
+              className="absolute left-0 top-0 flex items-start whitespace-nowrap uppercase leading-[1.2]"
               style={{ gap: "calc(16px * var(--hero-s))" }}
             >
               <img
