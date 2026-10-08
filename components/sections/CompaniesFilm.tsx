@@ -112,7 +112,14 @@ function pin(el: HTMLElement, x: number, y: number) {
 }
 
 /** Scroll position `t` is 0 at frame 187:181 and 1 at frame 227:182. */
-export function placeFilm(root: HTMLElement, t: number, scale: number, originX: number, originY: number) {
+export function placeFilm(
+  root: HTMLElement,
+  t: number,
+  scale: number,
+  originX: number,
+  originY: number,
+  shiftX = 0,
+) {
   const nodes = readNodes(root);
   if (!nodes) return;
   const s = scale;
@@ -138,7 +145,7 @@ export function placeFilm(root: HTMLElement, t: number, scale: number, originX: 
     card.style.zIndex = spec.detail && settle > 0 ? "2" : "1";
     card.style.boxShadow =
       spec.detail && settle > 0 ? `0 ${47 * s}px ${67.4 * s}px rgba(68,53,15,${0.3 * settle})` : "none";
-    pin(card, originX + spot.x * s, originY + spot.y * s);
+    pin(card, originX + spot.x * s + shiftX, originY + spot.y * s);
 
     const detail = card.querySelector<HTMLElement>("[data-film='detail']");
     if (detail) detail.style.opacity = String(settle);

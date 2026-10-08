@@ -22,8 +22,10 @@ const BUILD_OPTIONS = [
   "product analytics",
 ];
 const SCALE_OPTIONS = ["investing"];
-const TRUSTED =
-  "Trusted by ambitious companies and global brands across technology, finance, consumer, and creative industries.";
+const TRUSTED_LINES = [
+  "Trusted by ambitious companies and global brands",
+  "across technology, finance, consumer, and creative industries.",
+];
 
 function BeatOptions({ word, items }: { word: string; items: string[] }) {
   return (
@@ -93,6 +95,8 @@ const DESIGN_FONT = 197.56;
 const FIELD_SHIFT = 0.8064;
 /** Frame 227:182. The word rests here, and the field is fully off. */
 const FILM_SPLIT = 0.78;
+/** The trusted lines finish arriving before the cards leave the right edge. */
+const TEXT_AT = 0.34;
 const TITLE_REST = -1107;
 const INK = "#070F18";
 
@@ -406,27 +410,31 @@ export function Hero() {
       const companyPlace = places.find((place) => place.beat.dataset.word === "companies");
       const trustedPlace = places.find((place) => place.beat.dataset.word === "trusted");
       if (companyPlace && trustedPlace && progress >= LINE_PORTION) {
-        const slide = clamp01(filmT / FILM_SPLIT);
-        const rowX = vw + (lockX - vw) * slide;
-        const slot = lockX + companyPlace.width + gap;
-        const travel = Math.max(0, slot - rowX);
-        const leave = easeOut(clamp01(travel / Math.max(1, slot - lockX)));
-        const investingX = lockX - travel;
-        beats.style.zIndex = "50";
+        const textT = clamp01(filmT / TEXT_AT);
+        const cardT = clamp01((filmT - TEXT_AT) / (1 - TEXT_AT));
+        const rowX = vw + (lockX - vw) * textT;
+        const investSlot = lockX + companyPlace.width + gap;
+        const investTravel = Math.max(0, investSlot - rowX);
+        const investLeave = easeOut(clamp01(investTravel / Math.max(1, investSlot - lockX)));
+        const investingX = lockX - investTravel;
         companyPlace.beat.style.zIndex = "1";
-        companyPlace.beat.style.opacity = String(1 - leave);
+        companyPlace.beat.style.opacity = String(1 - investLeave);
         companyPlace.beat.style.transform = `translate3d(${investingX}px, 0, 0)`;
         companyPlace.beat.style.color = videoShift > 0 && investingX + companyPlace.width * 0.5 > paperEdge ? INK : "";
-        const room = Math.max(120, vw - lockX - 24);
-        const natural = trustedPlace.beat.scrollWidth || room;
-        const fit = Math.min(1, room / natural);
+        const frameALead = originX + 1468 * stage;
+        const offLead = vw + 24;
+        const cardShift = (1 - cardT) * Math.max(0, offLead - frameALead);
+        const leadX = originX + filmMix(1468, 236, 236, cardT) * stage + cardShift;
+        const textW = trustedPlace.beat.offsetWidth || 1;
+        const textSlot = lockX + textW + gap;
+        const restLead = originX + 236 * stage;
+        const push = Math.max(0, textSlot - leadX);
+        const trustedX = rowX - push;
+        const cover = easeOut(clamp01(push / Math.max(1, textSlot - restLead)));
         trustedPlace.beat.style.zIndex = "2";
-        trustedPlace.beat.style.opacity = "1";
-        trustedPlace.beat.style.transformOrigin = "left center";
-        trustedPlace.beat.style.transform = `translate3d(${rowX}px, 0, 0) scale(${fit})`;
+        trustedPlace.beat.style.opacity = String(1 - cover);
+        trustedPlace.beat.style.transform = `translate3d(${trustedX}px, 0, 0)`;
         trustedPlace.beat.style.color = videoShift > 0 ? INK : "";
-      } else {
-        beats.style.zIndex = "";
       }
 
       const bottomInset = Math.max(0, boxH - glyphTop - glyphH);
@@ -443,7 +451,10 @@ export function Hero() {
 
       companies.style.opacity = String(handoff);
       companies.style.visibility = handoff > 0.02 ? "visible" : "hidden";
-      placeFilm(companies, filmT, stage, originX, originY);
+      const cardT = clamp01((filmT - TEXT_AT) / (1 - TEXT_AT));
+      const frameALead = originX + 1468 * stage;
+      const cardShift = (1 - cardT) * Math.max(0, vw + 24 - frameALead);
+      placeFilm(companies, cardT, stage, originX, originY, cardShift);
 
       if (index) {
         index.style.opacity = String(clamp01(elapsed / 0.4));
@@ -591,7 +602,7 @@ export function Hero() {
             <BeatOptions word="companies" items={SCALE_OPTIONS} />
             <div
               data-word="trusted"
-              className="absolute left-0 top-0 flex items-start whitespace-nowrap uppercase leading-[1.2]"
+              className="absolute left-0 top-0 flex w-max items-start uppercase leading-[1.2]"
               style={{ gap: "calc(16px * var(--hero-s))" }}
             >
               <img
@@ -604,7 +615,11 @@ export function Hero() {
                 alt=""
                 style={{ width: "calc(40px * var(--hero-s))", height: "calc(37px * var(--hero-s))", flexShrink: 0 }}
               />
-              <p style={{ fontFamily: "var(--font-archivo), sans-serif", fontSize: "calc(24px * var(--hero-s))" }}>{TRUSTED}</p>
+              <p className="w-max" style={{ fontFamily: "var(--font-archivo), sans-serif", fontSize: "calc(24px * var(--hero-s))" }}>
+                {TRUSTED_LINES[0]}
+                <br />
+                {TRUSTED_LINES[1]}
+              </p>
             </div>
           </div>
 
