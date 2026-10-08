@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useReducedMotion } from "framer-motion";
 import { Section } from "../Section";
-import { CompaniesFilm, placeFilm, restFilm } from "./CompaniesFilm";
+import { CompaniesFilm, filmFrame, placeFilm, restFilm } from "./CompaniesFilm";
 
 const LINE = "Purposely designed to create great companies.";
 const INVEST = "We invest in emerging companies with ambitious ideas.";
@@ -126,11 +126,6 @@ function easeOut(t: number) {
 
 function clamp01(t: number) {
   return Math.max(0, Math.min(1, t));
-}
-
-function filmMix(a: number, b: number, c: number, t: number) {
-  if (t <= FILM_SPLIT) return a + (b - a) * (t / FILM_SPLIT);
-  return b + (c - b) * ((t - FILM_SPLIT) / (1 - FILM_SPLIT));
 }
 
 /** Distance traveled after a half-second ease into the cruise speed. */
@@ -421,16 +416,12 @@ export function Hero() {
         companyPlace.beat.style.opacity = String(1 - investLeave);
         companyPlace.beat.style.transform = `translate3d(${investingX}px, 0, 0)`;
         companyPlace.beat.style.color = videoShift > 0 && investingX + companyPlace.width * 0.5 > paperEdge ? INK : "";
-        const frameALead = originX + 1468 * stage;
-        const offLead = vw + 24;
-        const cardShift = (1 - cardT) * Math.max(0, offLead - frameALead);
-        const leadX = originX + filmMix(1468, 236, 236, cardT) * stage + cardShift;
+        const leadX = filmFrame(cardT, vw, vh).rowX;
         const textW = trustedPlace.beat.offsetWidth || 1;
         const textSlot = lockX + textW + gap;
-        const restLead = originX + 236 * stage;
         const push = Math.max(0, textSlot - leadX);
         const trustedX = rowX - push;
-        const cover = easeOut(clamp01(push / Math.max(1, textSlot - restLead)));
+        const cover = easeOut(clamp01(push / Math.max(1, textSlot)));
         trustedPlace.beat.style.zIndex = "2";
         trustedPlace.beat.style.opacity = String(1 - cover);
         trustedPlace.beat.style.transform = `translate3d(${trustedX}px, 0, 0)`;
@@ -452,9 +443,7 @@ export function Hero() {
       companies.style.opacity = String(handoff);
       companies.style.visibility = handoff > 0.02 ? "visible" : "hidden";
       const cardT = clamp01((filmT - TEXT_AT) / (1 - TEXT_AT));
-      const frameALead = originX + 1468 * stage;
-      const cardShift = (1 - cardT) * Math.max(0, vw + 24 - frameALead);
-      placeFilm(companies, cardT, stage, originX, originY, cardShift);
+      placeFilm(companies, cardT, vw, vh);
 
       if (index) {
         index.style.opacity = String(clamp01(elapsed / 0.4));

@@ -77,11 +77,6 @@ const CARDS: Card[] = [
 const MONO = "var(--font-jetbrains), ui-monospace, monospace";
 const SANS = "var(--font-archivo), sans-serif";
 
-function mix(a: number, b: number, c: number, t: number) {
-  if (t <= SPLIT) return a + (b - a) * (t / SPLIT);
-  return b + (c - b) * ((t - SPLIT) / (1 - SPLIT));
-}
-
 function settleOf(t: number) {
   if (t <= SPLIT) return 0;
   return (t - SPLIT) / (1 - SPLIT);
@@ -111,18 +106,26 @@ function pin(el: HTMLElement, x: number, y: number) {
   el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
 }
 
-/** Scroll position `t` is 0 at frame 187:181 and 1 at frame 227:182. */
-export function placeFilm(
-  root: HTMLElement,
-  t: number,
-  scale: number,
-  originX: number,
-  originY: number,
-  shiftX = 0,
-) {
+const START_SCALE = 0.62;
+
+/** The row grows from the right until its width is the viewport. `t` 1 is that moment. */
+export function filmFrame(t: number, vw: number, vh: number) {
+  const n = CARDS.length;
+  const grown = START_SCALE + (1 - START_SCALE) * Math.max(0, Math.min(1, t));
+  const cardW = (vw / n) * grown;
+  const cardH = cardW * (CARD_H / CARD_W);
+  const rowW = cardW * n;
+  const rowX = vw - rowW * Math.max(0, Math.min(1, t));
+  const rowY = Math.max(0, (vh - cardH) / 2);
+  return { cardW, cardH, rowX, rowY, rowW };
+}
+
+/** `t` 0 holds the row off the right. `t` 1 is the row at full viewport width. */
+export function placeFilm(root: HTMLElement, t: number, vw: number, vh: number) {
   const nodes = readNodes(root);
   if (!nodes) return;
-  const s = scale;
+  const frame = filmFrame(t, vw, vh);
+  const s = frame.cardW / CARD_W;
   const settle = settleOf(t);
   const stage = root.querySelector<HTMLElement>("[data-film='stage']");
   if (stage) {
@@ -134,18 +137,13 @@ export function placeFilm(
 
   nodes.cards.forEach((card, index) => {
     const spec = CARDS[index];
-    const spot = {
-      x: mix(spec.a.x, spec.b.x, spec.c.x, t),
-      y: mix(spec.a.y, spec.b.y, spec.c.y, t),
-      opacity: mix(spec.a.opacity, spec.b.opacity, spec.c.opacity, t),
-    };
-    card.style.width = `${CARD_W * s}px`;
-    card.style.height = `${CARD_H * s}px`;
-    card.style.opacity = String(spot.opacity);
+    card.style.width = `${frame.cardW}px`;
+    card.style.height = `${frame.cardH}px`;
+    card.style.opacity = "1";
     card.style.zIndex = spec.detail && settle > 0 ? "2" : "1";
     card.style.boxShadow =
       spec.detail && settle > 0 ? `0 ${47 * s}px ${67.4 * s}px rgba(68,53,15,${0.3 * settle})` : "none";
-    pin(card, originX + spot.x * s + shiftX, originY + spot.y * s);
+    pin(card, frame.rowX + index * frame.cardW, frame.rowY);
 
     const detail = card.querySelector<HTMLElement>("[data-film='detail']");
     if (detail) detail.style.opacity = String(settle);
