@@ -2,8 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import { useReducedMotion } from "framer-motion";
-import { PORTFOLIO } from "@/content/portfolio";
 import { Section } from "../Section";
+import { CompaniesFilm, placeFilm, restFilm } from "./CompaniesFilm";
 
 const LINE = "Purposely designed to create great company.";
 const INVEST = "We invest in emerging companies with ambitious ideas.";
@@ -22,6 +22,8 @@ const BUILD_OPTIONS = [
   "product analytics",
 ];
 const SCALE_OPTIONS = ["investing"];
+const TRUSTED =
+  "Trusted by ambitious companies and global brands across technology, finance, consumer, and creative industries.";
 
 function BeatOptions({ word, items }: { word: string; items: string[] }) {
   return (
@@ -91,9 +93,16 @@ const DESIGN_FONT = 197.56;
 const FIELD_SHIFT = 0.8064;
 const INK = "#070F18";
 
-/** Share of the track used to travel the line. The rest hands off to the companies list. */
-const LINE_PORTION = 0.7;
-const HANDOFF_PORTION = 0.82;
+/**
+ * The line keeps the scroll distance it had on the 560vh track.
+ * The film after it is the companies row, frames 187:181 through 227:182.
+ */
+const LINE_SCROLL_VH = 322;
+const FILM_SCROLL_VH = 260;
+const SCROLLABLE_VH = LINE_SCROLL_VH + FILM_SCROLL_VH;
+const TRACK_VH = SCROLLABLE_VH + 100;
+const LINE_PORTION = LINE_SCROLL_VH / SCROLLABLE_VH;
+const HANDOFF_PORTION = (LINE_SCROLL_VH + 48) / SCROLLABLE_VH;
 const FRAME_W = 1920;
 const FRAME_H = 1080;
 const SLIT_Y = 533;
@@ -103,7 +112,6 @@ const REVEAL_PORTION = 0.42;
 const AUTO_OPEN_MS = 1100;
 
 const DISPLAY_STACK = "var(--font-manifold), sans-serif";
-const COMPANIES = PORTFOLIO.filter((company) => !company.hidden);
 
 function easeOut(t: number) {
   return 1 - Math.pow(1 - t, 2);
@@ -134,7 +142,6 @@ export function Hero() {
   const beatsRef = useRef<HTMLDivElement>(null);
   const metaRef = useRef<HTMLDivElement>(null);
   const companiesRef = useRef<HTMLDivElement>(null);
-  const stackRef = useRef<HTMLDivElement>(null);
   const indexRef = useRef<HTMLParagraphElement>(null);
 
   useEffect(() => {
@@ -147,11 +154,10 @@ export function Hero() {
     const rule = ruleRef.current;
     const meta = metaRef.current;
     const companies = companiesRef.current;
-    const stack = stackRef.current;
     const index = indexRef.current;
     const beats = beatsRef.current;
     const chars = charsRef.current.filter((span): span is HTMLSpanElement => span !== null);
-    if (!track || !frame || !photo || !photoFill || !line || !beats || !meta || !companies || !stack || chars.length !== LINE.length) return;
+    if (!track || !frame || !photo || !photoFill || !line || !beats || !meta || !companies || chars.length !== LINE.length) return;
 
     if (reduce) {
       track.style.height = "auto";
@@ -191,9 +197,12 @@ export function Hero() {
       meta.style.opacity = "1";
       meta.style.transform = "none";
       companies.style.position = "relative";
+      companies.style.inset = "auto";
+      companies.style.height = "auto";
+      companies.style.overflow = "visible";
       companies.style.opacity = "1";
       companies.style.visibility = "visible";
-      stack.style.transform = "none";
+      restFilm(companies);
       if (index) index.style.display = "none";
       return;
     }
@@ -258,7 +267,8 @@ export function Hero() {
       }
       const fontSize = parseFloat(getComputedStyle(line).fontSize) || DESIGN_FONT;
       const handoff = clamp01((progress - LINE_PORTION) / (HANDOFF_PORTION - LINE_PORTION));
-      const fade = 1 - handoff;
+      const swapEnd = HANDOFF_PORTION + (1 - HANDOFF_PORTION) * 0.55;
+      const swapT = easeOut(clamp01((progress - LINE_PORTION) / (swapEnd - LINE_PORTION)));
       const introT = (performance.now() - introFrom) / 1000;
       const presenting = !introDone && progress <= 0 && introT < WORD_DONE_S;
       const nextStart = GLYPH_DELAY_S + FIRST_WORD_LETTERS * GLYPH_STAGGER_S;
@@ -274,7 +284,12 @@ export function Hero() {
       const travelSpan = travelPx(TRAVEL_ARRIVE_S, 1) - travelPx(nextStart, 1);
       const speed = lineWidth > 0 && travelSpan > 0 ? (fitX - endX) / travelSpan : TRAVEL_PX_PER_S * (fontSize / DESIGN_FONT);
       const held = presenting || progress <= 0;
-      const x = held ? fitX : fitX - (travelPx(elapsed, speed) - travelPx(nextStart, speed));
+      const lockX = phone ? 24 : 48;
+      let x = held ? fitX : fitX - (travelPx(elapsed, speed) - travelPx(nextStart, speed));
+      let companyOffset = 0;
+      for (let i = 0; i < COMPANY_AT; i++) companyOffset += chars[i].offsetWidth;
+      const unclampedLeft = x + companyOffset;
+      if (!held && unclampedLeft < lockX) x = lockX - companyOffset;
       const fieldOpen = Math.min(1, (performance.now() - introFrom) / AUTO_OPEN_MS);
       const sx = vw / FRAME_W;
       const sy = vh / FRAME_H;
@@ -286,11 +301,10 @@ export function Hero() {
       const revealedW = startW + (vw - startW) * fieldReveal;
       const windowH = boxH + (vh - boxH) * scaleT;
       const windowTop = centerY - windowH / 2;
-      const wipe = handoff * revealedW;
       photo.style.visibility = "visible";
       photo.style.left = "0px";
       photo.style.top = `${windowTop}px`;
-      photo.style.width = `${Math.max(0, revealedW - wipe)}px`;
+      photo.style.width = `${revealedW}px`;
       photo.style.height = `${windowH}px`;
       photo.style.clipPath = "none";
       photoFill.style.left = "0px";
@@ -305,7 +319,7 @@ export function Hero() {
       const lineTop = vh * (531 / FRAME_H) - glyphCenter;
       line.style.top = `${lineTop}px`;
       line.style.transform = `translate3d(${x}px,0,0)`;
-      line.style.opacity = String(fade);
+      line.style.opacity = "1";
 
       const charX = new Float64Array(chars.length);
       let cursor = x;
@@ -314,11 +328,10 @@ export function Hero() {
         cursor += chars[i].offsetWidth;
       }
 
-      const companyLeft = charX[COMPANY_AT] ?? vw;
       const companyRest =
-        fitX - (travelPx(TRAVEL_END_S, speed) - travelPx(nextStart, speed)) + (companyLeft - x);
+        fitX - (travelPx(TRAVEL_END_S, speed) - travelPx(nextStart, speed)) + companyOffset;
       const slideSpan = vw - companyRest;
-      const fieldSlide = slideSpan > 8 ? clamp01((vw - companyLeft) / slideSpan) : 0;
+      const fieldSlide = slideSpan > 8 ? clamp01((vw - unclampedLeft) / slideSpan) : 0;
       const paperEdge = vw * (1 - FIELD_SHIFT * fieldSlide);
       if (video) {
         video.style.transform =
@@ -331,9 +344,8 @@ export function Hero() {
 
       const scale = fontSize / DESIGN_FONT;
       beats.style.top = `${lineTop + glyphTop + glyphH + (phone ? 20 : 28 * scale)}px`;
-      beats.style.opacity = String(fade);
+      beats.style.opacity = "1";
       beats.style.setProperty("--hero-s", String(phone ? Math.max(scale, 0.58) : scale));
-      const lockX = phone ? 24 : 48;
       const gap = phone ? 16 : 36 * scale;
       meta.style.width = phone ? `${Math.max(180, vw - lockX - 20)}px` : "calc(1197px * var(--hero-s))";
       const places = [...beats.querySelectorAll<HTMLElement>("[data-word]")].map((beat) => {
@@ -342,6 +354,13 @@ export function Hero() {
         const reveal = glyph < 0 ? 0 : easeOut(clamp01((glyphTime(glyph) - GLYPH_DELAY_S - glyph * GLYPH_STAGGER_S) / GLYPH_REVEAL_S));
         return { beat, x: at >= 0 ? charX[at] ?? 0 : vw, width: Math.max(beat.offsetWidth, 1), reveal };
       });
+      const companyPlace = places.find((place) => place.beat.dataset.word === "company");
+      const trustedPlace = places.find((place) => place.beat.dataset.word === "trusted");
+      if (companyPlace && trustedPlace) {
+        const approach = lockX + companyPlace.width + gap;
+        trustedPlace.reveal = easeOut(clamp01(swapT / 0.25));
+        trustedPlace.x = approach + (lockX - approach) * swapT;
+      }
       let holder = -1;
       for (let i = 0; i < places.length; i++) {
         if (places[i].x <= lockX && places[i].reveal > 0) holder = i;
@@ -390,12 +409,22 @@ export function Hero() {
 
       companies.style.opacity = String(handoff);
       companies.style.visibility = handoff > 0.02 ? "visible" : "hidden";
-      const extra = Math.max(0, stack.scrollHeight - (stack.parentElement?.clientHeight || vh));
-      const listT = clamp01((progress - HANDOFF_PORTION) / (1 - HANDOFF_PORTION));
-      stack.style.transform = `translate3d(0, ${-extra * listT}px, 0)`;
+      const filmT = clamp01((progress - HANDOFF_PORTION) / (1 - HANDOFF_PORTION));
+      const stage = Math.min(vw / FRAME_W, vh / FRAME_H);
+      placeFilm(companies, filmT, stage, (vw - FRAME_W * stage) / 2, (vh - FRAME_H * stage) / 2);
 
-      if (index) index.style.opacity = String(clamp01(elapsed / 0.4) * fade);
-      if (rule) rule.style.transform = `scaleX(${0.2 + 0.8 * clamp01(elapsed / TRAVEL_END_S)})`;
+      if (index) {
+        index.style.opacity = String(clamp01(elapsed / 0.4));
+        index.style.color = handoff > 0.45 ? INK : "";
+        const label = index.querySelector("span");
+        if (label) label.textContent = handoff > 0.45 ? "02" : "01";
+      }
+      if (rule) {
+        rule.style.transform = `scaleX(${0.2 + 0.8 * clamp01(elapsed / TRAVEL_END_S)})`;
+        rule.style.backgroundColor = handoff > 0.45 ? INK : "";
+        const track = rule.parentElement;
+        if (track) track.style.backgroundColor = handoff > 0.45 ? "rgba(7,15,24,0.2)" : "";
+      }
     };
 
     const onScroll = () => {
@@ -435,7 +464,7 @@ export function Hero() {
   }, [reduce]);
 
   return (
-    <div ref={trackRef} className="relative h-[560vh]">
+    <div ref={trackRef} className="relative" style={{ height: `${TRACK_VH}vh` }}>
       <div ref={frameRef} className="sticky top-0 z-0 h-screen overflow-hidden bg-ink text-[#FAF6EC]">
         <Section id="hero" theme="dark" className="relative h-full">
           <div
@@ -528,6 +557,30 @@ export function Hero() {
             <BeatOptions word="designed" items={DESIGN_OPTIONS} />
             <BeatOptions word="create" items={BUILD_OPTIONS} />
             <BeatOptions word="company" items={SCALE_OPTIONS} />
+            <div
+              data-word="trusted"
+              className="absolute left-0 top-0 flex items-start uppercase leading-[1.2]"
+              style={{ width: "calc(640px * var(--hero-s))", gap: "calc(16px * var(--hero-s))" }}
+            >
+              <img
+                src="/companies/mark-pill.svg"
+                alt=""
+                style={{ width: "calc(128px * var(--hero-s))", height: "calc(37px * var(--hero-s))", flexShrink: 0 }}
+              />
+              <img
+                src="/companies/mark-triangle.svg"
+                alt=""
+                style={{ width: "calc(40px * var(--hero-s))", height: "calc(37px * var(--hero-s))", flexShrink: 0 }}
+              />
+              <p
+                style={{
+                  fontFamily: "var(--font-archivo), sans-serif",
+                  fontSize: "calc(24px * var(--hero-s))",
+                }}
+              >
+                {TRUSTED}
+              </p>
+            </div>
           </div>
 
           <p
@@ -541,37 +594,7 @@ export function Hero() {
             </span>
           </p>
 
-          <div ref={companiesRef} className="invisible absolute inset-0 z-20 overflow-hidden bg-ink">
-            <div className="absolute inset-x-0 bottom-0 top-[62%] overflow-hidden">
-              <div ref={stackRef}>
-                <div
-                  className="mt-10 flex items-baseline justify-between px-6 uppercase text-[14px] leading-[1.4] mobile:px-12"
-                  style={{ fontFamily: "var(--font-jetbrains), ui-monospace, monospace" }}
-                >
-                  <span>( Selected work )</span>
-                  <span>( Our role )</span>
-                </div>
-                <ul className="mt-2 border-t border-[#ddd]/10">
-                  {COMPANIES.map((company) => (
-                    <li
-                      key={company.name}
-                      className="flex min-h-[88px] items-center justify-between gap-6 border-b border-[#ddd]/10 px-6 py-6 mobile:min-h-[120px] mobile:px-12 mobile:py-8"
-                    >
-                      <span className="text-[clamp(28px,2.5vw,40px)] leading-none" style={{ fontFamily: "var(--font-archivo), sans-serif" }}>
-                        {company.name}
-                      </span>
-                      <span
-                        className="shrink-0 uppercase text-[14px] leading-[1.4]"
-                        style={{ fontFamily: "var(--font-jetbrains), ui-monospace, monospace" }}
-                      >
-                        {company.stage}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
+          <CompaniesFilm rootRef={companiesRef} />
         </Section>
       </div>
     </div>
