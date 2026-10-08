@@ -14,7 +14,7 @@ A pull request that changes layout, motion, type, color, imagery, or voice updat
 
 One scrolling page, in this order: Hero, Studio, Thesis, Fund Details, Team, Portfolio, Join us. There is no standalone News section. Press links sit on the portfolio rows, from `content/news.ts`.
 
-The opening is one scene. The display line is “Purposely designed to create great company.” Each letter opens upward from the baseline, a new letter every 200ms, and the line travels left until “company.” is on screen. The line sits on ink, as in the header reference. The invest line, est. 2020, Boston, and the globe mark travel with the start of that line. On scroll, the companies list replaces the field. The list reads from `content/portfolio.ts`. Studio through Join us stay after it. The site nav stays the six labels. Manifold Extended Heavy is the display face for this scene, loaded from `fonts/manifold-extended/`. Archivo and JetBrains Mono for this scene load from `fonts/` as well. The rest of the page stays on Mincho and Helvetica.
+The opening is one scene. The display line is “Purposely designed to create great company.” Scroll plays the line: each letter opens upward from the baseline and the line travels left. It does not play on its own. Under the line, the invest note stays on “purposely,” the design list on “designed,” the build list on “create,” and investing on “company.” On scroll, the companies list replaces the field. The list reads from `content/portfolio.ts`. Studio through Join us stay after it. The site nav stays the six labels. Manifold Extended Heavy is the display face for this scene, loaded from `fonts/manifold-extended/`. Archivo and JetBrains Mono for this scene load from `fonts/` as well. The rest of the page stays on Mincho and Helvetica.
 
 The side nav labels are Studio, Thesis, Fund Details, Team, Portfolio, Join us.
 
@@ -42,7 +42,7 @@ Reviews use `design/MOTION.md`. That file is the Motion install from Double Dutc
 
 ### 2026-10-08 — The header line opens from the baseline
 
-The display line follows the header reference. It reads “Purposely designed to create great company.” Letters open upward from the baseline, 200ms apart, and the line travels left. The curve and the word beats are out of this scene. The invest line, est. 2020, Boston, and the globe mark travel with the start of the line.
+Scroll plays the line. Letters still open upward from the baseline. The notes under the line stay hooked to a word: purposely, designed, create, and company.
 
 ### 2026-10-07 — Companies sits on the grid
 

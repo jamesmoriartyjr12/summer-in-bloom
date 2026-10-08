@@ -8,17 +8,66 @@ import { Section } from "../Section";
 const LINE = "Purposely designed to create great company.";
 const INVEST = "We invest in emerging companies with ambitious ideas.";
 
+const DESIGN_OPTIONS = [
+  "product design",
+  "Branding identity design",
+  "user experience",
+  "3D & motion",
+  "ux strategy",
+];
+const BUILD_OPTIONS = [
+  "web & development",
+  "integrations",
+  "devops & architecture",
+  "product analytics",
+];
+const SCALE_OPTIONS = ["investing"];
+
+function BeatOptions({ word, items }: { word: string; items: string[] }) {
+  return (
+    <div
+      data-word={word}
+      className="absolute left-0 top-0 flex items-start uppercase leading-[1.2]"
+      style={{ gap: "calc(28px * var(--hero-s))" }}
+    >
+      <img
+        src="/hero-beat-mark.svg"
+        alt=""
+        style={{ width: "calc(53.95px * var(--hero-s))", height: "calc(28.69px * var(--hero-s))" }}
+      />
+      <div
+        className="flex flex-col justify-between"
+        style={{ fontFamily: "var(--font-jetbrains), ui-monospace, monospace", fontSize: "calc(14px * var(--hero-s))" }}
+      >
+        {items.map((_, index) => (
+          <p key={index}>(O{index + 1})</p>
+        ))}
+      </div>
+      <div
+        className="flex flex-col whitespace-nowrap"
+        style={{
+          fontFamily: "var(--font-archivo), sans-serif",
+          fontSize: "calc(24px * var(--hero-s))",
+          gap: "calc(4px * var(--hero-s))",
+        }}
+      >
+        {items.map((item) => (
+          <p key={item}>{item}</p>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 const GLYPH_AT: number[] = [];
 {
   let count = 0;
   for (const char of LINE) GLYPH_AT.push(char === " " ? -1 : count++);
 }
-const GLYPH_COUNT = GLYPH_AT.reduce((n, at) => (at >= 0 ? n + 1 : n), 0);
 
 /**
- * Measured from the header reference (1920×1080, 8s).
- * Letters open upward from the baseline. A new letter starts every 200ms.
- * The line eases into a cruise and holds at 8s, when "company." is on screen.
+ * Measured from the header reference, then played by scroll.
+ * Letters open upward from the baseline. A new letter starts every 200ms of that timeline.
  */
 const GLYPH_DELAY_S = 0.1;
 const GLYPH_STAGGER_S = 0.2;
@@ -29,16 +78,10 @@ const TRAVEL_PX_PER_S = 570;
 const DESIGN_FONT = 197.56;
 const START_X = 0.376;
 
-/** Flower loader. The field starts as a small box on this center line. */
-const AUTO_OPEN_MS = 1100;
-const REVEAL_PORTION = 0.42;
+/** Share of the track used to travel the line. The rest hands off to the companies list. */
 const LINE_PORTION = 0.7;
 const HANDOFF_PORTION = 0.82;
-const FRAME_W = 1920;
 const FRAME_H = 1080;
-const SLIT_Y = 533;
-const SLIT_H = 15;
-const BOX_W = 120;
 
 const DISPLAY_STACK = "var(--font-manifold), sans-serif";
 const COMPANIES = PORTFOLIO.filter((company) => !company.hidden);
@@ -69,10 +112,8 @@ export function Hero() {
   const lineRef = useRef<HTMLHeadingElement>(null);
   const ruleRef = useRef<HTMLSpanElement>(null);
   const charsRef = useRef<Array<HTMLSpanElement | null>>([]);
+  const beatsRef = useRef<HTMLDivElement>(null);
   const metaRef = useRef<HTMLDivElement>(null);
-  const estRef = useRef<HTMLParagraphElement>(null);
-  const bostonRef = useRef<HTMLParagraphElement>(null);
-  const metaMarkRef = useRef<HTMLImageElement>(null);
   const companiesRef = useRef<HTMLDivElement>(null);
   const stackRef = useRef<HTMLDivElement>(null);
   const indexRef = useRef<HTMLParagraphElement>(null);
@@ -86,14 +127,12 @@ export function Hero() {
     const line = lineRef.current;
     const rule = ruleRef.current;
     const meta = metaRef.current;
-    const est = estRef.current;
-    const boston = bostonRef.current;
-    const mark = metaMarkRef.current;
     const companies = companiesRef.current;
     const stack = stackRef.current;
     const index = indexRef.current;
+    const beats = beatsRef.current;
     const chars = charsRef.current.filter((span): span is HTMLSpanElement => span !== null);
-    if (!track || !frame || !photo || !photoFill || !line || !meta || !est || !boston || !mark || !companies || !stack || chars.length !== LINE.length) return;
+    if (!track || !frame || !photo || !photoFill || !line || !beats || !meta || !companies || !stack || chars.length !== LINE.length) return;
 
     if (reduce) {
       track.style.height = "auto";
@@ -118,13 +157,17 @@ export function Hero() {
       line.style.padding = "7rem 1.5rem 0";
       line.style.opacity = "1";
       for (const span of chars) span.style.clipPath = "none";
+      beats.style.position = "relative";
+      beats.style.opacity = "1";
+      beats.style.top = "auto";
+      for (const beat of beats.querySelectorAll<HTMLElement>("[data-word]")) {
+        beat.style.position = "relative";
+        beat.style.transform = "none";
+        beat.style.opacity = "1";
+      }
       meta.style.position = "relative";
-      meta.style.top = "auto";
       meta.style.opacity = "1";
       meta.style.transform = "none";
-      est.style.opacity = "1";
-      boston.style.opacity = "1";
-      mark.style.clipPath = "none";
       companies.style.position = "relative";
       companies.style.opacity = "1";
       companies.style.visibility = "visible";
@@ -133,9 +176,7 @@ export function Hero() {
       return;
     }
 
-    let raf = 0;
     let running = true;
-    const start = performance.now();
 
     const scrollProgress = () => {
       const rect = track.getBoundingClientRect();
@@ -164,41 +205,16 @@ export function Hero() {
       boxH = box.height;
     };
 
-    const apply = (elapsed: number, progress: number) => {
+    const apply = (progress: number) => {
       const vw = window.innerWidth;
       const vh = window.innerHeight;
       const fontSize = parseFloat(getComputedStyle(line).fontSize) || DESIGN_FONT;
-      const open = clamp01(elapsed / (AUTO_OPEN_MS / 1000));
       const handoff = clamp01((progress - LINE_PORTION) / (HANDOFF_PORTION - LINE_PORTION));
       const fade = 1 - handoff;
-
-      const sx = vw / FRAME_W;
-      const sy = vh / FRAME_H;
-      const boxHOpen = SLIT_H * sy;
-      const centerY = (SLIT_Y + SLIT_H / 2) * sy;
-      const startW = BOX_W * sx;
-      const reveal = easeOut(clamp01(open / REVEAL_PORTION));
-      const scaleT = easeOut(clamp01((open - REVEAL_PORTION) / (1 - REVEAL_PORTION)));
-      const revealedW = startW + (vw - startW) * reveal;
-      const windowH = boxHOpen + (vh - boxHOpen) * scaleT;
-      const windowTop = centerY - windowH / 2;
-      const wipe = handoff * revealedW;
-      photo.style.left = "0px";
-      photo.style.top = `${windowTop}px`;
-      photo.style.width = `${Math.max(0, revealedW - wipe)}px`;
-      photo.style.height = `${windowH}px`;
-      photo.style.clipPath = "none";
-      // The header reference is type on ink. The flower slit cuts through the letters.
+      const elapsed = clamp01(progress / LINE_PORTION) * TRAVEL_END_S;
       photo.style.visibility = "hidden";
-      photoFill.style.left = "0px";
-      photoFill.style.top = `${-windowTop}px`;
-      photoFill.style.width = `${vw}px`;
-      photoFill.style.height = `${vh}px`;
 
       if (glyphH <= 0) measureGlyph();
-      // Letter widths on this face are wider than the reference frame, so the
-      // cruise is the speed that brings the end of the line to the right edge
-      // as "company." finishes, at 7.4s.
       const arrive = 7.4;
       const factor = 0.5 * TRAVEL_RAMP_S + (arrive - TRAVEL_RAMP_S);
       const lineWidth = line.scrollWidth;
@@ -211,15 +227,54 @@ export function Hero() {
       line.style.transform = `translate3d(${x}px,0,0)`;
       line.style.opacity = String(fade);
 
+      const charX = new Float64Array(chars.length);
+      let cursor = x;
+      for (let i = 0; i < chars.length; i++) {
+        charX[i] = cursor;
+        cursor += chars[i].offsetWidth;
+      }
+
       const scale = fontSize / DESIGN_FONT;
-      meta.style.top = `${lineTop + glyphTop + glyphH + 28 * scale}px`;
-      meta.style.transform = `translate3d(${x}px,0,0)`;
-      meta.style.opacity = String(fade);
-      meta.style.setProperty("--hero-s", String(scale));
-      est.style.opacity = String(easeOut(clamp01((elapsed - 0.18) / 0.22)));
-      boston.style.opacity = String(easeOut(clamp01((elapsed - 0.38) / 0.22)));
-      const markP = easeOut(clamp01((elapsed - 0.55) / 0.4));
-      mark.style.clipPath = `inset(0 ${(1 - markP) * 100}% 0 0)`;
+      const phone = vw < 600;
+      beats.style.top = `${lineTop + glyphTop + glyphH + (phone ? 20 : 28 * scale)}px`;
+      beats.style.opacity = String(fade);
+      beats.style.setProperty("--hero-s", String(phone ? Math.max(scale, 0.58) : scale));
+      const lockX = phone ? 24 : 48;
+      const gap = phone ? 16 : 36 * scale;
+      meta.style.width = phone ? `${Math.max(180, vw - lockX - 20)}px` : "calc(1197px * var(--hero-s))";
+      const places = [...beats.querySelectorAll<HTMLElement>("[data-word]")].map((beat) => {
+        const at = LINE.toLowerCase().indexOf(beat.dataset.word ?? "");
+        return { beat, x: at >= 0 ? charX[at] ?? 0 : vw, width: Math.max(beat.offsetWidth, 1) };
+      });
+      let holder = -1;
+      for (let i = 0; i < places.length; i++) {
+        if (places[i].x <= lockX) holder = i;
+        else break;
+      }
+      const leaving = holder >= 0 ? places[holder + 1] : undefined;
+      const edge = holder >= 0 ? lockX + places[holder].width + gap : lockX;
+      const replacing = Boolean(leaving && leaving.x < edge);
+      const travel = replacing && leaving ? edge - leaving.x : 0;
+      const span = Math.max(1, edge - lockX);
+      const leave = Math.pow(Math.max(0, Math.min(1, travel / span)), 2);
+      for (let i = 0; i < places.length; i++) {
+        const { beat, x: wordX } = places[i];
+        beat.style.transition = "none";
+        beat.style.zIndex = i === holder + 1 ? "2" : "1";
+        if (holder >= 0 && i === holder && replacing) {
+          beat.style.opacity = String(1 - leave);
+          beat.style.transform = `translate3d(${lockX - travel}px, 0, 0)`;
+        } else if (holder >= 0 && i === holder) {
+          beat.style.opacity = "1";
+          beat.style.transform = `translate3d(${lockX}px, 0, 0)`;
+        } else if (i > holder) {
+          beat.style.opacity = "1";
+          beat.style.transform = `translate3d(${wordX}px, 0, 0)`;
+        } else {
+          beat.style.opacity = "0";
+          beat.style.transform = `translate3d(${wordX}px, 0, 0)`;
+        }
+      }
 
       const bottomInset = Math.max(0, boxH - glyphTop - glyphH);
       for (let i = 0; i < chars.length; i++) {
@@ -243,17 +298,9 @@ export function Hero() {
       if (rule) rule.style.transform = `scaleX(${0.2 + 0.8 * clamp01(elapsed / TRAVEL_END_S)})`;
     };
 
-    const frameTick = (now: number) => {
-      if (!running) return;
-      const elapsed = (now - start) / 1000;
-      apply(elapsed, scrollProgress());
-      if (elapsed < TRAVEL_END_S) raf = requestAnimationFrame(frameTick);
-    };
-    raf = requestAnimationFrame(frameTick);
-
     const onScroll = () => {
       if (!running) return;
-      apply(Math.min(TRAVEL_END_S, (performance.now() - start) / 1000), scrollProgress());
+      apply(scrollProgress());
     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -262,12 +309,12 @@ export function Hero() {
     document.fonts.ready.then(() => {
       if (!running) return;
       glyphH = 0;
-      apply(Math.min(TRAVEL_END_S, (performance.now() - start) / 1000), scrollProgress());
+      apply(scrollProgress());
     });
+    apply(scrollProgress());
 
     return () => {
       running = false;
-      cancelAnimationFrame(raf);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("lenis-scroll", onScroll);
       window.removeEventListener("resize", onScroll);
@@ -338,37 +385,35 @@ export function Hero() {
           </h1>
 
           <div
-            ref={metaRef}
-            className="pointer-events-none absolute left-0 z-30 flex flex-col items-start uppercase leading-[1.2]"
-            style={{
-              top: "58vh",
-              transform: "translate3d(37.6vw, 0, 0)",
-              width: "calc(1197px * var(--hero-s))",
-              gap: "calc(28px * var(--hero-s))",
-              fontSize: "calc(24px * var(--hero-s))",
-              fontFamily: "var(--font-archivo), sans-serif",
-              ["--hero-s" as string]: 0.5,
-            }}
+            ref={beatsRef}
+            className="pointer-events-none absolute left-0 z-30 text-[#FAF6EC]"
+            style={{ opacity: 0, top: "58vh", ["--hero-s" as string]: 0.5 }}
           >
-            <div className="flex w-full flex-col items-start gap-2 mobile:flex-row mobile:items-start mobile:justify-between mobile:gap-6">
-              <p style={{ maxWidth: "calc(444px * var(--hero-s))" }}>{INVEST}</p>
-              <p ref={estRef} className="shrink-0 whitespace-nowrap" style={{ opacity: 0 }}>
-                est. 2020
-              </p>
-              <p ref={bostonRef} className="shrink-0 whitespace-nowrap" style={{ opacity: 0 }}>
-                Boston, Massachusetts, u.s.a.
-              </p>
-            </div>
-            <img
-              ref={metaMarkRef}
-              src="/hero-meta-mark.svg"
-              alt=""
+            <div
+              ref={metaRef}
+              data-word="purposely"
+              className="absolute left-0 top-0 flex flex-col items-start uppercase leading-[1.2]"
               style={{
-                width: "calc(200.4px * var(--hero-s))",
-                height: "calc(39.8px * var(--hero-s))",
-                clipPath: "inset(0 100% 0 0)",
+                width: "calc(1197px * var(--hero-s))",
+                gap: "calc(28px * var(--hero-s))",
+                fontSize: "calc(24px * var(--hero-s))",
+                fontFamily: "var(--font-archivo), sans-serif",
               }}
-            />
+            >
+              <div className="flex w-full flex-col items-start gap-2 mobile:flex-row mobile:items-start mobile:justify-between mobile:gap-6">
+                <p style={{ maxWidth: "calc(444px * var(--hero-s))" }}>{INVEST}</p>
+                <p className="shrink-0 whitespace-nowrap">est. 2020</p>
+                <p className="shrink-0 whitespace-nowrap">Boston, Massachusetts, u.s.a.</p>
+              </div>
+              <img
+                src="/hero-meta-mark.svg"
+                alt=""
+                style={{ width: "calc(200.4px * var(--hero-s))", height: "calc(39.8px * var(--hero-s))" }}
+              />
+            </div>
+            <BeatOptions word="designed" items={DESIGN_OPTIONS} />
+            <BeatOptions word="create" items={BUILD_OPTIONS} />
+            <BeatOptions word="company" items={SCALE_OPTIONS} />
           </div>
 
           <p
