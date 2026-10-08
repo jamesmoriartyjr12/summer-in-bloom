@@ -14,7 +14,7 @@ A pull request that changes layout, motion, type, color, imagery, or voice updat
 
 One scrolling page, in this order: Hero, Studio, Thesis, Fund Details, Team, Portfolio, Join us. There is no standalone News section. Press links sit on the portfolio rows, from `content/news.ts`.
 
-The opening is one scene. A slit of the flower field opens on load, then one display line — “Purposely designed to build and scale companies.” — travels on the scroll frame’s text path, inside a band that cuts through the letters, until `companies` is in place. That word stays. The companies list replaces the field around it. The list reads from `content/portfolio.ts`. Studio through Join us stay after it. The site nav stays the six labels. Kayla still owns the auto duration and the scroll distance. Manifold Extended Heavy is the display face for this scene, loaded from `fonts/manifold-extended/`. Archivo and JetBrains Mono for this scene load from `fonts/` as well. The rest of the page stays on Mincho and Helvetica.
+The opening is one scene. The display line is “Purposely designed to create great company.” Each letter opens upward from the baseline, a new letter every 200ms, and the line travels left until “company.” is on screen. The line sits on ink, as in the header reference. The invest line, est. 2020, Boston, and the globe mark travel with the start of that line. On scroll, the companies list replaces the field. The list reads from `content/portfolio.ts`. Studio through Join us stay after it. The site nav stays the six labels. Manifold Extended Heavy is the display face for this scene, loaded from `fonts/manifold-extended/`. Archivo and JetBrains Mono for this scene load from `fonts/` as well. The rest of the page stays on Mincho and Helvetica.
 
 The side nav labels are Studio, Thesis, Fund Details, Team, Portfolio, Join us.
 
@@ -39,6 +39,10 @@ Voice for any new line: "Create great company." Direct, confident, warm, sharp.
 Reviews use `design/MOTION.md`. That file is the Motion install from Double Dutch Auctions: `motion/react`, shared duration and spring tokens, and the primitives `FadeUp`, `Press`, `SectionReveal`, and `TextRise`. Bloom still runs `framer-motion` 11. Switching packages is a reviewed change. Double Dutch's auction character stays on that site.
 
 ## Log
+
+### 2026-10-08 — The header line opens from the baseline
+
+The display line follows the header reference. It reads “Purposely designed to create great company.” Letters open upward from the baseline, 200ms apart, and the line travels left. The curve and the word beats are out of this scene. The invest line, est. 2020, Boston, and the globe mark travel with the start of the line.
 
 ### 2026-10-07 — Companies sits on the grid
 
