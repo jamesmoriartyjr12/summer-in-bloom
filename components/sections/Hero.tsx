@@ -239,7 +239,7 @@ export function Hero() {
       const handoff = clamp01((progress - LINE_PORTION) / (HANDOFF_PORTION - LINE_PORTION));
       const fade = 1 - handoff;
       const introT = (performance.now() - introFrom) / 1000;
-      const presenting = !introDone && progress <= 0.01 && introT < WORD_DONE_S;
+      const presenting = !introDone && progress <= 0 && introT < WORD_DONE_S;
       const nextStart = GLYPH_DELAY_S + FIRST_WORD_LETTERS * GLYPH_STAGGER_S;
       const elapsed = presenting
         ? introT
@@ -253,10 +253,11 @@ export function Hero() {
       const endX = vw * 1.04 - lineWidth;
       const travelSpan = travelPx(TRAVEL_ARRIVE_S, 1) - travelPx(nextStart, 1);
       const speed = lineWidth > 0 && travelSpan > 0 ? (fitX - endX) / travelSpan : TRAVEL_PX_PER_S * (fontSize / DESIGN_FONT);
-      const x = progress <= 0.01 ? fitX : fitX - (travelPx(elapsed, speed) - travelPx(nextStart, speed));
+      const held = presenting || progress <= 0;
+      const x = held ? fitX : fitX - (travelPx(elapsed, speed) - travelPx(nextStart, speed));
       const glyphTime = (at: number) => {
         if (at < FIRST_WORD_LETTERS) return presenting ? elapsed : Math.max(elapsed, WORD_DONE_S);
-        return progress <= 0.01 ? 0 : elapsed;
+        return held ? 0 : elapsed;
       };
       const glyphCenter = glyphTop + glyphH / 2;
       const lineTop = vh * (531 / FRAME_H) - glyphCenter;
@@ -281,35 +282,32 @@ export function Hero() {
       const places = [...beats.querySelectorAll<HTMLElement>("[data-word]")].map((beat) => {
         const at = LINE.toLowerCase().indexOf(beat.dataset.word ?? "");
         const glyph = at >= 0 ? GLYPH_AT[at] : -1;
-        const open = glyph >= 0 && easeOut(clamp01((glyphTime(glyph) - GLYPH_DELAY_S - glyph * GLYPH_STAGGER_S) / GLYPH_REVEAL_S)) > 0.04;
-        return { beat, x: at >= 0 ? charX[at] ?? 0 : vw, width: Math.max(beat.offsetWidth, 1), open };
+        const reveal = glyph < 0 ? 0 : easeOut(clamp01((glyphTime(glyph) - GLYPH_DELAY_S - glyph * GLYPH_STAGGER_S) / GLYPH_REVEAL_S));
+        return { beat, x: at >= 0 ? charX[at] ?? 0 : vw, width: Math.max(beat.offsetWidth, 1), reveal };
       });
       let holder = -1;
       for (let i = 0; i < places.length; i++) {
-        if (places[i].x <= lockX) holder = i;
+        if (places[i].x <= lockX && places[i].reveal > 0) holder = i;
         else break;
       }
       const leaving = holder >= 0 ? places[holder + 1] : undefined;
       const edge = holder >= 0 ? lockX + places[holder].width + gap : lockX;
-      const replacing = Boolean(leaving && leaving.x < edge);
+      const replacing = Boolean(leaving && leaving.reveal > 0 && leaving.x < edge);
       const travel = replacing && leaving ? edge - leaving.x : 0;
       const span = Math.max(1, edge - lockX);
-      const leave = Math.pow(Math.max(0, Math.min(1, travel / span)), 2);
+      const leave = easeOut(clamp01(travel / span));
       for (let i = 0; i < places.length; i++) {
-        const { beat, x: wordX } = places[i];
+        const { beat, x: wordX, reveal } = places[i];
         beat.style.transition = "none";
         beat.style.zIndex = i === holder + 1 ? "2" : "1";
-        if (!places[i].open) {
-          beat.style.opacity = "0";
-          beat.style.transform = `translate3d(${wordX}px, 0, 0)`;
-        } else if (holder >= 0 && i === holder && replacing) {
-          beat.style.opacity = String(1 - leave);
+        if (holder >= 0 && i === holder && replacing) {
+          beat.style.opacity = String((1 - leave) * reveal);
           beat.style.transform = `translate3d(${lockX - travel}px, 0, 0)`;
         } else if (holder >= 0 && i === holder) {
-          beat.style.opacity = "1";
+          beat.style.opacity = String(reveal);
           beat.style.transform = `translate3d(${lockX}px, 0, 0)`;
         } else if (i > holder) {
-          beat.style.opacity = "1";
+          beat.style.opacity = String(reveal);
           beat.style.transform = `translate3d(${wordX}px, 0, 0)`;
         } else {
           beat.style.opacity = "0";
@@ -341,7 +339,7 @@ export function Hero() {
 
     const onScroll = () => {
       if (!running) return;
-      if (scrollProgress() > 0.01) introDone = true;
+      if (scrollProgress() > 0) introDone = true;
       apply(scrollProgress());
     };
 
@@ -360,7 +358,7 @@ export function Hero() {
       fittedVw = -1;
       apply(scrollProgress());
     });
-    if (scrollProgress() > 0.01) introDone = true;
+    if (scrollProgress() > 0) introDone = true;
     apply(scrollProgress());
     raf = requestAnimationFrame(tick);
 

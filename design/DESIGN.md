@@ -42,7 +42,7 @@ Reviews use `design/MOTION.md`. That file is the Motion install from Double Dutc
 
 ### 2026-10-08 — The header line opens from the baseline
 
-“Purposely” animates in until the whole word is on screen. Scroll plays the rest of the line. The notes under the line stay hooked to a word: purposely, designed, create, and company.
+“Purposely” animates in until the whole word is on screen. Scroll continues straight into “designed”: the line eases off together, and the next note fades in with its first letter. The notes stay hooked to purposely, designed, create, and company.
 
 ### 2026-10-07 — Companies sits on the grid
 
