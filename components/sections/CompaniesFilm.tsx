@@ -4,7 +4,7 @@ import { useEffect, type Ref } from "react";
 
 /**
  * Frames 187:181 and 210:404, on a 1920×1080 stage.
- * Scroll carries the row in. Frame 227:182 is the hover of a card.
+ * Scroll carries the row in. Frame 227:222 is the hover and the focus of a card.
  * The hover uses the scene duration and the media ease from design/MOTION.md.
  */
 const HOVER_MS = 480;
@@ -21,6 +21,8 @@ type Card = {
   year: string;
   roles: string[];
   image: string;
+  /** Frame 227:222. The photograph sits up and slightly wide of the card. */
+  crop?: { height: string; width: string; left: string; top: string };
   ink: boolean;
   detail?: string;
   a: Spot;
@@ -35,6 +37,7 @@ const ROW: Card[] = [
     year: "2023",
     roles: ["studio", "invested", "seed"],
     image: "/companies/watchcheck.png",
+    crop: { height: "119.75%", width: "129.98%", left: "-0.02%", top: "-19.75%" },
     ink: false,
     detail: "A platform that makes luxury watch service safer, smarter, and more transparent.",
     a: { x: 1468, y: 205, opacity: 1 },
@@ -106,6 +109,8 @@ type FilmPose = { root: HTMLElement; t: number; vw: number; vh: number };
 let live = false;
 let pose: FilmPose | null = null;
 let shownId: string | null = null;
+let pointerId: string | null = null;
+let focusId: string | null = null;
 let hoverFrom = 0;
 let hoverTo = 0;
 let hoverStart = 0;
@@ -119,6 +124,10 @@ function hoverAmount(now = performance.now()) {
 function paintPose(now?: number) {
   if (!live || !pose) return;
   paint(pose.root, pose.t, pose.vw, pose.vh, hoverAmount(now));
+}
+
+function activeId() {
+  return pointerId ?? focusId;
 }
 
 function setHover(id: string | null) {
@@ -212,11 +221,14 @@ function paint(root: HTMLElement, t: number, vw: number, vh: number, amount: num
     card.style.boxShadow = open > 0 ? `0 ${47 * s}px ${67.4 * s}px rgba(68,53,15,${0.3 * open})` : "none";
     pin(card, frame.rowX + index * frame.cardW, frame.rowY - 20 * s * open);
 
+    const pad = card.querySelector<HTMLElement>("[data-film='pad']");
+    if (pad) pad.style.padding = `${40 * s}px`;
     const detail = card.querySelector<HTMLElement>("[data-film='detail']");
     if (detail) {
       detail.style.overflow = "hidden";
       detail.style.opacity = String(open);
       detail.style.marginTop = `${16 * s * open}px`;
+      detail.style.gap = `${16 * s}px`;
       if (open <= 0) {
         detail.style.maxHeight = "0px";
       } else {
@@ -224,40 +236,41 @@ function paint(root: HTMLElement, t: number, vw: number, vh: number, amount: num
         const full = detail.scrollHeight;
         detail.style.maxHeight = `${full * open}px`;
       }
-      const copy = detail.querySelector("p");
-      if (copy) copy.style.fontSize = `${16 * s}px`;
-      const logos = detail.querySelector("img");
-      if (logos) {
-        logos.style.height = `${23 * s}px`;
-        logos.style.width = `${60.5 * s}px`;
-        logos.style.marginTop = `${16 * s}px`;
+      const line = detail.querySelector("p");
+      if (line) {
+        line.style.fontSize = `${16 * s}px`;
+        line.style.width = `${396 * s}px`;
+        line.style.lineHeight = "1";
+        line.style.color = "#FAF6EC";
       }
-    }
-    const note = card.querySelector<HTMLElement>("[data-film='note']");
-    if (note) {
-      const left = 387 + (40 - 387) * open;
-      const top = 103 + (95 - 103) * open;
-      const width = 39.436 + (396 - 39.436) * open;
-      const height = 39.141 + (394.043 - 39.141) * open;
-      note.style.opacity = "1";
-      note.style.left = `${left * s}px`;
-      note.style.top = `${top * s}px`;
-      note.style.width = `${width * s}px`;
-      note.style.height = `${height * s}px`;
+      const mark = detail.querySelector("img");
+      if (mark) {
+        mark.style.width = `${23 * s}px`;
+        mark.style.height = `${23 * s}px`;
+      }
     }
     const labels = card.querySelector<HTMLElement>("[data-film='labels']");
     if (labels) {
       labels.style.fontSize = `${14 * s}px`;
-      labels.style.color = spec.detail && open > 0.5 ? "#070F18" : spec.ink ? "#070F18" : "#FAF6EC";
+      labels.style.color = spec.detail && open > 0.5 ? "#070E18" : spec.ink ? "#070F18" : "#FAF6EC";
     }
+    const roles = card.querySelector<HTMLElement>("[data-film='roles']");
+    if (roles) roles.style.gap = `${16 * s}px`;
     const name = card.querySelector<HTMLElement>("[data-film='name']");
-    if (name) name.style.fontSize = `${48 * s}px`;
+    if (name) {
+      name.style.fontSize = `${48 * s}px`;
+      name.style.width = `${396 * s}px`;
+      name.style.lineHeight = "1";
+      name.style.color = spec.ink ? "#070F18" : "#FAF6EC";
+    }
   });
 }
 
 /** Reduced motion renders the settled row in normal flow. */
 export function restFilm(root: HTMLElement) {
   live = false;
+  pointerId = null;
+  focusId = null;
   cancelAnimationFrame(hoverRaf);
   const nodes = readNodes(root);
   if (!nodes) return;
@@ -294,9 +307,8 @@ export function restFilm(root: HTMLElement) {
       detail.style.opacity = "1";
       detail.style.maxHeight = "none";
       detail.style.marginTop = "16px";
+      detail.style.gap = "16px";
     }
-    const note = card.querySelector<HTMLElement>("[data-film='note']");
-    if (note) note.style.opacity = "1";
   }
 }
 
@@ -317,54 +329,60 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
               key={card.id}
               data-film-card={card.id}
               tabIndex={0}
-              className="overflow-hidden rounded-[4px] bg-white outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+              className="overflow-hidden rounded-[4px] bg-white outline-none"
               onPointerEnter={(event) => {
                 if (event.pointerType === "touch") return;
-                setHover(card.id);
+                pointerId = card.id;
+                setHover(activeId());
               }}
               onPointerLeave={(event) => {
                 if (event.pointerType === "touch") return;
-                setHover(null);
+                if (pointerId === card.id) pointerId = null;
+                setHover(activeId());
               }}
-              onFocus={() => setHover(card.id)}
-              onBlur={() => setHover(null)}
+              onFocus={() => {
+                focusId = card.id;
+                setHover(activeId());
+              }}
+              onBlur={() => {
+                if (focusId === card.id) focusId = null;
+                setHover(activeId());
+              }}
               onClick={() => {
                 if (window.matchMedia("(hover: hover)").matches) return;
-                setHover(shownId === card.id && hoverTo === 1 ? null : card.id);
+                focusId = focusId === card.id ? null : card.id;
+                setHover(activeId());
               }}
             >
-              <img src={card.image} alt="" className="absolute inset-0 h-full w-full object-cover" />
-              {card.detail ? (
-                <img
-                  data-film="note"
-                  src="/companies/watchcheck-note.svg"
-                  alt=""
-                  className="pointer-events-none absolute opacity-0"
-                />
-              ) : null}
-              <div className="pointer-events-none relative flex h-full flex-col justify-between p-6 mobile:p-10">
+              <img
+                src={card.image}
+                alt=""
+                className={card.crop ? "absolute max-w-none" : "absolute inset-0 h-full w-full object-cover"}
+                style={card.crop}
+              />
+              <div data-film="pad" className="pointer-events-none relative flex h-full flex-col justify-between p-10">
                 <div
                   data-film="labels"
                   className="flex items-start justify-between uppercase leading-[1.4]"
                   style={{ fontFamily: MONO, color: card.ink ? "#070F18" : "#FAF6EC" }}
                 >
                   <span>{card.year}</span>
-                  <span className="flex gap-4">
+                  <span data-film="roles" className="flex">
                     {card.roles.map((role) => (
                       <span key={role}>{role}</span>
                     ))}
                   </span>
                 </div>
-                <div style={{ color: card.ink ? "#070F18" : "#FAF6EC" }}>
-                  <p data-film="name" className="leading-none" style={{ fontFamily: SANS, fontSize: 48 }}>
+                <div data-film="stack" className="flex flex-col items-start">
+                  <p data-film="name" className="leading-none" style={{ fontFamily: SANS, fontSize: 48, color: card.ink ? "#070F18" : "#FAF6EC" }}>
                     {card.name}
                   </p>
                   {card.detail ? (
-                    <div data-film="detail" className="max-h-0 overflow-hidden opacity-0">
-                      <p className="max-w-[396px] text-[16px] leading-none" style={{ fontFamily: SANS }}>
+                    <div data-film="detail" className="flex max-h-0 flex-col items-start overflow-hidden opacity-0">
+                      <p className="leading-none" style={{ fontFamily: SANS, color: "#FAF6EC" }}>
                         {card.detail}
                       </p>
-                      <img src="/companies/press-logos.svg" alt="" className="mt-4 h-6 w-16" />
+                      <img src="/companies/watchcheck-mark.svg" alt="" width={23} height={23} />
                     </div>
                   ) : null}
                 </div>
