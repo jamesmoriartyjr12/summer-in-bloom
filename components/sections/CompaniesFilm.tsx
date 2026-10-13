@@ -6,18 +6,20 @@ import { useEffect, type Ref } from "react";
  * Frames 187:181 and 210:404, on a 1920×1080 stage.
  * Scroll carries the row in. Frame 227:34 is the rest of every card.
  * Frame 227:222 is the hover and the focus of a card.
- * The name rises, then the line comes in, then the labels change.
- * The whole hover is the 120ms press, so it reads as immediate.
+ * The name rises, then the line springs in, and the labels wipe left to right.
+ * The rise stays inside the press. The wipe is the chrome snap, stretched
+ * just enough to read. The line uses a short spring with a small overshoot.
  * design/MOTION.md.
  */
-const HOVER_MS = 120;
+const HOVER_MS = 260;
 const NAME_AT = { start: 0, span: 80 } as const;
-const LINE_AT = { start: 24, span: 76 } as const;
-const LABEL_AT = { start: 48, span: 72 } as const;
+const LINE_AT = { start: 20, span: 70 } as const;
+const WIPE_AT = { start: 0, span: 260 } as const;
 const MEDIA_EASE = [0.22, 1, 0.36, 1] as const;
 const UI_EASE = [0.2, 0.8, 0.2, 1] as const;
-const INK_RGB = [7, 14, 24] as const;
-const PAPER_RGB = [250, 246, 236] as const;
+/** Design pixels. A little past punchY so the overshoot is visible. */
+const LINE_FROM = 16;
+const LINE_SPRING = { stiffness: 420, damping: 12, mass: 0.55 } as const;
 
 const CARD_W = 476;
 const CARD_H = 740;
@@ -113,11 +115,6 @@ function bezier(ease: readonly [number, number, number, number], t: number) {
   return sampleY(u);
 }
 
-function mix(from: readonly [number, number, number], to: readonly [number, number, number], t: number) {
-  const c = from.map((value, index) => Math.round(value + (to[index] - value) * t));
-  return `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
-}
-
 type FilmPose = { root: HTMLElement; t: number; vw: number; vh: number };
 
 let live = false;
@@ -130,6 +127,28 @@ let hoverTo = 0;
 let hoverStart = 0;
 let hoverSpan = HOVER_MS;
 let hoverRaf = 0;
+let lineY = LINE_FROM;
+let lineV = 0;
+let lineTarget = LINE_FROM;
+let springAt = 0;
+
+function lineSettled() {
+  return Math.abs(lineY - lineTarget) < 0.2 && Math.abs(lineV) < 0.2;
+}
+
+function stepLine(now: number) {
+  if (lineSettled()) {
+    lineY = lineTarget;
+    lineV = 0;
+    springAt = now;
+    return;
+  }
+  const dt = springAt ? Math.min(0.032, (now - springAt) / 1000) : 0.016;
+  springAt = now;
+  const { stiffness, damping, mass } = LINE_SPRING;
+  lineV += ((-stiffness * (lineY - lineTarget) - damping * lineV) / mass) * dt;
+  lineY += lineV * dt;
+}
 
 /** Linear clock. Each beat eases on its own so the order stays name, line, labels. */
 function hoverClock(now = performance.now()) {
@@ -157,10 +176,18 @@ function setHover(id: string | null) {
     shownId = id;
     hoverFrom = 0;
     hoverTo = 1;
+    const card = CARDS.find((item) => item.id === id);
+    if (card?.detail) {
+      lineTarget = 0;
+      lineY = LINE_FROM;
+      lineV = 0;
+      springAt = now;
+    }
   } else if (!id) {
     if (hoverTo === 0) return;
     hoverFrom = hoverClock(now);
     hoverTo = 0;
+    lineTarget = LINE_FROM;
   } else {
     return;
   }
@@ -169,7 +196,7 @@ function setHover(id: string | null) {
   cancelAnimationFrame(hoverRaf);
   const step = (time: number) => {
     paintPose(time);
-    if (time - hoverStart < hoverSpan) hoverRaf = requestAnimationFrame(step);
+    if (time - hoverStart < hoverSpan || !lineSettled()) hoverRaf = requestAnimationFrame(step);
   };
   hoverRaf = requestAnimationFrame(step);
 }
@@ -219,15 +246,29 @@ export function placeFilm(root: HTMLElement, t: number, vw: number, vh: number) 
   paint(root, t, vw, vh, hoverClock());
 }
 
+function reveal(overlay: HTMLElement, progress: number) {
+  const chip = overlay.parentElement;
+  const row = chip?.parentElement;
+  if (!chip || !row) return;
+  const rowBox = row.getBoundingClientRect();
+  const chipBox = chip.getBoundingClientRect();
+  const width = rowBox.width || 1;
+  const start = (chipBox.left - rowBox.left) / width;
+  const end = (chipBox.right - rowBox.left) / width;
+  const local = Math.min(1, Math.max(0, (progress - start) / Math.max(0.001, end - start)));
+  overlay.style.clipPath = `inset(0 ${(1 - local) * 100}% 0 0)`;
+}
+
 function paint(root: HTMLElement, t: number, vw: number, vh: number, clock: number) {
   const nodes = readNodes(root);
   if (!nodes) return;
+  stepLine(performance.now());
   const frame = filmFrame(t, vw, vh);
   const s = frame.cardW / CARD_W;
   const shown = CARDS.find((card) => card.id === shownId);
   const nameT = shown ? bezier(MEDIA_EASE, beat(clock, NAME_AT.start, NAME_AT.span)) : 0;
   const lineT = shown?.detail ? bezier(MEDIA_EASE, beat(clock, LINE_AT.start, LINE_AT.span)) : 0;
-  const labelT = shown ? bezier(UI_EASE, beat(clock, LABEL_AT.start, LABEL_AT.span)) : 0;
+  const wipeT = shown ? bezier(UI_EASE, beat(clock, WIPE_AT.start, WIPE_AT.span)) : 0;
   const stage = root.querySelector<HTMLElement>("[data-film='stage']");
   if (stage) {
     stage.style.position = "absolute";
@@ -251,7 +292,7 @@ function paint(root: HTMLElement, t: number, vw: number, vh: number, clock: numb
     const detail = card.querySelector<HTMLElement>("[data-film='detail']");
     if (detail) {
       const rise = open ? nameT : 0;
-      detail.style.overflow = "hidden";
+      detail.style.overflow = "visible";
       detail.style.opacity = String(open ? lineT : 0);
       detail.style.marginTop = `${16 * s * rise}px`;
       detail.style.gap = `${16 * s}px`;
@@ -268,6 +309,9 @@ function paint(root: HTMLElement, t: number, vw: number, vh: number, clock: numb
         line.style.width = `${396 * s}px`;
         line.style.lineHeight = "1";
         line.style.color = "#FAF6EC";
+        line.style.transformOrigin = "left center";
+        const stretch = 1 - (lineY / LINE_FROM) * 0.06;
+        line.style.transform = open ? `translate3d(0, ${lineY * s}px, 0) scale(${stretch})` : "none";
       }
       const mark = detail.querySelector("img");
       if (mark) {
@@ -276,18 +320,16 @@ function paint(root: HTMLElement, t: number, vw: number, vh: number, clock: numb
       }
     }
     const labels = card.querySelector<HTMLElement>("[data-film='labels']");
-    const chipColor = open ? mix(INK_RGB, PAPER_RGB, labelT) : "rgb(7, 14, 24)";
     if (labels) {
       labels.style.fontSize = `${14 * s}px`;
-      labels.style.color = open ? mix(PAPER_RGB, INK_RGB, labelT) : "#FAF6EC";
+      labels.style.color = "#FAF6EC";
     }
-    const year = card.querySelector<HTMLElement>("[data-film='year']");
-    if (year) year.style.backgroundColor = chipColor;
     const roles = card.querySelector<HTMLElement>("[data-film='roles']");
-    if (roles) {
-      roles.style.gap = `${16 * s}px`;
-      roles.style.backgroundColor = chipColor;
-    }
+    if (roles) roles.style.gap = `${16 * s}px`;
+    card.querySelectorAll<HTMLElement>("[data-film='wipe']").forEach((wipe) => {
+      if (wipe.parentElement === roles) wipe.style.gap = `${16 * s}px`;
+      reveal(wipe, open ? wipeT : 0);
+    });
     const arrow = card.querySelector<HTMLElement>("[data-film='arrow']");
     if (arrow) {
       arrow.style.left = `${387 * s}px`;
@@ -310,6 +352,9 @@ export function restFilm(root: HTMLElement) {
   live = false;
   pointerId = null;
   focusId = null;
+  lineY = LINE_FROM;
+  lineV = 0;
+  lineTarget = LINE_FROM;
   cancelAnimationFrame(hoverRaf);
   const nodes = readNodes(root);
   if (!nodes) return;
@@ -347,12 +392,11 @@ export function restFilm(root: HTMLElement) {
       detail.style.maxHeight = "none";
       detail.style.marginTop = "16px";
       detail.style.gap = "16px";
-      const labels = card.querySelector<HTMLElement>("[data-film='labels']");
-      if (labels) labels.style.color = "#070E18";
-      const year = card.querySelector<HTMLElement>("[data-film='year']");
-      const roles = card.querySelector<HTMLElement>("[data-film='roles']");
-      if (year) year.style.backgroundColor = "#FAF6EC";
-      if (roles) roles.style.backgroundColor = "#FAF6EC";
+      const line = detail.querySelector("p");
+      if (line) line.style.transform = "none";
+      card.querySelectorAll<HTMLElement>("[data-film='wipe']").forEach((wipe) => {
+        wipe.style.clipPath = "none";
+      });
     }
   }
 }
@@ -419,13 +463,21 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
                   className="flex items-start justify-between font-normal uppercase leading-[1.4] text-[#FAF6EC]"
                   style={{ fontFamily: MONO }}
                 >
-                  <span data-film="year" className="bg-[#070E18]">
+                  <span data-film="year" className="relative bg-[#070E18]">
                     {card.year}
+                    <span data-film="wipe" aria-hidden className="absolute inset-0 bg-[#FAF6EC] text-[#070E18] [clip-path:inset(0_100%_0_0)]">
+                      {card.year}
+                    </span>
                   </span>
-                  <span data-film="roles" className="flex bg-[#070E18]">
+                  <span data-film="roles" className="relative flex bg-[#070E18]">
                     {card.roles.map((role) => (
                       <span key={role}>{role}</span>
                     ))}
+                    <span data-film="wipe" aria-hidden className="absolute inset-0 flex bg-[#FAF6EC] text-[#070E18] [clip-path:inset(0_100%_0_0)]">
+                      {card.roles.map((role) => (
+                        <span key={role}>{role}</span>
+                      ))}
+                    </span>
                   </span>
                 </div>
                 <div data-film="stack" className="flex flex-col items-start">
@@ -433,7 +485,7 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
                     {card.name}
                   </p>
                   {card.detail ? (
-                    <div data-film="detail" className="flex max-h-0 flex-col items-start overflow-hidden opacity-0">
+                    <div data-film="detail" className="flex max-h-0 flex-col items-start opacity-0">
                       <p className="leading-none" style={{ fontFamily: SANS, color: "#FAF6EC" }}>
                         {card.detail}
                       </p>
