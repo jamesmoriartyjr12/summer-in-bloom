@@ -291,7 +291,7 @@ function paint(root: HTMLElement, t: number, vw: number, vh: number, clock: numb
     const open = spec.id === shownId;
     card.style.width = `${frame.cardW}px`;
     card.style.height = `${frame.cardH}px`;
-    card.style.opacity = String(shown && !open ? 1 - 0.3 * nameT : 1);
+    card.style.opacity = "1";
     card.style.zIndex = open && nameT > 0 ? "2" : "1";
     card.style.boxShadow = open ? `0 ${47 * s}px ${67.4 * s}px rgba(68,53,15,${0.3 * nameT})` : "none";
     pin(card, frame.rowX + index * frame.cardW, frame.rowY - 20 * s * (open ? nameT : 0));
