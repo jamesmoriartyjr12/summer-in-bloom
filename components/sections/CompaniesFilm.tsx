@@ -7,7 +7,8 @@ import { useEffect, type Ref } from "react";
  * Scroll carries the row in. Frame 227:34 is the rest of every card.
  * Frame 227:222 is the hover and the focus of a card.
  * The name rises, then the line springs in, and the labels wipe left to right.
- * The wipe is one scene, on one layer of type, so the chip does not leave an edge.
+ * Leaving plays that scene backward over the same span.
+ * The wipe is one scene, on one layer of type. Paper sits under a white chip, so the ink cannot edge it.
  * The line spring is slow enough for the overshoot to read. design/MOTION.md.
  */
 const HOVER_MS = 560;
@@ -38,10 +39,10 @@ type Card = {
 const shot = (file: string) => `/Bloom%20Portfolio%20Images/${file}`;
 
 const ROW: Card[] = [
-  { id: "orion", name: "Orion", stage: "Seed", category: "Longevity", image: "/companies/orion.png", ink: false },
-  { id: "jamie", name: "Jamie Ai", stage: "Seed", category: "Creator", image: shot("Jamie_Large.png"), ink: false },
-  { id: "meridian", name: "Meridian", stage: "Seed", category: "Payments", image: shot("Meridian_Large.png"), ink: false },
-  { id: "sunny", name: "Sunny Benefits", stage: "Series A", category: "Fintech", image: shot("Sunny_Large.png"), ink: false },
+  { id: "orion", name: "Orion", stage: "Seed", category: "Longevity", image: "/companies/orion.png", ink: false, detail: "An AI sleep system for deeper nights." },
+  { id: "jamie", name: "Jamie Ai", stage: "Seed", category: "Creator", image: shot("Jamie_Large.png"), ink: false, detail: "Audience data, turned into content worth making." },
+  { id: "meridian", name: "Meridian", stage: "Seed", category: "Payments", image: shot("Meridian_Large.png"), ink: false, detail: "Instant payments for banks, wallets, and neobanks." },
+  { id: "sunny", name: "Sunny Benefits", stage: "Series A", category: "Fintech", image: shot("Sunny_Large.png"), ink: false, detail: "Every health benefit, in one member experience." },
   {
     id: "collectible",
     name: "Collectible",
@@ -50,12 +51,13 @@ const ROW: Card[] = [
     image: "/companies/watchcheck.png",
     crop: { height: "119.75%", width: "129.98%", left: "-0.02%", top: "-19.75%" },
     ink: false,
+    detail: "The service layer for luxury watches.",
   },
-  { id: "feno", name: "Feno", stage: "Seed", category: "Longevity", image: "/companies/feno.png", ink: true },
-  { id: "milly", name: "Milly", stage: "Seed", category: "Fintech", image: "/companies/milly.jpg", ink: true },
-  { id: "tee", name: "TeeCommerce", stage: "Acquired", category: "Commerce", image: shot("TeeCommerce_Large.png"), ink: false },
-  { id: "outer", name: "OuterProduct", stage: "Seed", category: "Deeptech", image: shot("OuterProduct_Large.png"), ink: false },
-  { id: "fanfix", name: "FanFix", stage: "Growth", category: "Creator", image: shot("FanFix_Large.png"), ink: false },
+  { id: "feno", name: "Feno", stage: "Seed", category: "Longevity", image: "/companies/feno.png", ink: true, detail: "Preventative dental care, powered by AI." },
+  { id: "milly", name: "Milly", stage: "Seed", category: "Fintech", image: "/companies/milly.jpg", ink: true, detail: "Where insurance agencies change hands." },
+  { id: "tee", name: "TeeCommerce", stage: "Acquired", category: "Commerce", image: shot("TeeCommerce_Large.png"), ink: false, detail: "Pro shops for the clubs that set the standard." },
+  { id: "outer", name: "OuterProduct", stage: "Seed", category: "Deeptech", image: shot("OuterProduct_Large.png"), ink: false, detail: "Any dataset, turned into a decision." },
+  { id: "fanfix", name: "FanFix", stage: "Growth", category: "Creator", image: shot("FanFix_Large.png"), ink: false, detail: "Creators get paid for exclusive access." },
 ];
 
 const CARDS: Card[] = ROW;
@@ -118,14 +120,17 @@ function stepLine(now: number) {
   lineY += lineV * dt;
 }
 
-/** Linear clock. Each beat eases on its own so the order stays name, line, labels. */
+/** Linear clock, 0 at rest and 1 open. Leaving runs the same span backward. */
 function hoverClock(now = performance.now()) {
   const p = Math.min(1, (now - hoverStart) / hoverSpan);
   return hoverFrom + (hoverTo - hoverFrom) * p;
 }
 
-function beat(clock: number, start: number, span: number) {
-  return Math.min(1, Math.max(0, (clock * hoverSpan - start) / span));
+/** Ease the beat in the direction of travel, so the close is as readable as the open. */
+function beat(clock: number, start: number, span: number, ease: readonly [number, number, number, number]) {
+  const local = Math.min(1, Math.max(0, (clock * HOVER_MS - start) / span));
+  if (hoverTo < hoverFrom) return 1 - bezier(ease, 1 - local);
+  return bezier(ease, local);
 }
 
 function paintPose(now?: number) {
@@ -140,16 +145,22 @@ function activeId() {
 function setHover(id: string | null) {
   if (!live) return;
   const now = performance.now();
-  if (id && id !== shownId) {
-    shownId = id;
-    hoverFrom = 0;
-    hoverTo = 1;
+  if (id && (id !== shownId || hoverTo === 0)) {
     const card = CARDS.find((item) => item.id === id);
-    if (card?.detail) {
-      lineTarget = 0;
-      lineY = LINE_FROM;
-      lineV = 0;
-      springAt = now;
+    if (id !== shownId) {
+      shownId = id;
+      hoverFrom = 0;
+      hoverTo = 1;
+      if (card?.detail) {
+        lineTarget = 0;
+        lineY = LINE_FROM;
+        lineV = 0;
+        springAt = now;
+      }
+    } else {
+      hoverFrom = hoverClock(now);
+      hoverTo = 1;
+      if (card?.detail) lineTarget = 0;
     }
   } else if (!id) {
     if (hoverTo === 0) return;
@@ -164,6 +175,11 @@ function setHover(id: string | null) {
   cancelAnimationFrame(hoverRaf);
   const step = (time: number) => {
     paintPose(time);
+    const closingDone = hoverTo === 0 && time - hoverStart >= hoverSpan && lineSettled();
+    if (closingDone) {
+      shownId = null;
+      return;
+    }
     if (time - hoverStart < hoverSpan || !lineSettled()) hoverRaf = requestAnimationFrame(step);
   };
   hoverRaf = requestAnimationFrame(step);
@@ -231,6 +247,9 @@ function paintChip(chip: HTMLElement, progress: number) {
   const end = rowBox ? (chipBox.right - rowBox.left) / width : 1;
   const local = Math.min(1, Math.max(0, (progress - start) / Math.max(0.001, end - start)));
   const faces = [...chip.querySelectorAll<HTMLElement>("[data-film='face']")];
+  chip.style.border = "0";
+  chip.style.outline = "none";
+  chip.style.boxShadow = "none";
   if (local <= 0) {
     chip.style.backgroundImage = "none";
     chip.style.backgroundColor = "#070E18";
@@ -244,8 +263,13 @@ function paintChip(chip: HTMLElement, progress: number) {
     return;
   }
   const at = `${local * 100}%`;
-  chip.style.backgroundColor = "#070E18";
-  chip.style.backgroundImage = `linear-gradient(90deg, #FAF6EC ${at}, #070E18 ${at})`;
+  // Paper sits under the wipe, so a white edge cannot pick up the ink.
+  chip.style.backgroundColor = "#FAF6EC";
+  chip.style.backgroundImage = `linear-gradient(90deg, transparent ${at}, #070E18 ${at})`;
+  chip.style.backgroundRepeat = "no-repeat";
+  chip.style.backgroundSize = "100% 100%";
+  chip.style.backgroundOrigin = "border-box";
+  chip.style.backgroundClip = "border-box";
   faces.forEach((face) => {
     const box = face.getBoundingClientRect();
     face.style.backgroundImage = `linear-gradient(90deg, #070E18 ${at}, #FAF6EC ${at})`;
@@ -254,8 +278,10 @@ function paintChip(chip: HTMLElement, progress: number) {
     face.style.backgroundPosition = `${-(box.left - chipBox.left)}px 0`;
     face.style.webkitBackgroundClip = "text";
     face.style.backgroundClip = "text";
-    face.style.color = "transparent";
+    face.style.color = "#070E18";
     face.style.webkitTextFillColor = "transparent";
+    face.style.webkitTextStroke = "0";
+    face.style.textShadow = "none";
   });
 }
 
@@ -266,9 +292,9 @@ function paint(root: HTMLElement, t: number, vw: number, vh: number, clock: numb
   const frame = filmFrame(t, vw, vh);
   const s = frame.cardW / CARD_W;
   const shown = CARDS.find((card) => card.id === shownId);
-  const nameT = shown ? bezier(MEDIA_EASE, beat(clock, NAME_AT.start, NAME_AT.span)) : 0;
-  const lineT = shown?.detail ? bezier(MEDIA_EASE, beat(clock, LINE_AT.start, LINE_AT.span)) : 0;
-  const wipeT = shown ? bezier(UI_EASE, beat(clock, WIPE_AT.start, WIPE_AT.span)) : 0;
+  const nameT = shown ? beat(clock, NAME_AT.start, NAME_AT.span, MEDIA_EASE) : 0;
+  const lineT = shown?.detail ? beat(clock, LINE_AT.start, LINE_AT.span, MEDIA_EASE) : 0;
+  const wipeT = shown ? beat(clock, WIPE_AT.start, WIPE_AT.span, UI_EASE) : 0;
   const stage = root.querySelector<HTMLElement>("[data-film='stage']");
   if (stage) {
     stage.style.position = "absolute";
@@ -308,7 +334,7 @@ function paint(root: HTMLElement, t: number, vw: number, vh: number, clock: numb
         line.style.fontSize = `${16 * s}px`;
         line.style.width = `${396 * s}px`;
         line.style.lineHeight = "1";
-        line.style.color = "#FAF6EC";
+        line.style.color = spec.ink ? "#070F18" : "#FAF6EC";
         line.style.transformOrigin = "left center";
         const stretch = 1 - (lineY / LINE_FROM) * 0.06;
         line.style.transform = open ? `translate3d(0, ${lineY * s}px, 0) scale(${stretch})` : "none";
@@ -492,10 +518,9 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
                   </p>
                   {card.detail ? (
                     <div data-film="detail" className="flex max-h-0 flex-col items-start opacity-0">
-                      <p className="leading-none" style={{ fontFamily: SANS, color: "#FAF6EC" }}>
+                      <p className="leading-none" style={{ fontFamily: SANS, color: card.ink ? "#070F18" : "#FAF6EC" }}>
                         {card.detail}
                       </p>
-                      <img src="/companies/watchcheck-mark.svg" alt="" width={23} height={23} />
                     </div>
                   ) : null}
                 </div>
