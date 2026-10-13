@@ -327,8 +327,17 @@ function paint(root: HTMLElement, t: number, vw: number, vh: number, clock: numb
     const roles = card.querySelector<HTMLElement>("[data-film='roles']");
     if (roles) roles.style.gap = `${16 * s}px`;
     const year = card.querySelector<HTMLElement>("[data-film='year']");
-    if (year) paintChip(year, open ? wipeT : 0);
-    if (roles) paintChip(roles, open ? wipeT : 0);
+    const chipPad = "4px";
+    if (year) {
+      year.style.paddingLeft = chipPad;
+      year.style.paddingRight = chipPad;
+      paintChip(year, open ? wipeT : 0);
+    }
+    if (roles) {
+      roles.style.paddingLeft = chipPad;
+      roles.style.paddingRight = chipPad;
+      paintChip(roles, open ? wipeT : 0);
+    }
     const arrow = card.querySelector<HTMLElement>("[data-film='arrow']");
     if (arrow) {
       arrow.style.left = `${387 * s}px`;
@@ -470,10 +479,10 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
                   className="flex items-start justify-between font-normal uppercase leading-[1.4] text-[#FAF6EC]"
                   style={{ fontFamily: MONO }}
                 >
-                  <span data-film="year" className="bg-[#070E18]">
+                  <span data-film="year" className="bg-[#070E18] px-1">
                     <span data-film="face">{card.stage}</span>
                   </span>
-                  <span data-film="roles" className="flex bg-[#070E18]">
+                  <span data-film="roles" className="flex bg-[#070E18] px-1">
                     <span data-film="face">{card.category}</span>
                   </span>
                 </div>
