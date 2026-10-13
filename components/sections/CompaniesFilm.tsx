@@ -4,7 +4,8 @@ import { useEffect, type Ref } from "react";
 
 /**
  * Frames 187:181 and 210:404, on a 1920×1080 stage.
- * Scroll carries the row in. Frame 227:222 is the hover and the focus of a card.
+ * Scroll carries the row in. Frame 227:34 is the rest of every card.
+ * Frame 227:222 is the hover and the focus of a card.
  * The hover uses the scene duration and the media ease from design/MOTION.md.
  */
 const HOVER_MS = 480;
@@ -250,12 +251,25 @@ function paint(root: HTMLElement, t: number, vw: number, vh: number, amount: num
       }
     }
     const labels = card.querySelector<HTMLElement>("[data-film='labels']");
+    const chip = spec.detail ? 1 - open : 1;
     if (labels) {
       labels.style.fontSize = `${14 * s}px`;
-      labels.style.color = spec.detail && open > 0.5 ? "#070E18" : spec.ink ? "#070F18" : "#FAF6EC";
+      labels.style.color = spec.detail && open > 0.5 ? "#070E18" : "#FAF6EC";
     }
+    const year = card.querySelector<HTMLElement>("[data-film='year']");
+    if (year) year.style.backgroundColor = `rgba(7,14,24,${chip})`;
     const roles = card.querySelector<HTMLElement>("[data-film='roles']");
-    if (roles) roles.style.gap = `${16 * s}px`;
+    if (roles) {
+      roles.style.gap = `${16 * s}px`;
+      roles.style.backgroundColor = `rgba(7,14,24,${chip})`;
+    }
+    const arrow = card.querySelector<HTMLElement>("[data-film='arrow']");
+    if (arrow) {
+      arrow.style.left = `${387 * s}px`;
+      arrow.style.top = `${103 * s}px`;
+      arrow.style.width = `${39.436 * s}px`;
+      arrow.style.height = `${39.141 * s}px`;
+    }
     const name = card.querySelector<HTMLElement>("[data-film='name']");
     if (name) {
       name.style.fontSize = `${48 * s}px`;
@@ -329,7 +343,7 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
               key={card.id}
               data-film-card={card.id}
               tabIndex={0}
-              className="overflow-hidden rounded-[4px] bg-white outline-none"
+              className="relative overflow-hidden rounded-[4px] bg-white outline-none"
               onPointerEnter={(event) => {
                 if (event.pointerType === "touch") return;
                 pointerId = card.id;
@@ -360,14 +374,24 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
                 className={card.crop ? "absolute max-w-none" : "absolute inset-0 h-full w-full object-cover"}
                 style={card.crop}
               />
+              <img
+                data-film="arrow"
+                src="/companies/card-arrow.svg"
+                alt=""
+                width={32}
+                height={32}
+                className="pointer-events-none absolute max-w-none"
+              />
               <div data-film="pad" className="pointer-events-none relative flex h-full flex-col justify-between p-10">
                 <div
                   data-film="labels"
-                  className="flex items-start justify-between uppercase leading-[1.4]"
-                  style={{ fontFamily: MONO, color: card.ink ? "#070F18" : "#FAF6EC" }}
+                  className="flex items-start justify-between font-normal uppercase leading-[1.4] text-[#FAF6EC]"
+                  style={{ fontFamily: MONO }}
                 >
-                  <span>{card.year}</span>
-                  <span data-film="roles" className="flex">
+                  <span data-film="year" className="bg-[#070E18]">
+                    {card.year}
+                  </span>
+                  <span data-film="roles" className="flex bg-[#070E18]">
                     {card.roles.map((role) => (
                       <span key={role}>{role}</span>
                     ))}
