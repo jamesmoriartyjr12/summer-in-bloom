@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, type Ref } from "react";
+import { useReducedMotion } from "framer-motion";
+import DnaCarousel from "../dna-carousel/DnaCarousel";
 
 /**
  * Frames 187:181 and 210:404, on a 1920×1080 stage.
@@ -288,7 +290,25 @@ function paintChip(chip: HTMLElement, amount: number) {
   });
 }
 
+function paintChips(root: HTMLElement, now: number) {
+  for (const card of root.querySelectorAll<HTMLElement>("[data-film-card]")) {
+    const spec = CARDS.find((item) => item.id === card.dataset.filmCard);
+    if (!spec) continue;
+    const run = runs.get(spec.id);
+    const clock = run ? clockOf(run, now) : 0;
+    const moving = clock > 0.001;
+    const year = card.querySelector<HTMLElement>("[data-film='year']");
+    const roles = card.querySelector<HTMLElement>("[data-film='roles']");
+    if (year) paintChip(year, moving ? labelLocal(clock, 0) : 0);
+    if (roles) paintChip(roles, moving ? labelLocal(clock, 1) : 0);
+  }
+}
+
 function paint(root: HTMLElement, t: number, vw: number, vh: number, now: number) {
+  if (root.dataset.helix === "1") {
+    paintChips(root, now);
+    return;
+  }
   const nodes = readNodes(root);
   if (!nodes) return;
   const frame = filmFrame(t, vw, vh);
@@ -403,24 +423,13 @@ export function restFilm(root: HTMLElement) {
   }
 }
 
-export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
-  useEffect(() => {
-    return () => {
-      live = false;
-      cancelAnimationFrame(hoverRaf);
-    };
-  }, []);
-
+function CardFace({ card, helix }: { card: Card; helix?: boolean }) {
   return (
-    <div ref={rootRef} className="invisible absolute inset-0 z-40 overflow-hidden text-ink">
-      <div data-film="stage" className="relative h-full">
-        <div data-film="row">
-          {CARDS.map((card) => (
-            <article
-              key={card.id}
-              data-film-card={card.id}
-              tabIndex={0}
-              className="relative overflow-hidden rounded-[4px] bg-white outline-none"
+    <article
+      data-film-card={card.id}
+      tabIndex={helix ? -1 : 0}
+      className={helix ? "relative h-full w-full overflow-hidden outline-none" : "relative overflow-hidden rounded-[4px] bg-white outline-none"}
+      style={helix ? { containerType: "inline-size" } : undefined}
               onPointerEnter={(event) => {
                 if (event.pointerType === "touch") return;
                 pointerId = card.id;
@@ -459,11 +468,15 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
                 height={32}
                 className="pointer-events-none absolute max-w-none"
               />
-              <div data-film="pad" className="pointer-events-none relative flex h-full flex-col justify-between p-10">
+              <div
+                data-film="pad"
+                className={`pointer-events-none relative flex h-full flex-col justify-between ${helix ? "" : "p-10"}`}
+                style={helix ? { padding: "8.4cqw" } : undefined}
+              >
                 <div
                   data-film="labels"
-                  className="flex items-start justify-between font-normal uppercase leading-[1.4] text-[#FAF6EC]"
-                  style={{ fontFamily: MONO }}
+                  className={`flex items-start justify-between font-normal uppercase leading-[1.4] text-[#FAF6EC] ${helix ? "" : "p-0"}`}
+                  style={{ fontFamily: MONO, fontSize: helix ? "2.94cqw" : undefined }}
                 >
                   <span data-film="year" className="inline-flex shrink-0 bg-[#070E18]" style={{ paddingLeft: 8, paddingRight: 8 }}>
                     <span data-film="face">{card.stage}</span>
@@ -473,12 +486,51 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
                   </span>
                 </div>
                 <div data-film="stack" className="flex flex-col items-start">
-                  <p data-film="name" className="leading-none" style={{ fontFamily: SANS, fontSize: 48, color: card.ink ? "#070F18" : "#FAF6EC" }}>
+                  <p
+                    data-film="name"
+                    className="leading-none"
+                    style={{ fontFamily: SANS, fontSize: helix ? "10.08cqw" : 48, color: card.ink ? "#070F18" : "#FAF6EC" }}
+                  >
                     {card.name}
                   </p>
                 </div>
               </div>
             </article>
+  );
+}
+
+export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
+  const reduce = useReducedMotion();
+  useEffect(() => {
+    return () => {
+      live = false;
+      cancelAnimationFrame(hoverRaf);
+    };
+  }, []);
+
+  if (!reduce) {
+    return (
+      <div ref={rootRef} data-helix="1" className="invisible absolute inset-0 z-40 overflow-hidden text-ink">
+        <DnaCarousel
+          className="dna--fill"
+          items={CARDS}
+          renderItem={(card) => <CardFace card={card} helix />}
+          preset="paper"
+          theme={{ background: "transparent", card: "transparent" }}
+          radius={4}
+          wheel="horizontal"
+          label="Companies"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div ref={rootRef} className="invisible absolute inset-0 z-40 overflow-hidden text-ink">
+      <div data-film="stage" className="relative h-full">
+        <div data-film="row">
+          {CARDS.map((card) => (
+            <CardFace key={card.id} card={card} />
           ))}
         </div>
       </div>
