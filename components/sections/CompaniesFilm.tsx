@@ -2,7 +2,7 @@
 
 import { useEffect, type Ref } from "react";
 import { useReducedMotion } from "framer-motion";
-import DnaCarousel from "../dna-carousel/DnaCarousel";
+import DnaCarousel, { scrollHelix } from "../dna-carousel/DnaCarousel";
 
 /**
  * Frames 187:181 and 210:404, on a 1920×1080 stage.
@@ -230,6 +230,7 @@ export function filmFrame(t: number, vw: number, vh: number) {
 export function placeFilm(root: HTMLElement, t: number, vw: number, vh: number) {
   live = true;
   pose = { root, t, vw, vh };
+  if (root.dataset.helix === "1") scrollHelix(t);
   paint(root, t, vw, vh, performance.now());
 }
 
@@ -518,7 +519,11 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
           preset="paper"
           theme={{ background: "transparent", card: "transparent" }}
           radius={4}
-          wheel="horizontal"
+          autoplay={false}
+          wheel={false}
+          keyboard={false}
+          grabCursor={false}
+          scrollDriven
           label="Companies"
         />
       </div>

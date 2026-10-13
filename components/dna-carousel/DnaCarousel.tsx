@@ -72,6 +72,13 @@ function place(u: number, s: number, p: PlaceProps) {
 /** Wraps `v` into [-m/2, m/2) — the loop, centred on the focused card. */
 const wrap = (v: number, m: number) => ((((v + m / 2) % m) + m) % m) - m / 2;
 
+/** The page scroll writes this. `t` 0 is the first card. `t` 1 is the last. */
+let scrollHelixTo: ((t: number) => void) | null = null;
+
+export function scrollHelix(t: number) {
+  scrollHelixTo?.(t);
+}
+
 type ImageItem = { src: string; alt?: string };
 
 type Motion = {
@@ -96,6 +103,7 @@ type LoopProps = PlaceProps & {
   resumeDelay: number;
   wheel: boolean | "horizontal";
   keyboard: boolean;
+  scrollDriven: boolean;
   reach: number;
   slots: number;
   n: number;
@@ -169,6 +177,8 @@ export default function DnaCarousel<T>({
   wheel = true,
   keyboard = true,
   grabCursor = true,
+  /* The page scroll owns the position. Drag, wheel, keys, and drift stay off. */
+  scrollDriven = false,
   startIndex = 0,
   onChange,
 
@@ -210,6 +220,7 @@ export default function DnaCarousel<T>({
   wheel?: boolean | "horizontal";
   keyboard?: boolean;
   grabCursor?: boolean;
+  scrollDriven?: boolean;
   startIndex?: number;
   onChange?: (index: number) => void;
   className?: string;
@@ -266,6 +277,7 @@ export default function DnaCarousel<T>({
     resumeDelay,
     wheel,
     keyboard,
+    scrollDriven,
     reach,
     slots,
     n,
@@ -484,7 +496,7 @@ export default function DnaCarousel<T>({
             m.target = null;
             m.idleAt = now();
           }
-        } else if (p.autoplay && !reduce.matches && now() - m.idleAt > p.resumeDelay) {
+        } else if (!p.scrollDriven && p.autoplay && !reduce.matches && now() - m.idleAt > p.resumeDelay) {
           /* Ease the drift in instead of starting at full speed. */
           m.drift += (p.autoplaySpeed - m.drift) * (1 - Math.exp(-dt / 0.8));
           m.pos += m.drift * dt;
@@ -506,17 +518,30 @@ export default function DnaCarousel<T>({
       }
     };
 
-    root.addEventListener("pointerdown", onDown);
-    root.addEventListener("pointermove", onMove);
-    root.addEventListener("pointerup", onUp);
-    root.addEventListener("pointercancel", onUp);
-    root.addEventListener("wheel", onWheel, { passive: false });
-    root.addEventListener("keydown", onKey);
+    if (scrollDriven) {
+      scrollHelixTo = (t: number) => {
+        const p = props.current;
+        if (!p?.n) return;
+        m.pos = Math.max(0, Math.min(1, t)) * Math.max(0, p.n - 1);
+        m.vel = 0;
+        m.target = null;
+        m.drift = 0;
+        paint();
+      };
+    } else {
+      root.addEventListener("pointerdown", onDown);
+      root.addEventListener("pointermove", onMove);
+      root.addEventListener("pointerup", onUp);
+      root.addEventListener("pointercancel", onUp);
+      root.addEventListener("wheel", onWheel, { passive: false });
+      root.addEventListener("keydown", onKey);
+    }
     raf = requestAnimationFrame(frame);
 
     return () => {
       cancelAnimationFrame(raf);
       clearTimeout(wheelTimer);
+      if (scrollHelixTo) scrollHelixTo = null;
       root.removeEventListener("pointerdown", onDown);
       root.removeEventListener("pointermove", onMove);
       root.removeEventListener("pointerup", onUp);
