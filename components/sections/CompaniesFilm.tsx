@@ -23,73 +23,42 @@ const LINE_SPRING = { stiffness: 160, damping: 8, mass: 0.7 } as const;
 const CARD_W = 476;
 const CARD_H = 740;
 
-type Spot = { x: number; y: number; opacity: number };
-
 type Card = {
   id: string;
   name: string;
-  year: string;
-  roles: string[];
+  stage: string;
+  category: string;
   image: string;
   /** Frame 227:222. The photograph sits up and slightly wide of the card. */
   crop?: { height: string; width: string; left: string; top: string };
   ink: boolean;
   detail?: string;
-  a: Spot;
-  b: Spot;
-  c: Spot;
 };
 
+const shot = (file: string) => `/Bloom%20Portfolio%20Images/${file}`;
+
 const ROW: Card[] = [
+  { id: "orion", name: "Orion", stage: "Seed", category: "Longevity", image: "/companies/orion.png", ink: false },
+  { id: "jamie", name: "Jamie Ai", stage: "Seed", category: "Creator", image: shot("Jamie_Large.png"), ink: false },
+  { id: "meridian", name: "Meridian", stage: "Seed", category: "Payments", image: shot("Meridian_Large.png"), ink: false },
+  { id: "sunny", name: "Sunny Benefits", stage: "Series A", category: "Fintech", image: shot("Sunny_Large.png"), ink: false },
   {
-    id: "watchcheck",
-    name: "WatchCheck",
-    year: "2023",
-    roles: ["studio", "invested", "seed"],
+    id: "collectible",
+    name: "Collectible",
+    stage: "Seed",
+    category: "Consumer",
     image: "/companies/watchcheck.png",
     crop: { height: "119.75%", width: "129.98%", left: "-0.02%", top: "-19.75%" },
     ink: false,
-    detail: "A platform that makes luxury watch service safer, smarter, and more transparent.",
-    a: { x: 1468, y: 205, opacity: 1 },
-    b: { x: 236, y: 205, opacity: 1 },
-    c: { x: 236, y: 185, opacity: 1 },
   },
-  {
-    id: "feno",
-    name: "Feno",
-    year: "2026",
-    roles: ["studio"],
-    image: "/companies/feno.png",
-    ink: true,
-    a: { x: 2056, y: 205, opacity: 0.7 },
-    b: { x: 728, y: 205, opacity: 1 },
-    c: { x: 748, y: 205, opacity: 0.7 },
-  },
-  {
-    id: "milly",
-    name: "Milly",
-    year: "2026",
-    roles: ["studio"],
-    image: "/companies/milly.jpg",
-    ink: true,
-    a: { x: 2649, y: 205, opacity: 0.4 },
-    b: { x: 1220, y: 205, opacity: 1 },
-    c: { x: 1248, y: 205, opacity: 0.7 },
-  },
-  {
-    id: "orion",
-    name: "Orion",
-    year: "2026",
-    roles: ["studio"],
-    image: "/companies/orion.png",
-    ink: false,
-    a: { x: 3313, y: 205, opacity: 0.2 },
-    b: { x: 1712, y: 205, opacity: 1 },
-    c: { x: 1752, y: 205, opacity: 0.7 },
-  },
+  { id: "feno", name: "Feno", stage: "Seed", category: "Longevity", image: "/companies/feno.png", ink: true },
+  { id: "milly", name: "Milly", stage: "Seed", category: "Fintech", image: "/companies/milly.jpg", ink: true },
+  { id: "tee", name: "TeeCommerce", stage: "Acquired", category: "Commerce", image: shot("TeeCommerce_Large.png"), ink: false },
+  { id: "outer", name: "OuterProduct", stage: "Seed", category: "Deeptech", image: shot("OuterProduct_Large.png"), ink: false },
+  { id: "fanfix", name: "FanFix", stage: "Growth", category: "Creator", image: shot("FanFix_Large.png"), ink: false },
 ];
 
-const CARDS: Card[] = [...ROW, ...ROW.map((card) => ({ ...card, id: `${card.id}-2` }))];
+const CARDS: Card[] = ROW;
 
 const MONO = "var(--font-jetbrains), ui-monospace, monospace";
 const SANS = "var(--font-archivo), sans-serif";
@@ -224,8 +193,8 @@ function pin(el: HTMLElement, x: number, y: number) {
   el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
 }
 
-/** How many cards fit across the screen. The rest of the row is scrolled into view. */
-const VISIBLE = ROW.length;
+/** Four cards fit across the screen. The rest of the row is scrolled into view. */
+const VISIBLE = 4;
 
 /** Cards stay at this size. `t` 0 holds the row off the right. `t` 1 brings the last card in. */
 export function filmFrame(t: number, vw: number, vh: number) {
@@ -502,14 +471,10 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
                   style={{ fontFamily: MONO }}
                 >
                   <span data-film="year" className="bg-[#070E18]">
-                    <span data-film="face">{card.year}</span>
+                    <span data-film="face">{card.stage}</span>
                   </span>
                   <span data-film="roles" className="flex bg-[#070E18]">
-                    {card.roles.map((role) => (
-                      <span key={role} data-film="face">
-                        {role}
-                      </span>
-                    ))}
+                    <span data-film="face">{card.category}</span>
                   </span>
                 </div>
                 <div data-film="stack" className="flex flex-col items-start">
