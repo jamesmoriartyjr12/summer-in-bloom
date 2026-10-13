@@ -327,7 +327,7 @@ function paint(root: HTMLElement, t: number, vw: number, vh: number, clock: numb
     const roles = card.querySelector<HTMLElement>("[data-film='roles']");
     if (roles) roles.style.gap = `${16 * s}px`;
     const year = card.querySelector<HTMLElement>("[data-film='year']");
-    const chipPad = "4px";
+    const chipPad = "8px";
     if (year) {
       year.style.paddingLeft = chipPad;
       year.style.paddingRight = chipPad;
@@ -479,10 +479,10 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
                   className="flex items-start justify-between font-normal uppercase leading-[1.4] text-[#FAF6EC]"
                   style={{ fontFamily: MONO }}
                 >
-                  <span data-film="year" className="bg-[#070E18] px-1">
+                  <span data-film="year" className="inline-flex shrink-0 bg-[#070E18]" style={{ paddingLeft: 8, paddingRight: 8 }}>
                     <span data-film="face">{card.stage}</span>
                   </span>
-                  <span data-film="roles" className="flex bg-[#070E18] px-1">
+                  <span data-film="roles" className="inline-flex shrink-0 bg-[#070E18]" style={{ paddingLeft: 8, paddingRight: 8 }}>
                     <span data-film="face">{card.category}</span>
                   </span>
                 </div>
