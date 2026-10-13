@@ -6,10 +6,17 @@ import { useEffect, type Ref } from "react";
  * Frames 187:181 and 210:404, on a 1920×1080 stage.
  * Scroll carries the row in. Frame 227:34 is the rest of every card.
  * Frame 227:222 is the hover and the focus of a card.
- * The hover uses the scene duration and the media ease from design/MOTION.md.
+ * The name rises, then the line comes in, then the labels change.
+ * The rise and the line use the scene duration and the media ease.
+ * The labels use the chrome snap and the UI ease. design/MOTION.md.
  */
-const HOVER_MS = 480;
-const HOVER_EASE = [0.22, 1, 0.36, 1] as const;
+const NAME_MS = 480;
+const LINE_MS = 480;
+const LABEL_MS = 200;
+const MEDIA_EASE = [0.22, 1, 0.36, 1] as const;
+const UI_EASE = [0.2, 0.8, 0.2, 1] as const;
+const INK_RGB = [7, 14, 24] as const;
+const PAPER_RGB = [250, 246, 236] as const;
 
 const CARD_W = 476;
 const CARD_H = 740;
@@ -85,8 +92,8 @@ const CARDS: Card[] = [...ROW, ...ROW.map((card) => ({ ...card, id: `${card.id}-
 const MONO = "var(--font-jetbrains), ui-monospace, monospace";
 const SANS = "var(--font-archivo), sans-serif";
 
-function easeMedia(t: number) {
-  const [x1, y1, x2, y2] = HOVER_EASE;
+function bezier(ease: readonly [number, number, number, number], t: number) {
+  const [x1, y1, x2, y2] = ease;
   const cx = 3 * x1;
   const bx = 3 * (x2 - x1) - cx;
   const ax = 1 - cx - bx;
@@ -105,6 +112,11 @@ function easeMedia(t: number) {
   return sampleY(u);
 }
 
+function mix(from: readonly [number, number, number], to: readonly [number, number, number], t: number) {
+  const c = from.map((value, index) => Math.round(value + (to[index] - value) * t));
+  return `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
+}
+
 type FilmPose = { root: HTMLElement; t: number; vw: number; vh: number };
 
 let live = false;
@@ -115,16 +127,26 @@ let focusId: string | null = null;
 let hoverFrom = 0;
 let hoverTo = 0;
 let hoverStart = 0;
+let hoverSpan = NAME_MS + LINE_MS + LABEL_MS;
 let hoverRaf = 0;
 
-function hoverAmount(now = performance.now()) {
-  const p = Math.min(1, (now - hoverStart) / HOVER_MS);
-  return hoverFrom + (hoverTo - hoverFrom) * easeMedia(p);
+function spanFor(id: string | null) {
+  return CARDS.find((card) => card.id === id)?.detail ? NAME_MS + LINE_MS + LABEL_MS : NAME_MS + LABEL_MS;
+}
+
+/** Linear clock. Each beat eases on its own so the order stays name, line, labels. */
+function hoverClock(now = performance.now()) {
+  const p = Math.min(1, (now - hoverStart) / hoverSpan);
+  return hoverFrom + (hoverTo - hoverFrom) * p;
+}
+
+function beat(clock: number, start: number, span: number) {
+  return Math.min(1, Math.max(0, (clock * hoverSpan - start) / span));
 }
 
 function paintPose(now?: number) {
   if (!live || !pose) return;
-  paint(pose.root, pose.t, pose.vw, pose.vh, hoverAmount(now));
+  paint(pose.root, pose.t, pose.vw, pose.vh, hoverClock(now));
 }
 
 function activeId() {
@@ -140,16 +162,17 @@ function setHover(id: string | null) {
     hoverTo = 1;
   } else if (!id) {
     if (hoverTo === 0) return;
-    hoverFrom = hoverAmount(now);
+    hoverFrom = hoverClock(now);
     hoverTo = 0;
   } else {
     return;
   }
+  if (id) hoverSpan = spanFor(id);
   hoverStart = now;
   cancelAnimationFrame(hoverRaf);
   const step = (time: number) => {
     paintPose(time);
-    if (time - hoverStart < HOVER_MS) hoverRaf = requestAnimationFrame(step);
+    if (time - hoverStart < hoverSpan) hoverRaf = requestAnimationFrame(step);
   };
   hoverRaf = requestAnimationFrame(step);
 }
@@ -196,14 +219,18 @@ export function filmFrame(t: number, vw: number, vh: number) {
 export function placeFilm(root: HTMLElement, t: number, vw: number, vh: number) {
   live = true;
   pose = { root, t, vw, vh };
-  paint(root, t, vw, vh, hoverAmount());
+  paint(root, t, vw, vh, hoverClock());
 }
 
-function paint(root: HTMLElement, t: number, vw: number, vh: number, amount: number) {
+function paint(root: HTMLElement, t: number, vw: number, vh: number, clock: number) {
   const nodes = readNodes(root);
   if (!nodes) return;
   const frame = filmFrame(t, vw, vh);
   const s = frame.cardW / CARD_W;
+  const shown = CARDS.find((card) => card.id === shownId);
+  const nameT = shown ? bezier(MEDIA_EASE, beat(clock, 0, NAME_MS)) : 0;
+  const lineT = shown?.detail ? bezier(MEDIA_EASE, beat(clock, NAME_MS, LINE_MS)) : 0;
+  const labelT = shown ? bezier(UI_EASE, beat(clock, shown.detail ? NAME_MS + LINE_MS : NAME_MS, LABEL_MS)) : 0;
   const stage = root.querySelector<HTMLElement>("[data-film='stage']");
   if (stage) {
     stage.style.position = "absolute";
@@ -214,28 +241,29 @@ function paint(root: HTMLElement, t: number, vw: number, vh: number, amount: num
 
   nodes.cards.forEach((card, index) => {
     const spec = CARDS[index];
-    const open = spec.id === shownId ? amount : 0;
+    const open = spec.id === shownId;
     card.style.width = `${frame.cardW}px`;
     card.style.height = `${frame.cardH}px`;
-    card.style.opacity = String(shownId && spec.id !== shownId ? 1 - 0.3 * amount : 1);
-    card.style.zIndex = open > 0 ? "2" : "1";
-    card.style.boxShadow = open > 0 ? `0 ${47 * s}px ${67.4 * s}px rgba(68,53,15,${0.3 * open})` : "none";
-    pin(card, frame.rowX + index * frame.cardW, frame.rowY - 20 * s * open);
+    card.style.opacity = String(shown && !open ? 1 - 0.3 * nameT : 1);
+    card.style.zIndex = open && nameT > 0 ? "2" : "1";
+    card.style.boxShadow = open ? `0 ${47 * s}px ${67.4 * s}px rgba(68,53,15,${0.3 * nameT})` : "none";
+    pin(card, frame.rowX + index * frame.cardW, frame.rowY - 20 * s * (open ? nameT : 0));
 
     const pad = card.querySelector<HTMLElement>("[data-film='pad']");
     if (pad) pad.style.padding = `${40 * s}px`;
     const detail = card.querySelector<HTMLElement>("[data-film='detail']");
     if (detail) {
+      const rise = open ? nameT : 0;
       detail.style.overflow = "hidden";
-      detail.style.opacity = String(open);
-      detail.style.marginTop = `${16 * s * open}px`;
+      detail.style.opacity = String(open ? lineT : 0);
+      detail.style.marginTop = `${16 * s * rise}px`;
       detail.style.gap = `${16 * s}px`;
-      if (open <= 0) {
+      if (rise <= 0) {
         detail.style.maxHeight = "0px";
       } else {
         detail.style.maxHeight = "none";
         const full = detail.scrollHeight;
-        detail.style.maxHeight = `${full * open}px`;
+        detail.style.maxHeight = `${full * rise}px`;
       }
       const line = detail.querySelector("p");
       if (line) {
@@ -251,17 +279,17 @@ function paint(root: HTMLElement, t: number, vw: number, vh: number, amount: num
       }
     }
     const labels = card.querySelector<HTMLElement>("[data-film='labels']");
-    const chip = spec.detail ? 1 - open : 1;
+    const chipColor = open ? mix(INK_RGB, PAPER_RGB, labelT) : "rgb(7, 14, 24)";
     if (labels) {
       labels.style.fontSize = `${14 * s}px`;
-      labels.style.color = spec.detail && open > 0.5 ? "#070E18" : "#FAF6EC";
+      labels.style.color = open ? mix(PAPER_RGB, INK_RGB, labelT) : "#FAF6EC";
     }
     const year = card.querySelector<HTMLElement>("[data-film='year']");
-    if (year) year.style.backgroundColor = `rgba(7,14,24,${chip})`;
+    if (year) year.style.backgroundColor = chipColor;
     const roles = card.querySelector<HTMLElement>("[data-film='roles']");
     if (roles) {
       roles.style.gap = `${16 * s}px`;
-      roles.style.backgroundColor = `rgba(7,14,24,${chip})`;
+      roles.style.backgroundColor = chipColor;
     }
     const arrow = card.querySelector<HTMLElement>("[data-film='arrow']");
     if (arrow) {
@@ -322,6 +350,12 @@ export function restFilm(root: HTMLElement) {
       detail.style.maxHeight = "none";
       detail.style.marginTop = "16px";
       detail.style.gap = "16px";
+      const labels = card.querySelector<HTMLElement>("[data-film='labels']");
+      if (labels) labels.style.color = "#070E18";
+      const year = card.querySelector<HTMLElement>("[data-film='year']");
+      const roles = card.querySelector<HTMLElement>("[data-film='roles']");
+      if (year) year.style.backgroundColor = "#FAF6EC";
+      if (roles) roles.style.backgroundColor = "#FAF6EC";
     }
   }
 }
