@@ -40,6 +40,10 @@ Reviews use `design/MOTION.md`. That file is the Motion install from Double Dutc
 
 ## Log
 
+### 2026-10-13 — The hover is immediate
+
+The order stays: the name moves up, the line and the mark come in, the chips turn paper and the labels turn ink. Those beats overlap inside the 120ms press, so the card does not wait on a scene duration. Leaving plays the same span backward.
+
 ### 2026-10-13 — The name rises before the line
 
 Frame `227:222`. On hover the name moves up and leaves room. The line and the mark then come in. After that, the ink chips turn paper and the label type turns ink. The rise and the line each take 480ms on the media ease. The label color takes the 200ms chrome snap. Leaving the card plays that order backward.

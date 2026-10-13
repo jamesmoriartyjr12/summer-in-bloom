@@ -7,12 +7,13 @@ import { useEffect, type Ref } from "react";
  * Scroll carries the row in. Frame 227:34 is the rest of every card.
  * Frame 227:222 is the hover and the focus of a card.
  * The name rises, then the line comes in, then the labels change.
- * The rise and the line use the scene duration and the media ease.
- * The labels use the chrome snap and the UI ease. design/MOTION.md.
+ * The whole hover is the 120ms press, so it reads as immediate.
+ * design/MOTION.md.
  */
-const NAME_MS = 480;
-const LINE_MS = 480;
-const LABEL_MS = 200;
+const HOVER_MS = 120;
+const NAME_AT = { start: 0, span: 80 } as const;
+const LINE_AT = { start: 24, span: 76 } as const;
+const LABEL_AT = { start: 48, span: 72 } as const;
 const MEDIA_EASE = [0.22, 1, 0.36, 1] as const;
 const UI_EASE = [0.2, 0.8, 0.2, 1] as const;
 const INK_RGB = [7, 14, 24] as const;
@@ -127,12 +128,8 @@ let focusId: string | null = null;
 let hoverFrom = 0;
 let hoverTo = 0;
 let hoverStart = 0;
-let hoverSpan = NAME_MS + LINE_MS + LABEL_MS;
+let hoverSpan = HOVER_MS;
 let hoverRaf = 0;
-
-function spanFor(id: string | null) {
-  return CARDS.find((card) => card.id === id)?.detail ? NAME_MS + LINE_MS + LABEL_MS : NAME_MS + LABEL_MS;
-}
 
 /** Linear clock. Each beat eases on its own so the order stays name, line, labels. */
 function hoverClock(now = performance.now()) {
@@ -167,7 +164,7 @@ function setHover(id: string | null) {
   } else {
     return;
   }
-  if (id) hoverSpan = spanFor(id);
+  hoverSpan = HOVER_MS;
   hoverStart = now;
   cancelAnimationFrame(hoverRaf);
   const step = (time: number) => {
@@ -228,9 +225,9 @@ function paint(root: HTMLElement, t: number, vw: number, vh: number, clock: numb
   const frame = filmFrame(t, vw, vh);
   const s = frame.cardW / CARD_W;
   const shown = CARDS.find((card) => card.id === shownId);
-  const nameT = shown ? bezier(MEDIA_EASE, beat(clock, 0, NAME_MS)) : 0;
-  const lineT = shown?.detail ? bezier(MEDIA_EASE, beat(clock, NAME_MS, LINE_MS)) : 0;
-  const labelT = shown ? bezier(UI_EASE, beat(clock, shown.detail ? NAME_MS + LINE_MS : NAME_MS, LABEL_MS)) : 0;
+  const nameT = shown ? bezier(MEDIA_EASE, beat(clock, NAME_AT.start, NAME_AT.span)) : 0;
+  const lineT = shown?.detail ? bezier(MEDIA_EASE, beat(clock, LINE_AT.start, LINE_AT.span)) : 0;
+  const labelT = shown ? bezier(UI_EASE, beat(clock, LABEL_AT.start, LABEL_AT.span)) : 0;
   const stage = root.querySelector<HTMLElement>("[data-film='stage']");
   if (stage) {
     stage.style.position = "absolute";
