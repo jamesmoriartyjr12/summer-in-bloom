@@ -16,7 +16,6 @@ const NAME_AT = { start: 0, span: 280 } as const;
 const LINE_AT = { start: 80, span: 320 } as const;
 const WIPE_AT = { start: 0, span: 480 } as const;
 const MEDIA_EASE = [0.22, 1, 0.36, 1] as const;
-const UI_EASE = [0.2, 0.8, 0.2, 1] as const;
 /** Design pixels. A little past punchY so the overshoot is visible. */
 const LINE_FROM = 16;
 const LINE_SPRING = { stiffness: 160, damping: 8, mass: 0.7 } as const;
@@ -211,16 +210,19 @@ function pin(el: HTMLElement, x: number, y: number) {
 
 /** Four cards fit across the screen. The rest of the row is scrolled into view. */
 const VISIBLE = 4;
+/** Room between cards. Four still fill the screen, with this gutter. */
+const CARD_GAP = 24;
 
 /** Cards stay at this size. `t` 0 holds the row off the right. `t` 1 brings the last card in. */
 export function filmFrame(t: number, vw: number, vh: number) {
   const clamped = Math.max(0, Math.min(1, t));
-  const cardW = vw / VISIBLE;
+  const gap = Math.min(CARD_GAP, vw * 0.02);
+  const cardW = (vw - (VISIBLE - 1) * gap) / VISIBLE;
   const cardH = cardW * (CARD_H / CARD_W);
-  const rowW = cardW * CARDS.length;
+  const rowW = cardW * CARDS.length + gap * (CARDS.length - 1);
   const rowX = vw - rowW * clamped;
   const rowY = Math.max(0, (vh - cardH) / 2);
-  return { cardW, cardH, rowX, rowY, rowW };
+  return { cardW, cardH, gap, rowX, rowY, rowW };
 }
 
 /** `t` 0 holds the row off the right. `t` 1 is the row at full viewport width. */
@@ -238,14 +240,16 @@ function paintFaceSolid(face: HTMLElement, color: string) {
   face.style.webkitTextFillColor = color;
 }
 
-function paintChip(chip: HTMLElement, progress: number) {
-  const row = chip.parentElement;
-  const rowBox = row?.getBoundingClientRect();
+/** Left chip, then right chip. The clock runs backward on close, so this retraces. */
+function labelLocal(clock: number, index: number) {
+  const span = WIPE_AT.span / 2;
+  const start = WIPE_AT.start + index * span;
+  return Math.min(1, Math.max(0, (clock * HOVER_MS - start) / span));
+}
+
+function paintChip(chip: HTMLElement, amount: number) {
+  const local = Math.min(1, Math.max(0, amount));
   const chipBox = chip.getBoundingClientRect();
-  const width = rowBox?.width || 1;
-  const start = rowBox ? (chipBox.left - rowBox.left) / width : 0;
-  const end = rowBox ? (chipBox.right - rowBox.left) / width : 1;
-  const local = Math.min(1, Math.max(0, (progress - start) / Math.max(0.001, end - start)));
   const faces = [...chip.querySelectorAll<HTMLElement>("[data-film='face']")];
   chip.style.border = "0";
   chip.style.outline = "none";
@@ -294,7 +298,6 @@ function paint(root: HTMLElement, t: number, vw: number, vh: number, clock: numb
   const shown = CARDS.find((card) => card.id === shownId);
   const nameT = shown ? beat(clock, NAME_AT.start, NAME_AT.span, MEDIA_EASE) : 0;
   const lineT = shown?.detail ? beat(clock, LINE_AT.start, LINE_AT.span, MEDIA_EASE) : 0;
-  const wipeT = shown ? beat(clock, WIPE_AT.start, WIPE_AT.span, UI_EASE) : 0;
   const stage = root.querySelector<HTMLElement>("[data-film='stage']");
   if (stage) {
     stage.style.position = "absolute";
@@ -311,7 +314,7 @@ function paint(root: HTMLElement, t: number, vw: number, vh: number, clock: numb
     card.style.opacity = "1";
     card.style.zIndex = open && nameT > 0 ? "2" : "1";
     card.style.boxShadow = open ? `0 ${47 * s}px ${67.4 * s}px rgba(68,53,15,${0.3 * nameT})` : "none";
-    pin(card, frame.rowX + index * frame.cardW, frame.rowY - 20 * s * (open ? nameT : 0));
+    pin(card, frame.rowX + index * (frame.cardW + frame.gap), frame.rowY - 20 * s * (open ? nameT : 0));
 
     const pad = card.querySelector<HTMLElement>("[data-film='pad']");
     if (pad) pad.style.padding = `${40 * s}px`;
@@ -357,12 +360,12 @@ function paint(root: HTMLElement, t: number, vw: number, vh: number, clock: numb
     if (year) {
       year.style.paddingLeft = chipPad;
       year.style.paddingRight = chipPad;
-      paintChip(year, open ? wipeT : 0);
+      paintChip(year, open ? labelLocal(clock, 0) : 0);
     }
     if (roles) {
       roles.style.paddingLeft = chipPad;
       roles.style.paddingRight = chipPad;
-      paintChip(roles, open ? wipeT : 0);
+      paintChip(roles, open ? labelLocal(clock, 1) : 0);
     }
     const arrow = card.querySelector<HTMLElement>("[data-film='arrow']");
     if (arrow) {
