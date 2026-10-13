@@ -7,19 +7,18 @@ import { useEffect, type Ref } from "react";
  * Scroll carries the row in. Frame 227:34 is the rest of every card.
  * Frame 227:222 is the hover and the focus of a card.
  * The name rises, then the line springs in, and the labels wipe left to right.
- * The rise stays inside the press. The wipe is the chrome snap, stretched
- * just enough to read. The line uses a short spring with a small overshoot.
- * design/MOTION.md.
+ * The wipe is one scene, on one layer of type, so the chip does not leave an edge.
+ * The line spring is slow enough for the overshoot to read. design/MOTION.md.
  */
-const HOVER_MS = 260;
-const NAME_AT = { start: 0, span: 80 } as const;
-const LINE_AT = { start: 20, span: 70 } as const;
-const WIPE_AT = { start: 0, span: 260 } as const;
+const HOVER_MS = 560;
+const NAME_AT = { start: 0, span: 280 } as const;
+const LINE_AT = { start: 80, span: 320 } as const;
+const WIPE_AT = { start: 0, span: 480 } as const;
 const MEDIA_EASE = [0.22, 1, 0.36, 1] as const;
 const UI_EASE = [0.2, 0.8, 0.2, 1] as const;
 /** Design pixels. A little past punchY so the overshoot is visible. */
 const LINE_FROM = 16;
-const LINE_SPRING = { stiffness: 420, damping: 12, mass: 0.55 } as const;
+const LINE_SPRING = { stiffness: 160, damping: 8, mass: 0.7 } as const;
 
 const CARD_W = 476;
 const CARD_H = 740;
@@ -246,17 +245,27 @@ export function placeFilm(root: HTMLElement, t: number, vw: number, vh: number) 
   paint(root, t, vw, vh, hoverClock());
 }
 
-function reveal(overlay: HTMLElement, progress: number) {
-  const chip = overlay.parentElement;
-  const row = chip?.parentElement;
-  if (!chip || !row) return;
-  const rowBox = row.getBoundingClientRect();
+function paintChip(chip: HTMLElement, progress: number) {
+  const row = chip.parentElement;
+  const rowBox = row?.getBoundingClientRect();
   const chipBox = chip.getBoundingClientRect();
-  const width = rowBox.width || 1;
-  const start = (chipBox.left - rowBox.left) / width;
-  const end = (chipBox.right - rowBox.left) / width;
+  const width = rowBox?.width || 1;
+  const start = rowBox ? (chipBox.left - rowBox.left) / width : 0;
+  const end = rowBox ? (chipBox.right - rowBox.left) / width : 1;
   const local = Math.min(1, Math.max(0, (progress - start) / Math.max(0.001, end - start)));
-  overlay.style.clipPath = `inset(0 ${(1 - local) * 100}% 0 0)`;
+  const at = `${local * 100}%`;
+  chip.style.backgroundImage = `linear-gradient(90deg, #FAF6EC ${at}, #070E18 ${at})`;
+  chip.querySelectorAll<HTMLElement>("[data-film='face']").forEach((face) => {
+    const box = face.getBoundingClientRect();
+    face.style.backgroundImage = `linear-gradient(90deg, #070E18 ${at}, #FAF6EC ${at})`;
+    face.style.backgroundSize = `${chipBox.width}px 100%`;
+    face.style.backgroundRepeat = "no-repeat";
+    face.style.backgroundPosition = `${-(box.left - chipBox.left)}px 0`;
+    face.style.webkitBackgroundClip = "text";
+    face.style.backgroundClip = "text";
+    face.style.color = "transparent";
+    face.style.webkitTextFillColor = "transparent";
+  });
 }
 
 function paint(root: HTMLElement, t: number, vw: number, vh: number, clock: number) {
@@ -326,10 +335,9 @@ function paint(root: HTMLElement, t: number, vw: number, vh: number, clock: numb
     }
     const roles = card.querySelector<HTMLElement>("[data-film='roles']");
     if (roles) roles.style.gap = `${16 * s}px`;
-    card.querySelectorAll<HTMLElement>("[data-film='wipe']").forEach((wipe) => {
-      if (wipe.parentElement === roles) wipe.style.gap = `${16 * s}px`;
-      reveal(wipe, open ? wipeT : 0);
-    });
+    const year = card.querySelector<HTMLElement>("[data-film='year']");
+    if (year) paintChip(year, open ? wipeT : 0);
+    if (roles) paintChip(roles, open ? wipeT : 0);
     const arrow = card.querySelector<HTMLElement>("[data-film='arrow']");
     if (arrow) {
       arrow.style.left = `${387 * s}px`;
@@ -394,8 +402,16 @@ export function restFilm(root: HTMLElement) {
       detail.style.gap = "16px";
       const line = detail.querySelector("p");
       if (line) line.style.transform = "none";
-      card.querySelectorAll<HTMLElement>("[data-film='wipe']").forEach((wipe) => {
-        wipe.style.clipPath = "none";
+      card.querySelectorAll<HTMLElement>("[data-film='year'], [data-film='roles']").forEach((chip) => {
+        chip.style.backgroundImage = "none";
+        chip.style.backgroundColor = "#FAF6EC";
+        chip.querySelectorAll<HTMLElement>("[data-film='face']").forEach((face) => {
+          face.style.backgroundImage = "none";
+          face.style.backgroundClip = "border-box";
+          face.style.webkitBackgroundClip = "border-box";
+          face.style.color = "#070E18";
+          face.style.webkitTextFillColor = "#070E18";
+        });
       });
     }
   }
@@ -463,21 +479,15 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
                   className="flex items-start justify-between font-normal uppercase leading-[1.4] text-[#FAF6EC]"
                   style={{ fontFamily: MONO }}
                 >
-                  <span data-film="year" className="relative bg-[#070E18]">
-                    {card.year}
-                    <span data-film="wipe" aria-hidden className="absolute inset-0 bg-[#FAF6EC] text-[#070E18] [clip-path:inset(0_100%_0_0)]">
-                      {card.year}
-                    </span>
+                  <span data-film="year" className="bg-[#070E18]">
+                    <span data-film="face">{card.year}</span>
                   </span>
-                  <span data-film="roles" className="relative flex bg-[#070E18]">
+                  <span data-film="roles" className="flex bg-[#070E18]">
                     {card.roles.map((role) => (
-                      <span key={role}>{role}</span>
+                      <span key={role} data-film="face">
+                        {role}
+                      </span>
                     ))}
-                    <span data-film="wipe" aria-hidden className="absolute inset-0 flex bg-[#FAF6EC] text-[#070E18] [clip-path:inset(0_100%_0_0)]">
-                      {card.roles.map((role) => (
-                        <span key={role}>{role}</span>
-                      ))}
-                    </span>
                   </span>
                 </div>
                 <div data-film="stack" className="flex flex-col items-start">

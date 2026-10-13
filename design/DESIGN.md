@@ -40,6 +40,10 @@ Reviews use `design/MOTION.md`. That file is the Motion install from Double Dutc
 
 ## Log
 
+### 2026-10-13 — The wipe has one layer of type
+
+The label change is a single line of type. The chip and the letters swap along the same edge, so the black chip does not outline the white one. The wipe takes the 480ms scene. The line spring is slower, so the small overshoot has time to settle.
+
 ### 2026-10-13 — The labels wipe, and the line springs
 
 The hover stays quick. The label chips wipe from left to right: paper type on ink becomes ink type on paper. The year finishes before the roles, because the wipe crosses the row. The line under the name springs in from 16px with a small overshoot, then settles. Leaving plays the wipe backward and springs the line back out.
