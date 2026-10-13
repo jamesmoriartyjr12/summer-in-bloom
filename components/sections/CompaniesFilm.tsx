@@ -48,7 +48,15 @@ const ROW: Card[] = [
   { id: "feno", name: "Feno", stage: "Seed", category: "Longevity", image: "/companies/feno.png", ink: true },
   { id: "milly", name: "Milly", stage: "Seed", category: "Fintech", image: "/companies/milly.jpg", ink: true },
   { id: "tee", name: "TeeCommerce", stage: "Acquired", category: "Commerce", image: shot("TeeCommerce_Large.png"), ink: false },
-  { id: "outer", name: "OuterProduct", stage: "Seed", category: "Deeptech", image: shot("OuterProduct_Large.png"), ink: false },
+  {
+    id: "outer",
+    name: "OuterProduct",
+    stage: "Seed",
+    category: "Deeptech",
+    image: "/companies/outerproduct.jpg",
+    crop: { height: "100%", width: "285.01%", left: "-92.51%", top: "0" },
+    ink: false,
+  },
   { id: "fanfix", name: "FanFix", stage: "Growth", category: "Creator", image: shot("FanFix_Large.png"), ink: false },
 ];
 

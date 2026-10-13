@@ -40,6 +40,10 @@ Reviews use `design/MOTION.md`. That file is the Motion install from Double Dutc
 
 ## Log
 
+### 2026-10-13 — OuterProduct’s photograph
+
+The card uses the marble still from frame `311:445`, cropped the way that frame crops it. The name stays paper on the dark ground.
+
 ### 2026-10-13 — The lines under the names are gone
 
 A card shows the photograph, the stage, the category, and the name. The one-line placeholder does not come in on hover.
