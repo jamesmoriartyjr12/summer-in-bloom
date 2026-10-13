@@ -245,6 +245,14 @@ export function placeFilm(root: HTMLElement, t: number, vw: number, vh: number) 
   paint(root, t, vw, vh, hoverClock());
 }
 
+function paintFaceSolid(face: HTMLElement, color: string) {
+  face.style.backgroundImage = "none";
+  face.style.backgroundClip = "border-box";
+  face.style.webkitBackgroundClip = "border-box";
+  face.style.color = color;
+  face.style.webkitTextFillColor = color;
+}
+
 function paintChip(chip: HTMLElement, progress: number) {
   const row = chip.parentElement;
   const rowBox = row?.getBoundingClientRect();
@@ -253,9 +261,23 @@ function paintChip(chip: HTMLElement, progress: number) {
   const start = rowBox ? (chipBox.left - rowBox.left) / width : 0;
   const end = rowBox ? (chipBox.right - rowBox.left) / width : 1;
   const local = Math.min(1, Math.max(0, (progress - start) / Math.max(0.001, end - start)));
+  const faces = [...chip.querySelectorAll<HTMLElement>("[data-film='face']")];
+  if (local <= 0) {
+    chip.style.backgroundImage = "none";
+    chip.style.backgroundColor = "#070E18";
+    faces.forEach((face) => paintFaceSolid(face, "#FAF6EC"));
+    return;
+  }
+  if (local >= 1) {
+    chip.style.backgroundImage = "none";
+    chip.style.backgroundColor = "#FAF6EC";
+    faces.forEach((face) => paintFaceSolid(face, "#070E18"));
+    return;
+  }
   const at = `${local * 100}%`;
+  chip.style.backgroundColor = "#070E18";
   chip.style.backgroundImage = `linear-gradient(90deg, #FAF6EC ${at}, #070E18 ${at})`;
-  chip.querySelectorAll<HTMLElement>("[data-film='face']").forEach((face) => {
+  faces.forEach((face) => {
     const box = face.getBoundingClientRect();
     face.style.backgroundImage = `linear-gradient(90deg, #070E18 ${at}, #FAF6EC ${at})`;
     face.style.backgroundSize = `${chipBox.width}px 100%`;

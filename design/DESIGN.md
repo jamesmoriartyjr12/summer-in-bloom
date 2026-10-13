@@ -40,6 +40,10 @@ Reviews use `design/MOTION.md`. That file is the Motion install from Double Dutc
 
 ## Log
 
+### 2026-10-13 — A white chip has no edge
+
+Once a label has wiped to paper, the fill is a solid chip. The ink stop is gone, so it does not leave a stroke around the white.
+
 ### 2026-10-13 — A resting card stays solid
 
 Hover and focus open one card. The cards that are not open keep their opacity. They do not ease back.
