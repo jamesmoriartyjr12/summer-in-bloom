@@ -88,100 +88,131 @@ type FilmPose = { root: HTMLElement; t: number; vw: number; vh: number };
 
 let live = false;
 let pose: FilmPose | null = null;
-let shownId: string | null = null;
 let pointerId: string | null = null;
 let focusId: string | null = null;
-let hoverFrom = 0;
-let hoverTo = 0;
-let hoverStart = 0;
-let hoverSpan = HOVER_MS;
 let hoverRaf = 0;
-let lineY = LINE_FROM;
-let lineV = 0;
-let lineTarget = LINE_FROM;
-let springAt = 0;
 
-function lineSettled() {
-  return Math.abs(lineY - lineTarget) < 0.2 && Math.abs(lineV) < 0.2;
+/** One clock per card, so leaving for the next card still plays the close. */
+type CardRun = {
+  from: number;
+  to: number;
+  start: number;
+  span: number;
+  lineY: number;
+  lineV: number;
+  lineTarget: number;
+  springAt: number;
+};
+
+const runs = new Map<string, CardRun>();
+
+function restRun(): CardRun {
+  return { from: 0, to: 0, start: 0, span: HOVER_MS, lineY: LINE_FROM, lineV: 0, lineTarget: LINE_FROM, springAt: 0 };
 }
 
-function stepLine(now: number) {
-  if (lineSettled()) {
-    lineY = lineTarget;
-    lineV = 0;
-    springAt = now;
+function runFor(id: string) {
+  let run = runs.get(id);
+  if (!run) {
+    run = restRun();
+    runs.set(id, run);
+  }
+  return run;
+}
+
+function lineSettled(run: CardRun) {
+  return Math.abs(run.lineY - run.lineTarget) < 0.2 && Math.abs(run.lineV) < 0.2;
+}
+
+function stepLine(run: CardRun, now: number) {
+  if (lineSettled(run)) {
+    run.lineY = run.lineTarget;
+    run.lineV = 0;
+    run.springAt = now;
     return;
   }
-  const dt = springAt ? Math.min(0.032, (now - springAt) / 1000) : 0.016;
-  springAt = now;
+  const dt = run.springAt ? Math.min(0.032, (now - run.springAt) / 1000) : 0.016;
+  run.springAt = now;
   const { stiffness, damping, mass } = LINE_SPRING;
-  lineV += ((-stiffness * (lineY - lineTarget) - damping * lineV) / mass) * dt;
-  lineY += lineV * dt;
+  run.lineV += ((-stiffness * (run.lineY - run.lineTarget) - damping * run.lineV) / mass) * dt;
+  run.lineY += run.lineV * dt;
 }
 
 /** Linear clock, 0 at rest and 1 open. Leaving runs the same span backward. */
-function hoverClock(now = performance.now()) {
-  const p = Math.min(1, (now - hoverStart) / hoverSpan);
-  return hoverFrom + (hoverTo - hoverFrom) * p;
+function clockOf(run: CardRun, now: number) {
+  const p = Math.min(1, (now - run.start) / run.span);
+  return run.from + (run.to - run.from) * p;
 }
 
 /** Ease the beat in the direction of travel, so the close is as readable as the open. */
-function beat(clock: number, start: number, span: number, ease: readonly [number, number, number, number]) {
+function beat(run: CardRun, clock: number, start: number, span: number, ease: readonly [number, number, number, number]) {
   const local = Math.min(1, Math.max(0, (clock * HOVER_MS - start) / span));
-  if (hoverTo < hoverFrom) return 1 - bezier(ease, 1 - local);
+  if (run.to < run.from) return 1 - bezier(ease, 1 - local);
   return bezier(ease, local);
+}
+
+function runBusy(run: CardRun, now: number) {
+  const clock = clockOf(run, now);
+  const moving = run.to === 1 ? clock < 0.999 : clock > 0.001;
+  return moving || !lineSettled(run);
 }
 
 function paintPose(now?: number) {
   if (!live || !pose) return;
-  paint(pose.root, pose.t, pose.vw, pose.vh, hoverClock(now));
+  paint(pose.root, pose.t, pose.vw, pose.vh, now ?? performance.now());
 }
 
 function activeId() {
   return pointerId ?? focusId;
 }
 
-function setHover(id: string | null) {
-  if (!live) return;
-  const now = performance.now();
-  if (id && (id !== shownId || hoverTo === 0)) {
-    const card = CARDS.find((item) => item.id === id);
-    if (id !== shownId) {
-      shownId = id;
-      hoverFrom = 0;
-      hoverTo = 1;
-      if (card?.detail) {
-        lineTarget = 0;
-        lineY = LINE_FROM;
-        lineV = 0;
-        springAt = now;
-      }
-    } else {
-      hoverFrom = hoverClock(now);
-      hoverTo = 1;
-      if (card?.detail) lineTarget = 0;
-    }
-  } else if (!id) {
-    if (hoverTo === 0) return;
-    hoverFrom = hoverClock(now);
-    hoverTo = 0;
-    lineTarget = LINE_FROM;
-  } else {
-    return;
-  }
-  hoverSpan = HOVER_MS;
-  hoverStart = now;
+function kick() {
   cancelAnimationFrame(hoverRaf);
   const step = (time: number) => {
     paintPose(time);
-    const closingDone = hoverTo === 0 && time - hoverStart >= hoverSpan && lineSettled();
-    if (closingDone) {
-      shownId = null;
-      return;
+    let busy = false;
+    for (const run of runs.values()) {
+      if (runBusy(run, time)) busy = true;
     }
-    if (time - hoverStart < hoverSpan || !lineSettled()) hoverRaf = requestAnimationFrame(step);
+    if (busy) hoverRaf = requestAnimationFrame(step);
   };
   hoverRaf = requestAnimationFrame(step);
+}
+
+function setHover(id: string | null) {
+  if (!live) return;
+  const now = performance.now();
+  for (const [cardId, run] of runs) {
+    if (cardId === id) continue;
+    const clock = clockOf(run, now);
+    if (run.to === 0 && clock <= 0.001) continue;
+    if (run.to === 0) continue;
+    run.from = clock;
+    run.to = 0;
+    run.start = now;
+    run.span = HOVER_MS;
+    run.lineTarget = LINE_FROM;
+  }
+  if (id) {
+    const run = runFor(id);
+    const clock = clockOf(run, now);
+    if (!(run.to === 1 && clock > 0.001)) {
+      const card = CARDS.find((item) => item.id === id);
+      const atRest = clock <= 0.001;
+      run.from = atRest ? 0 : clock;
+      run.to = 1;
+      run.start = now;
+      run.span = HOVER_MS;
+      if (card?.detail) {
+        run.lineTarget = 0;
+        if (atRest) {
+          run.lineY = LINE_FROM;
+          run.lineV = 0;
+          run.springAt = now;
+        }
+      }
+    }
+  }
+  kick();
 }
 
 type FilmNodes = {
@@ -229,7 +260,7 @@ export function filmFrame(t: number, vw: number, vh: number) {
 export function placeFilm(root: HTMLElement, t: number, vw: number, vh: number) {
   live = true;
   pose = { root, t, vw, vh };
-  paint(root, t, vw, vh, hoverClock());
+  paint(root, t, vw, vh, performance.now());
 }
 
 function paintFaceSolid(face: HTMLElement, color: string) {
@@ -289,15 +320,11 @@ function paintChip(chip: HTMLElement, amount: number) {
   });
 }
 
-function paint(root: HTMLElement, t: number, vw: number, vh: number, clock: number) {
+function paint(root: HTMLElement, t: number, vw: number, vh: number, now: number) {
   const nodes = readNodes(root);
   if (!nodes) return;
-  stepLine(performance.now());
   const frame = filmFrame(t, vw, vh);
   const s = frame.cardW / CARD_W;
-  const shown = CARDS.find((card) => card.id === shownId);
-  const nameT = shown ? beat(clock, NAME_AT.start, NAME_AT.span, MEDIA_EASE) : 0;
-  const lineT = shown?.detail ? beat(clock, LINE_AT.start, LINE_AT.span, MEDIA_EASE) : 0;
   const stage = root.querySelector<HTMLElement>("[data-film='stage']");
   if (stage) {
     stage.style.position = "absolute";
@@ -308,21 +335,27 @@ function paint(root: HTMLElement, t: number, vw: number, vh: number, clock: numb
 
   nodes.cards.forEach((card, index) => {
     const spec = CARDS[index];
-    const open = spec.id === shownId;
+    const run = runs.get(spec.id);
+    const clock = run ? clockOf(run, now) : 0;
+    if (run) stepLine(run, now);
+    const moving = clock > 0.001;
+    const nameT = run && moving ? beat(run, clock, NAME_AT.start, NAME_AT.span, MEDIA_EASE) : 0;
+    const lineT = run && spec.detail && moving ? beat(run, clock, LINE_AT.start, LINE_AT.span, MEDIA_EASE) : 0;
+    const lineY = run ? run.lineY : LINE_FROM;
     card.style.width = `${frame.cardW}px`;
     card.style.height = `${frame.cardH}px`;
     card.style.opacity = "1";
-    card.style.zIndex = open && nameT > 0 ? "2" : "1";
-    card.style.boxShadow = open ? `0 ${47 * s}px ${67.4 * s}px rgba(68,53,15,${0.3 * nameT})` : "none";
-    pin(card, frame.rowX + index * (frame.cardW + frame.gap), frame.rowY - 20 * s * (open ? nameT : 0));
+    card.style.zIndex = run && run.to === 1 ? "2" : "1";
+    card.style.boxShadow = moving ? `0 ${47 * s}px ${67.4 * s}px rgba(68,53,15,${0.3 * nameT})` : "none";
+    pin(card, frame.rowX + index * (frame.cardW + frame.gap), frame.rowY - 20 * s * nameT);
 
     const pad = card.querySelector<HTMLElement>("[data-film='pad']");
     if (pad) pad.style.padding = `${40 * s}px`;
     const detail = card.querySelector<HTMLElement>("[data-film='detail']");
     if (detail) {
-      const rise = open ? nameT : 0;
+      const rise = nameT;
       detail.style.overflow = "visible";
-      detail.style.opacity = String(open ? lineT : 0);
+      detail.style.opacity = String(lineT);
       detail.style.marginTop = `${16 * s * rise}px`;
       detail.style.gap = `${16 * s}px`;
       if (rise <= 0) {
@@ -340,7 +373,7 @@ function paint(root: HTMLElement, t: number, vw: number, vh: number, clock: numb
         line.style.color = spec.ink ? "#070F18" : "#FAF6EC";
         line.style.transformOrigin = "left center";
         const stretch = 1 - (lineY / LINE_FROM) * 0.06;
-        line.style.transform = open ? `translate3d(0, ${lineY * s}px, 0) scale(${stretch})` : "none";
+        line.style.transform = moving ? `translate3d(0, ${lineY * s}px, 0) scale(${stretch})` : "none";
       }
       const mark = detail.querySelector("img");
       if (mark) {
@@ -360,12 +393,12 @@ function paint(root: HTMLElement, t: number, vw: number, vh: number, clock: numb
     if (year) {
       year.style.paddingLeft = chipPad;
       year.style.paddingRight = chipPad;
-      paintChip(year, open ? labelLocal(clock, 0) : 0);
+      paintChip(year, moving ? labelLocal(clock, 0) : 0);
     }
     if (roles) {
       roles.style.paddingLeft = chipPad;
       roles.style.paddingRight = chipPad;
-      paintChip(roles, open ? labelLocal(clock, 1) : 0);
+      paintChip(roles, moving ? labelLocal(clock, 1) : 0);
     }
     const arrow = card.querySelector<HTMLElement>("[data-film='arrow']");
     if (arrow) {
@@ -389,9 +422,7 @@ export function restFilm(root: HTMLElement) {
   live = false;
   pointerId = null;
   focusId = null;
-  lineY = LINE_FROM;
-  lineV = 0;
-  lineTarget = LINE_FROM;
+  runs.clear();
   cancelAnimationFrame(hoverRaf);
   const nodes = readNodes(root);
   if (!nodes) return;

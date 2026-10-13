@@ -40,6 +40,10 @@ Reviews use `design/MOTION.md`. That file is the Motion install from Double Dutc
 
 ## Log
 
+### 2026-10-13 — The close follows the card you leave
+
+Moving from one card to the next plays the same reverse as leaving the row. The card you left returns its labels to ink while the next card opens.
+
 ### 2026-10-13 — Space between the cards
 
 Four cards still fill the screen. Each one has 24px of the ground between it and the next.
