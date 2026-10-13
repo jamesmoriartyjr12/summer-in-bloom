@@ -6,19 +6,14 @@ import { useEffect, type Ref } from "react";
  * Frames 187:181 and 210:404, on a 1920×1080 stage.
  * Scroll carries the row in. Frame 227:34 is the rest of every card.
  * Frame 227:222 is the hover and the focus of a card.
- * The name rises, then the line springs in, and the labels wipe left to right.
+ * The card lifts, and the labels wipe left to right.
  * Leaving plays that scene backward over the same span.
  * The wipe is one scene, on one layer of type. Paper sits under a white chip, so the ink cannot edge it.
- * The line spring is slow enough for the overshoot to read. design/MOTION.md.
  */
 const HOVER_MS = 560;
 const NAME_AT = { start: 0, span: 280 } as const;
-const LINE_AT = { start: 80, span: 320 } as const;
 const WIPE_AT = { start: 0, span: 480 } as const;
 const MEDIA_EASE = [0.22, 1, 0.36, 1] as const;
-/** Design pixels. A little past punchY so the overshoot is visible. */
-const LINE_FROM = 16;
-const LINE_SPRING = { stiffness: 160, damping: 8, mass: 0.7 } as const;
 
 const CARD_W = 476;
 const CARD_H = 740;
@@ -32,16 +27,15 @@ type Card = {
   /** Frame 227:222. The photograph sits up and slightly wide of the card. */
   crop?: { height: string; width: string; left: string; top: string };
   ink: boolean;
-  detail?: string;
 };
 
 const shot = (file: string) => `/Bloom%20Portfolio%20Images/${file}`;
 
 const ROW: Card[] = [
-  { id: "orion", name: "Orion", stage: "Seed", category: "Longevity", image: "/companies/orion.png", ink: false, detail: "An AI sleep system for deeper nights." },
-  { id: "jamie", name: "Jamie Ai", stage: "Seed", category: "Creator", image: shot("Jamie_Large.png"), ink: false, detail: "Audience data, turned into content worth making." },
-  { id: "meridian", name: "Meridian", stage: "Seed", category: "Payments", image: shot("Meridian_Large.png"), ink: false, detail: "Instant payments for banks, wallets, and neobanks." },
-  { id: "sunny", name: "Sunny Benefits", stage: "Series A", category: "Fintech", image: shot("Sunny_Large.png"), ink: false, detail: "Every health benefit, in one member experience." },
+  { id: "orion", name: "Orion", stage: "Seed", category: "Longevity", image: "/companies/orion.png", ink: false },
+  { id: "jamie", name: "Jamie Ai", stage: "Seed", category: "Creator", image: shot("Jamie_Large.png"), ink: false },
+  { id: "meridian", name: "Meridian", stage: "Seed", category: "Payments", image: shot("Meridian_Large.png"), ink: false },
+  { id: "sunny", name: "Sunny Benefits", stage: "Series A", category: "Fintech", image: shot("Sunny_Large.png"), ink: false },
   {
     id: "collectible",
     name: "Collectible",
@@ -50,13 +44,12 @@ const ROW: Card[] = [
     image: "/companies/watchcheck.png",
     crop: { height: "119.75%", width: "129.98%", left: "-0.02%", top: "-19.75%" },
     ink: false,
-    detail: "The service layer for luxury watches.",
   },
-  { id: "feno", name: "Feno", stage: "Seed", category: "Longevity", image: "/companies/feno.png", ink: true, detail: "Preventative dental care, powered by AI." },
-  { id: "milly", name: "Milly", stage: "Seed", category: "Fintech", image: "/companies/milly.jpg", ink: true, detail: "Where insurance agencies change hands." },
-  { id: "tee", name: "TeeCommerce", stage: "Acquired", category: "Commerce", image: shot("TeeCommerce_Large.png"), ink: false, detail: "Pro shops for the clubs that set the standard." },
-  { id: "outer", name: "OuterProduct", stage: "Seed", category: "Deeptech", image: shot("OuterProduct_Large.png"), ink: false, detail: "Any dataset, turned into a decision." },
-  { id: "fanfix", name: "FanFix", stage: "Growth", category: "Creator", image: shot("FanFix_Large.png"), ink: false, detail: "Creators get paid for exclusive access." },
+  { id: "feno", name: "Feno", stage: "Seed", category: "Longevity", image: "/companies/feno.png", ink: true },
+  { id: "milly", name: "Milly", stage: "Seed", category: "Fintech", image: "/companies/milly.jpg", ink: true },
+  { id: "tee", name: "TeeCommerce", stage: "Acquired", category: "Commerce", image: shot("TeeCommerce_Large.png"), ink: false },
+  { id: "outer", name: "OuterProduct", stage: "Seed", category: "Deeptech", image: shot("OuterProduct_Large.png"), ink: false },
+  { id: "fanfix", name: "FanFix", stage: "Growth", category: "Creator", image: shot("FanFix_Large.png"), ink: false },
 ];
 
 const CARDS: Card[] = ROW;
@@ -98,16 +91,12 @@ type CardRun = {
   to: number;
   start: number;
   span: number;
-  lineY: number;
-  lineV: number;
-  lineTarget: number;
-  springAt: number;
 };
 
 const runs = new Map<string, CardRun>();
 
 function restRun(): CardRun {
-  return { from: 0, to: 0, start: 0, span: HOVER_MS, lineY: LINE_FROM, lineV: 0, lineTarget: LINE_FROM, springAt: 0 };
+  return { from: 0, to: 0, start: 0, span: HOVER_MS };
 }
 
 function runFor(id: string) {
@@ -117,24 +106,6 @@ function runFor(id: string) {
     runs.set(id, run);
   }
   return run;
-}
-
-function lineSettled(run: CardRun) {
-  return Math.abs(run.lineY - run.lineTarget) < 0.2 && Math.abs(run.lineV) < 0.2;
-}
-
-function stepLine(run: CardRun, now: number) {
-  if (lineSettled(run)) {
-    run.lineY = run.lineTarget;
-    run.lineV = 0;
-    run.springAt = now;
-    return;
-  }
-  const dt = run.springAt ? Math.min(0.032, (now - run.springAt) / 1000) : 0.016;
-  run.springAt = now;
-  const { stiffness, damping, mass } = LINE_SPRING;
-  run.lineV += ((-stiffness * (run.lineY - run.lineTarget) - damping * run.lineV) / mass) * dt;
-  run.lineY += run.lineV * dt;
 }
 
 /** Linear clock, 0 at rest and 1 open. Leaving runs the same span backward. */
@@ -152,8 +123,7 @@ function beat(run: CardRun, clock: number, start: number, span: number, ease: re
 
 function runBusy(run: CardRun, now: number) {
   const clock = clockOf(run, now);
-  const moving = run.to === 1 ? clock < 0.999 : clock > 0.001;
-  return moving || !lineSettled(run);
+  return run.to === 1 ? clock < 0.999 : clock > 0.001;
 }
 
 function paintPose(now?: number) {
@@ -190,26 +160,16 @@ function setHover(id: string | null) {
     run.to = 0;
     run.start = now;
     run.span = HOVER_MS;
-    run.lineTarget = LINE_FROM;
   }
   if (id) {
     const run = runFor(id);
     const clock = clockOf(run, now);
     if (!(run.to === 1 && clock > 0.001)) {
-      const card = CARDS.find((item) => item.id === id);
       const atRest = clock <= 0.001;
       run.from = atRest ? 0 : clock;
       run.to = 1;
       run.start = now;
       run.span = HOVER_MS;
-      if (card?.detail) {
-        run.lineTarget = 0;
-        if (atRest) {
-          run.lineY = LINE_FROM;
-          run.lineV = 0;
-          run.springAt = now;
-        }
-      }
     }
   }
   kick();
@@ -337,11 +297,8 @@ function paint(root: HTMLElement, t: number, vw: number, vh: number, now: number
     const spec = CARDS[index];
     const run = runs.get(spec.id);
     const clock = run ? clockOf(run, now) : 0;
-    if (run) stepLine(run, now);
     const moving = clock > 0.001;
     const nameT = run && moving ? beat(run, clock, NAME_AT.start, NAME_AT.span, MEDIA_EASE) : 0;
-    const lineT = run && spec.detail && moving ? beat(run, clock, LINE_AT.start, LINE_AT.span, MEDIA_EASE) : 0;
-    const lineY = run ? run.lineY : LINE_FROM;
     card.style.width = `${frame.cardW}px`;
     card.style.height = `${frame.cardH}px`;
     card.style.opacity = "1";
@@ -351,36 +308,6 @@ function paint(root: HTMLElement, t: number, vw: number, vh: number, now: number
 
     const pad = card.querySelector<HTMLElement>("[data-film='pad']");
     if (pad) pad.style.padding = `${40 * s}px`;
-    const detail = card.querySelector<HTMLElement>("[data-film='detail']");
-    if (detail) {
-      const rise = nameT;
-      detail.style.overflow = "visible";
-      detail.style.opacity = String(lineT);
-      detail.style.marginTop = `${16 * s * rise}px`;
-      detail.style.gap = `${16 * s}px`;
-      if (rise <= 0) {
-        detail.style.maxHeight = "0px";
-      } else {
-        detail.style.maxHeight = "none";
-        const full = detail.scrollHeight;
-        detail.style.maxHeight = `${full * rise}px`;
-      }
-      const line = detail.querySelector("p");
-      if (line) {
-        line.style.fontSize = `${16 * s}px`;
-        line.style.width = `${396 * s}px`;
-        line.style.lineHeight = "1";
-        line.style.color = spec.ink ? "#070F18" : "#FAF6EC";
-        line.style.transformOrigin = "left center";
-        const stretch = 1 - (lineY / LINE_FROM) * 0.06;
-        line.style.transform = moving ? `translate3d(0, ${lineY * s}px, 0) scale(${stretch})` : "none";
-      }
-      const mark = detail.querySelector("img");
-      if (mark) {
-        mark.style.width = `${23 * s}px`;
-        mark.style.height = `${23 * s}px`;
-      }
-    }
     const labels = card.querySelector<HTMLElement>("[data-film='labels']");
     if (labels) {
       labels.style.fontSize = `${14 * s}px`;
@@ -454,26 +381,17 @@ export function restFilm(root: HTMLElement) {
     card.style.width = "min(476px, 100%)";
     card.style.height = "auto";
     card.style.aspectRatio = "476 / 740";
-    const detail = card.querySelector<HTMLElement>("[data-film='detail']");
-    if (detail) {
-      detail.style.opacity = "1";
-      detail.style.maxHeight = "none";
-      detail.style.marginTop = "16px";
-      detail.style.gap = "16px";
-      const line = detail.querySelector("p");
-      if (line) line.style.transform = "none";
-      card.querySelectorAll<HTMLElement>("[data-film='year'], [data-film='roles']").forEach((chip) => {
-        chip.style.backgroundImage = "none";
-        chip.style.backgroundColor = "#FAF6EC";
-        chip.querySelectorAll<HTMLElement>("[data-film='face']").forEach((face) => {
-          face.style.backgroundImage = "none";
-          face.style.backgroundClip = "border-box";
-          face.style.webkitBackgroundClip = "border-box";
-          face.style.color = "#070E18";
-          face.style.webkitTextFillColor = "#070E18";
-        });
+    card.querySelectorAll<HTMLElement>("[data-film='year'], [data-film='roles']").forEach((chip) => {
+      chip.style.backgroundImage = "none";
+      chip.style.backgroundColor = "#FAF6EC";
+      chip.querySelectorAll<HTMLElement>("[data-film='face']").forEach((face) => {
+        face.style.backgroundImage = "none";
+        face.style.backgroundClip = "border-box";
+        face.style.webkitBackgroundClip = "border-box";
+        face.style.color = "#070E18";
+        face.style.webkitTextFillColor = "#070E18";
       });
-    }
+    });
   }
 }
 
@@ -550,13 +468,6 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
                   <p data-film="name" className="leading-none" style={{ fontFamily: SANS, fontSize: 48, color: card.ink ? "#070F18" : "#FAF6EC" }}>
                     {card.name}
                   </p>
-                  {card.detail ? (
-                    <div data-film="detail" className="flex max-h-0 flex-col items-start opacity-0">
-                      <p className="leading-none" style={{ fontFamily: SANS, color: card.ink ? "#070F18" : "#FAF6EC" }}>
-                        {card.detail}
-                      </p>
-                    </div>
-                  ) : null}
                 </div>
               </div>
             </article>
