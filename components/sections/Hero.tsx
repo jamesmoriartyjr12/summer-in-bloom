@@ -103,12 +103,11 @@ const INK = "#070F18";
  */
 const LINE_SCROLL_VH = 322;
 const HANDOFF_VH = 48;
-/** `companies.` reaches its rest, the line under it arrives, both leave, then the first card. */
+/** `companies.` reaches its rest, the line under it arrives, then that line leaves as the cards scroll in. */
 const WORD_SCROLL_VH = 160;
 const SUBTEXT_SCROLL_VH = 100;
 const EXIT_SCROLL_VH = 100;
 const CARD_SCROLL_VH = 220;
-const CARD_INTRO_VH = 40;
 const FILM_SCROLL_VH = WORD_SCROLL_VH + SUBTEXT_SCROLL_VH + EXIT_SCROLL_VH + CARD_SCROLL_VH;
 const SCROLLABLE_VH = LINE_SCROLL_VH + FILM_SCROLL_VH;
 const TRACK_VH = SCROLLABLE_VH + 100;
@@ -117,7 +116,6 @@ const HANDOFF_PORTION = (LINE_SCROLL_VH + HANDOFF_VH) / SCROLLABLE_VH;
 const WORD_AT = WORD_SCROLL_VH / FILM_SCROLL_VH;
 const SUBTEXT_AT = (WORD_SCROLL_VH + SUBTEXT_SCROLL_VH) / FILM_SCROLL_VH;
 const EXIT_AT = (WORD_SCROLL_VH + SUBTEXT_SCROLL_VH + EXIT_SCROLL_VH) / FILM_SCROLL_VH;
-const CARD_FADE = CARD_INTRO_VH / FILM_SCROLL_VH;
 const FRAME_W = 1920;
 const FRAME_H = 1080;
 const SLIT_Y = 533;
@@ -288,8 +286,8 @@ export function Hero() {
       const originY = (vh - FRAME_H * stage) / 2;
       const packedAt = HANDOFF_PORTION + (1 - HANDOFF_PORTION) * WORD_AT;
       const textT = clamp01((filmT - WORD_AT) / (SUBTEXT_AT - WORD_AT));
-      const cardIn = clamp01((filmT - EXIT_AT) / CARD_FADE);
-      const cardT = clamp01((filmT - EXIT_AT - CARD_FADE) / (1 - EXIT_AT - CARD_FADE));
+      const enterT = clamp01((filmT - SUBTEXT_AT) / (EXIT_AT - SUBTEXT_AT));
+      const cardT = clamp01((filmT - EXIT_AT) / (1 - EXIT_AT));
       const wordT = clamp01((progress - LINE_PORTION) / (packedAt - LINE_PORTION));
       const introT = (performance.now() - introFrom) / 1000;
       const presenting = !introDone && progress <= 0 && introT < WORD_DONE_S;
@@ -454,8 +452,9 @@ export function Hero() {
         chars[i].style.clipPath = `inset(${top}px 0 ${bottomInset}px 0)`;
       }
 
-      companies.style.opacity = String(cardIn);
-      companies.style.visibility = cardIn > 0.02 ? "visible" : "hidden";
+      companies.style.opacity = "1";
+      companies.style.transform = `translate3d(${(1 - enterT) * vw * 0.7}px,0,0)`;
+      companies.style.visibility = filmT >= SUBTEXT_AT ? "visible" : "hidden";
       placeFilm(companies, cardT, vw, vh);
 
       if (index) {
