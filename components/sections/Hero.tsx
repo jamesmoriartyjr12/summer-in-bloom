@@ -94,9 +94,6 @@ const DESIGN_FONT = 197.56;
  */
 const FIELD_SHIFT = 0.8064;
 /** Frame 227:182. The word rests here, and the field is fully off. */
-const FILM_SPLIT = 0.78;
-/** The trusted lines finish arriving before the cards leave the right edge. */
-const TEXT_AT = 0.34;
 const TITLE_REST = -1107;
 const INK = "#070F18";
 
@@ -105,11 +102,20 @@ const INK = "#070F18";
  * The film after it is the companies row, frames 187:181 through 227:182.
  */
 const LINE_SCROLL_VH = 322;
-const FILM_SCROLL_VH = 260;
+const HANDOFF_VH = 48;
+/** `companies.` reaches its rest, then the line under it arrives, then the first card. */
+const WORD_SCROLL_VH = 160;
+const SUBTEXT_SCROLL_VH = 100;
+const CARD_SCROLL_VH = 220;
+const CARD_INTRO_VH = 40;
+const FILM_SCROLL_VH = WORD_SCROLL_VH + SUBTEXT_SCROLL_VH + CARD_SCROLL_VH;
 const SCROLLABLE_VH = LINE_SCROLL_VH + FILM_SCROLL_VH;
 const TRACK_VH = SCROLLABLE_VH + 100;
 const LINE_PORTION = LINE_SCROLL_VH / SCROLLABLE_VH;
-const HANDOFF_PORTION = (LINE_SCROLL_VH + 48) / SCROLLABLE_VH;
+const HANDOFF_PORTION = (LINE_SCROLL_VH + HANDOFF_VH) / SCROLLABLE_VH;
+const WORD_AT = WORD_SCROLL_VH / FILM_SCROLL_VH;
+const SUBTEXT_AT = (WORD_SCROLL_VH + SUBTEXT_SCROLL_VH) / FILM_SCROLL_VH;
+const CARD_FADE = CARD_INTRO_VH / FILM_SCROLL_VH;
 const FRAME_W = 1920;
 const FRAME_H = 1080;
 const SLIT_Y = 533;
@@ -278,7 +284,10 @@ export function Hero() {
       const stage = Math.min(vw / FRAME_W, vh / FRAME_H);
       const originX = (vw - FRAME_W * stage) / 2;
       const originY = (vh - FRAME_H * stage) / 2;
-      const packedAt = HANDOFF_PORTION + (1 - HANDOFF_PORTION) * FILM_SPLIT;
+      const packedAt = HANDOFF_PORTION + (1 - HANDOFF_PORTION) * WORD_AT;
+      const textT = clamp01((filmT - WORD_AT) / (SUBTEXT_AT - WORD_AT));
+      const cardIn = clamp01((filmT - SUBTEXT_AT) / CARD_FADE);
+      const cardT = clamp01((filmT - SUBTEXT_AT - CARD_FADE) / (1 - SUBTEXT_AT - CARD_FADE));
       const wordT = clamp01((progress - LINE_PORTION) / (packedAt - LINE_PORTION));
       const introT = (performance.now() - introFrom) / 1000;
       const presenting = !introDone && progress <= 0 && introT < WORD_DONE_S;
@@ -405,8 +414,6 @@ export function Hero() {
       const companyPlace = places.find((place) => place.beat.dataset.word === "companies");
       const trustedPlace = places.find((place) => place.beat.dataset.word === "trusted");
       if (companyPlace && trustedPlace && progress >= LINE_PORTION) {
-        const textT = clamp01(filmT / TEXT_AT);
-        const cardT = clamp01((filmT - TEXT_AT) / (1 - TEXT_AT));
         const rowX = vw + (lockX - vw) * textT;
         const investSlot = lockX + companyPlace.width + gap;
         const investTravel = Math.max(0, investSlot - rowX);
@@ -440,9 +447,8 @@ export function Hero() {
         chars[i].style.clipPath = `inset(${top}px 0 ${bottomInset}px 0)`;
       }
 
-      companies.style.opacity = String(handoff);
-      companies.style.visibility = handoff > 0.02 ? "visible" : "hidden";
-      const cardT = clamp01((filmT - TEXT_AT) / (1 - TEXT_AT));
+      companies.style.opacity = String(cardIn);
+      companies.style.visibility = cardIn > 0.02 ? "visible" : "hidden";
       placeFilm(companies, cardT, vw, vh);
 
       if (index) {
