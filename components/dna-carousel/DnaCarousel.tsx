@@ -444,9 +444,11 @@ export default function DnaCarousel<T>({
         if (!el) continue;
         const base = wrap(k - m.pos, S);
         const u = base + m.lead;
-        /* Nothing sits to the left of the company in front. The ones still
-           ahead stay on the right. A card that has passed is out. */
-        if (base < -0.85 || u < -0.85 || Math.abs(u) > p.reach + 1) {
+        /* The first card arrives alone. Once the scroll leaves it, the
+           helix shows the companies on either side. */
+        const alone = m.pos < 0.5;
+        const out = alone ? Math.abs(base) > 0.5 || Math.abs(u) > p.reach + 1 : Math.abs(base) > p.reach + 1;
+        if (out) {
           if (el.style.visibility !== "hidden") el.style.visibility = "hidden";
           continue;
         }
