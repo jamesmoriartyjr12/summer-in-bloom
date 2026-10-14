@@ -539,7 +539,6 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
       <div ref={rootRef} data-helix="1" className="invisible absolute inset-0 z-40 overflow-hidden text-ink">
         <DnaCarousel
           className="dna--fill"
-          style={{ height: "calc(100% - 132px)" }}
           items={CARDS}
           renderItem={(card) => <CardFace card={card} helix />}
           preset="paper"
@@ -557,10 +556,11 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
             data-film="menu-track"
             className="absolute bottom-[42px] left-0 flex w-max items-end"
             style={{
-              gap: "0.7em",
+              gap: "2.4em",
               width: "max-content",
               fontFamily: SANS,
               fontSize: "clamp(32px, 3.125vw, 60px)",
+              background: "transparent",
             }}
           >
             {CARDS.map((card) => (
