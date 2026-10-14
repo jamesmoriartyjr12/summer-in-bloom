@@ -309,7 +309,7 @@ export function Hero() {
       const lockX = phone ? 24 : 48;
       let companySpan = 0;
       for (let i = COMPANY_AT; i <= COMPANY_END && i < chars.length; i++) companySpan += chars[i]?.offsetWidth ?? 0;
-      const trustedWidth = beats.querySelector("[data-word='trusted']")?.offsetWidth ?? 0;
+      const trustedWidth = beats.querySelector<HTMLElement>("[data-word='trusted']")?.offsetWidth ?? 0;
       const restLeft = originX + TITLE_REST * stage;
       const exitDistance = Math.max(restLeft + companySpan, lockX + trustedWidth) + 32;
       const exit = easeOut(clamp01((filmT - SUBTEXT_AT) / (EXIT_AT - SUBTEXT_AT)));
