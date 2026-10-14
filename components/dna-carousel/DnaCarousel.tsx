@@ -437,7 +437,9 @@ export default function DnaCarousel<T>({
         const el = cards[k];
         if (!el) continue;
         const u = wrap(k - m.pos, S);
-        if (Math.abs(u) > p.reach + 1) {
+        /* Nothing sits to the left of the company in front. The ones still
+           ahead stay on the right. A card that has passed is out. */
+        if (u < -0.85 || Math.abs(u) > p.reach + 1) {
           if (el.style.visibility !== "hidden") el.style.visibility = "hidden";
           continue;
         }
