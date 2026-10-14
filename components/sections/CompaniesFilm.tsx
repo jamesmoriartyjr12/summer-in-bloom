@@ -305,9 +305,32 @@ function paintChips(root: HTMLElement, now: number) {
   }
 }
 
+function placeMenu(root: HTMLElement, t: number) {
+  const menu = root.querySelector<HTMLElement>("[data-film='menu']");
+  const track = root.querySelector<HTMLElement>("[data-film='menu-track']");
+  if (!menu || !track) return;
+  const names = [...track.querySelectorAll<HTMLElement>("[data-film='menu-name']")];
+  if (!names.length) return;
+  const pos = Math.max(0, Math.min(1, t)) * (names.length - 1);
+  const centers = names.map((el) => el.offsetLeft + el.offsetWidth / 2);
+  const index = Math.min(names.length - 1, Math.floor(pos));
+  const next = Math.min(names.length - 1, index + 1);
+  const mix = pos - index;
+  const center = centers[index] * (1 - mix) + centers[next] * mix;
+  track.style.transform = `translate3d(${menu.clientWidth / 2 - center}px, 0, 0)`;
+  const ink = [27, 27, 27];
+  const mute = [229, 221, 203];
+  names.forEach((el, i) => {
+    const away = Math.min(1, Math.abs(i - pos));
+    const rgb = ink.map((channel, k) => Math.round(channel + (mute[k] - channel) * away));
+    el.style.color = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+  });
+}
+
 function paint(root: HTMLElement, t: number, vw: number, vh: number, now: number) {
   if (root.dataset.helix === "1") {
     paintChips(root, now);
+    placeMenu(root, t);
     return;
   }
   const nodes = readNodes(root);
@@ -486,15 +509,17 @@ function CardFace({ card, helix }: { card: Card; helix?: boolean }) {
                     <span data-film="face">{card.category}</span>
                   </span>
                 </div>
-                <div data-film="stack" className="flex flex-col items-start">
-                  <p
-                    data-film="name"
-                    className="leading-none"
-                    style={{ fontFamily: SANS, fontSize: helix ? "10.08cqw" : 48, color: card.ink ? "#070F18" : "#FAF6EC" }}
-                  >
-                    {card.name}
-                  </p>
-                </div>
+                {helix ? null : (
+                  <div data-film="stack" className="flex flex-col items-start">
+                    <p
+                      data-film="name"
+                      className="leading-none"
+                      style={{ fontFamily: SANS, fontSize: 48, color: card.ink ? "#070F18" : "#FAF6EC" }}
+                    >
+                      {card.name}
+                    </p>
+                  </div>
+                )}
               </div>
             </article>
   );
@@ -514,6 +539,7 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
       <div ref={rootRef} data-helix="1" className="invisible absolute inset-0 z-40 overflow-hidden text-ink">
         <DnaCarousel
           className="dna--fill"
+          style={{ height: "calc(100% - 132px)" }}
           items={CARDS}
           renderItem={(card) => <CardFace card={card} helix />}
           preset="paper"
@@ -526,6 +552,19 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
           scrollDriven
           label="Companies"
         />
+        <div data-film="menu" className="pointer-events-none absolute inset-x-0 bottom-0 z-50 h-[132px] overflow-hidden">
+          <div
+            data-film="menu-track"
+            className="absolute bottom-[42px] left-0 flex items-end"
+            style={{ gap: "0.7em", fontFamily: SANS, fontSize: "clamp(32px, 3.125vw, 60px)" }}
+          >
+            {CARDS.map((card) => (
+              <p key={card.id} data-film="menu-name" className="m-0 leading-none" style={{ color: "#e5ddcb" }}>
+                {card.name}
+              </p>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
