@@ -54,12 +54,15 @@ function place(u: number, s: number, p: PlaceProps) {
   const near = 1 - fade;
 
   const rest = p.inactiveScale * (1 + p.depthScale * c);
+  /* Lean with distance from the front, and none at the front, so the card
+     in the middle faces the screen. */
+  const lean = Math.max(-1, Math.min(1, u));
   return {
     x: u * p.step,
     y: s * (p.sway * Math.cos(th / 2) + p.helixSpread * sn),
     z: p.depth * c,
     rx: p.tilt * sn,
-    ry: s * p.rotation * c,
+    ry: s * p.rotation * lean,
     rz: s * p.roll * sn,
     scale: rest + (p.activeScale - rest) * (1 - a ** 2.4),
     opacity: 1 - (1 - p.inactiveOpacity) * fade,
@@ -72,17 +75,19 @@ function place(u: number, s: number, p: PlaceProps) {
 /** Wraps `v` into [-m/2, m/2) — the loop, centred on the focused card. */
 const wrap = (v: number, m: number) => ((((v + m / 2) % m) + m) % m) - m / 2;
 
-/** The page scroll writes this. `t` 0 is the first card. `t` 1 is the last. */
-let scrollHelixTo: ((t: number) => void) | null = null;
+/** The page scroll writes this. `t` 0 is the first card. `t` 1 is the last.
+ * `lead` holds the first card that many places to the right of centre. */
+let scrollHelixTo: ((t: number, lead?: number) => void) | null = null;
 
-export function scrollHelix(t: number) {
-  scrollHelixTo?.(t);
+export function scrollHelix(t: number, lead = 0) {
+  scrollHelixTo?.(t, lead);
 }
 
 type ImageItem = { src: string; alt?: string };
 
 type Motion = {
   pos: number;
+  lead: number;
   vel: number;
   target: number | null;
   drift: number;
@@ -289,6 +294,7 @@ export default function DnaCarousel<T>({
   if (!motion.current) {
     motion.current = {
       pos: startIndex,
+      lead: 0,
       vel: 0,
       target: null,
       drift: 0,
@@ -436,10 +442,11 @@ export default function DnaCarousel<T>({
       for (let k = 0; k < S; k++) {
         const el = cards[k];
         if (!el) continue;
-        const u = wrap(k - m.pos, S);
+        const base = wrap(k - m.pos, S);
+        const u = base + m.lead;
         /* Nothing sits to the left of the company in front. The ones still
            ahead stay on the right. A card that has passed is out. */
-        if (u < -0.85 || Math.abs(u) > p.reach + 1) {
+        if (base < -0.85 || u < -0.85 || Math.abs(u) > p.reach + 1) {
           if (el.style.visibility !== "hidden") el.style.visibility = "hidden";
           continue;
         }
@@ -521,10 +528,11 @@ export default function DnaCarousel<T>({
     };
 
     if (scrollDriven) {
-      scrollHelixTo = (t: number) => {
+      scrollHelixTo = (t: number, lead = 0) => {
         const p = props.current;
         if (!p?.n) return;
         m.pos = Math.max(0, Math.min(1, t)) * Math.max(0, p.n - 1);
+        m.lead = Math.max(0, lead);
         m.vel = 0;
         m.target = null;
         m.drift = 0;

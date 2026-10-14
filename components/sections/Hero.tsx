@@ -453,9 +453,9 @@ export function Hero() {
       }
 
       companies.style.opacity = "1";
-      companies.style.transform = `translate3d(${(1 - enterT) * vw * 0.7}px,0,0)`;
+      companies.style.transform = "";
       companies.style.visibility = filmT >= SUBTEXT_AT ? "visible" : "hidden";
-      placeFilm(companies, cardT, vw, vh);
+      placeFilm(companies, cardT, vw, vh, (1 - enterT) * 3.4);
 
       if (index) {
         index.style.opacity = String(clamp01(elapsed / 0.4));

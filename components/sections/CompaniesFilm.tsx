@@ -87,7 +87,7 @@ function bezier(ease: readonly [number, number, number, number], t: number) {
   return sampleY(u);
 }
 
-type FilmPose = { root: HTMLElement; t: number; vw: number; vh: number };
+type FilmPose = { root: HTMLElement; t: number; vw: number; vh: number; lead: number };
 
 let live = false;
 let pose: FilmPose | null = null;
@@ -138,7 +138,7 @@ function runBusy(run: CardRun, now: number) {
 
 function paintPose(now?: number) {
   if (!live || !pose) return;
-  paint(pose.root, pose.t, pose.vw, pose.vh, now ?? performance.now());
+  paint(pose.root, pose.t, pose.vw, pose.vh, now ?? performance.now(), pose.lead);
 }
 
 function activeId() {
@@ -226,12 +226,15 @@ export function filmFrame(t: number, vw: number, vh: number) {
   return { cardW, cardH, gap, rowX, rowY, rowW };
 }
 
+/** Places along the helix from the card in front. Matches the carousel step. */
+const HELIX_STEP = 0.195;
+
 /** `t` 0 holds the row off the right. `t` 1 is the row at full viewport width. */
-export function placeFilm(root: HTMLElement, t: number, vw: number, vh: number) {
+export function placeFilm(root: HTMLElement, t: number, vw: number, vh: number, lead = 0) {
   live = true;
-  pose = { root, t, vw, vh };
-  if (root.dataset.helix === "1") scrollHelix(t);
-  paint(root, t, vw, vh, performance.now());
+  pose = { root, t, vw, vh, lead };
+  if (root.dataset.helix === "1") scrollHelix(t, lead);
+  paint(root, t, vw, vh, performance.now(), lead);
 }
 
 function paintFaceSolid(face: HTMLElement, color: string) {
@@ -305,7 +308,7 @@ function paintChips(root: HTMLElement, now: number) {
   }
 }
 
-function placeMenu(root: HTMLElement, t: number) {
+function placeMenu(root: HTMLElement, t: number, lead = 0) {
   const menu = root.querySelector<HTMLElement>("[data-film='menu']");
   const track = root.querySelector<HTMLElement>("[data-film='menu-track']");
   if (!menu || !track) return;
@@ -317,7 +320,8 @@ function placeMenu(root: HTMLElement, t: number) {
   const next = Math.min(names.length - 1, index + 1);
   const mix = pos - index;
   const center = centers[index] * (1 - mix) + centers[next] * mix;
-  track.style.transform = `translate3d(${menu.clientWidth / 2 - center}px, 0, 0)`;
+  const shift = lead * HELIX_STEP * root.clientWidth;
+  track.style.transform = `translate3d(${menu.clientWidth / 2 - center + shift}px, 0, 0)`;
   const ink = [27, 27, 27];
   const mute = [229, 221, 203];
   names.forEach((el, i) => {
@@ -327,10 +331,10 @@ function placeMenu(root: HTMLElement, t: number) {
   });
 }
 
-function paint(root: HTMLElement, t: number, vw: number, vh: number, now: number) {
+function paint(root: HTMLElement, t: number, vw: number, vh: number, now: number, lead = 0) {
   if (root.dataset.helix === "1") {
     paintChips(root, now);
-    placeMenu(root, t);
+    placeMenu(root, t, lead);
     return;
   }
   const nodes = readNodes(root);
