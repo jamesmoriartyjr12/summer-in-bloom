@@ -103,18 +103,20 @@ const INK = "#070F18";
  */
 const LINE_SCROLL_VH = 322;
 const HANDOFF_VH = 48;
-/** `companies.` reaches its rest, then the line under it arrives, then the first card. */
+/** `companies.` reaches its rest, the line under it arrives, both leave, then the first card. */
 const WORD_SCROLL_VH = 160;
 const SUBTEXT_SCROLL_VH = 100;
+const EXIT_SCROLL_VH = 100;
 const CARD_SCROLL_VH = 220;
 const CARD_INTRO_VH = 40;
-const FILM_SCROLL_VH = WORD_SCROLL_VH + SUBTEXT_SCROLL_VH + CARD_SCROLL_VH;
+const FILM_SCROLL_VH = WORD_SCROLL_VH + SUBTEXT_SCROLL_VH + EXIT_SCROLL_VH + CARD_SCROLL_VH;
 const SCROLLABLE_VH = LINE_SCROLL_VH + FILM_SCROLL_VH;
 const TRACK_VH = SCROLLABLE_VH + 100;
 const LINE_PORTION = LINE_SCROLL_VH / SCROLLABLE_VH;
 const HANDOFF_PORTION = (LINE_SCROLL_VH + HANDOFF_VH) / SCROLLABLE_VH;
 const WORD_AT = WORD_SCROLL_VH / FILM_SCROLL_VH;
 const SUBTEXT_AT = (WORD_SCROLL_VH + SUBTEXT_SCROLL_VH) / FILM_SCROLL_VH;
+const EXIT_AT = (WORD_SCROLL_VH + SUBTEXT_SCROLL_VH + EXIT_SCROLL_VH) / FILM_SCROLL_VH;
 const CARD_FADE = CARD_INTRO_VH / FILM_SCROLL_VH;
 const FRAME_W = 1920;
 const FRAME_H = 1080;
@@ -286,8 +288,8 @@ export function Hero() {
       const originY = (vh - FRAME_H * stage) / 2;
       const packedAt = HANDOFF_PORTION + (1 - HANDOFF_PORTION) * WORD_AT;
       const textT = clamp01((filmT - WORD_AT) / (SUBTEXT_AT - WORD_AT));
-      const cardIn = clamp01((filmT - SUBTEXT_AT) / CARD_FADE);
-      const cardT = clamp01((filmT - SUBTEXT_AT - CARD_FADE) / (1 - SUBTEXT_AT - CARD_FADE));
+      const cardIn = clamp01((filmT - EXIT_AT) / CARD_FADE);
+      const cardT = clamp01((filmT - EXIT_AT - CARD_FADE) / (1 - EXIT_AT - CARD_FADE));
       const wordT = clamp01((progress - LINE_PORTION) / (packedAt - LINE_PORTION));
       const introT = (performance.now() - introFrom) / 1000;
       const presenting = !introDone && progress <= 0 && introT < WORD_DONE_S;
@@ -305,14 +307,19 @@ export function Hero() {
       const speed = lineWidth > 0 && travelSpan > 0 ? (fitX - endX) / travelSpan : TRAVEL_PX_PER_S * (fontSize / DESIGN_FONT);
       const held = presenting || progress <= 0;
       const lockX = phone ? 24 : 48;
+      let companySpan = 0;
+      for (let i = COMPANY_AT; i <= COMPANY_END && i < chars.length; i++) companySpan += chars[i]?.offsetWidth ?? 0;
+      const trustedWidth = beats.querySelector("[data-word='trusted']")?.offsetWidth ?? 0;
+      const restLeft = originX + TITLE_REST * stage;
+      const exitDistance = Math.max(restLeft + companySpan, lockX + trustedWidth) + 32;
+      const exit = easeOut(clamp01((filmT - SUBTEXT_AT) / (EXIT_AT - SUBTEXT_AT)));
       let x = held ? fitX : fitX - (travelPx(elapsed, speed) - travelPx(nextStart, speed));
       let companyOffset = 0;
       for (let i = 0; i < COMPANY_AT; i++) companyOffset += chars[i].offsetWidth;
       const unclampedLeft = x + companyOffset;
       if (!held && unclampedLeft < lockX) x = lockX - companyOffset;
       if (!held && wordT > 0) {
-        const restLeft = originX + TITLE_REST * stage;
-        x = lockX + (restLeft - lockX) * wordT - companyOffset;
+        x = lockX + (restLeft - lockX) * wordT - companyOffset - exitDistance * exit;
       }
       const fieldOpen = Math.min(1, (performance.now() - introFrom) / AUTO_OPEN_MS);
       const sx = vw / FRAME_W;
@@ -418,7 +425,7 @@ export function Hero() {
         const investSlot = lockX + companyPlace.width + gap;
         const investTravel = Math.max(0, investSlot - rowX);
         const investLeave = easeOut(clamp01(investTravel / Math.max(1, investSlot - lockX)));
-        const investingX = lockX - investTravel;
+        const investingX = lockX - investTravel - exitDistance * exit;
         companyPlace.beat.style.zIndex = "1";
         companyPlace.beat.style.opacity = String(1 - investLeave);
         companyPlace.beat.style.transform = `translate3d(${investingX}px, 0, 0)`;
@@ -427,7 +434,7 @@ export function Hero() {
         const textW = trustedPlace.beat.offsetWidth || 1;
         const textSlot = lockX + textW + gap;
         const push = Math.max(0, textSlot - leadX);
-        const trustedX = rowX - push;
+        const trustedX = rowX - push - exitDistance * exit;
         const cover = easeOut(clamp01(push / Math.max(1, textSlot)));
         trustedPlace.beat.style.zIndex = "2";
         trustedPlace.beat.style.opacity = String(1 - cover);
