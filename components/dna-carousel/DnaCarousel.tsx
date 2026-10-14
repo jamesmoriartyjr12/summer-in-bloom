@@ -439,14 +439,21 @@ export default function DnaCarousel<T>({
       const cards = cardRefs.current;
       const S = p.slots;
       const c = p.colours;
+      /* Scroll lays the companies out in order and stops at the last one.
+         The drag mode still wraps, so a thrown card can come back around. */
+      const linear = p.scrollDriven;
       for (let k = 0; k < S; k++) {
         const el = cards[k];
         if (!el) continue;
-        const base = wrap(k - m.pos, S);
+        if (linear && k >= p.n) {
+          if (el.style.visibility !== "hidden") el.style.visibility = "hidden";
+          continue;
+        }
+        const base = linear ? k - m.pos : wrap(k - m.pos, S);
         const u = base + m.lead;
         /* The first card arrives alone. Once the scroll leaves it, the
-           helix shows the companies on either side. */
-        const alone = m.pos < 0.5;
+           companies on either side join, and none of them come back around. */
+        const alone = linear && m.pos < 0.5;
         const out = alone ? Math.abs(base) > 0.5 || Math.abs(u) > p.reach + 1 : Math.abs(base) > p.reach + 1;
         if (out) {
           if (el.style.visibility !== "hidden") el.style.visibility = "hidden";
@@ -476,7 +483,11 @@ export default function DnaCarousel<T>({
         el.style.filter = parts.join(" ");
       }
 
-      const active = p.n ? (((Math.round(m.pos) % S) + S) % S) % p.n : -1;
+      const active = p.n
+        ? linear
+          ? Math.max(0, Math.min(p.n - 1, Math.round(m.pos)))
+          : (((Math.round(m.pos) % S) + S) % S) % p.n
+        : -1;
       if (active !== m.active) {
         m.active = active;
         cards.forEach((el, k) => el?.setAttribute("aria-hidden", p.n && k % p.n === active ? "false" : "true"));
