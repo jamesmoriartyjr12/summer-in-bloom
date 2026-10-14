@@ -555,11 +555,21 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
         <div data-film="menu" className="pointer-events-none absolute inset-x-0 bottom-0 z-50 h-[132px] overflow-hidden">
           <div
             data-film="menu-track"
-            className="absolute bottom-[42px] left-0 flex items-end"
-            style={{ gap: "0.7em", fontFamily: SANS, fontSize: "clamp(32px, 3.125vw, 60px)" }}
+            className="absolute bottom-[42px] left-0 flex w-max items-end"
+            style={{
+              gap: "0.7em",
+              width: "max-content",
+              fontFamily: SANS,
+              fontSize: "clamp(32px, 3.125vw, 60px)",
+            }}
           >
             {CARDS.map((card) => (
-              <p key={card.id} data-film="menu-name" className="m-0 leading-none" style={{ color: "#e5ddcb" }}>
+              <p
+                key={card.id}
+                data-film="menu-name"
+                className="m-0 shrink-0 whitespace-nowrap leading-none"
+                style={{ color: "#e5ddcb", whiteSpace: "nowrap", flexShrink: 0 }}
+              >
                 {card.name}
               </p>
             ))}
