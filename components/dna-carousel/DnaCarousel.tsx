@@ -451,10 +451,9 @@ export default function DnaCarousel<T>({
         }
         const base = linear ? k - m.pos : wrap(k - m.pos, S);
         const u = base + m.lead;
-        /* The first card arrives alone. Once the scroll leaves it, the
-           companies on either side join, and none of them come back around. */
-        const alone = linear && m.pos < 0.5;
-        const out = alone ? Math.abs(base) > 0.5 || Math.abs(u) > p.reach + 1 : Math.abs(base) > p.reach + 1;
+        /* Companies still ahead stay in the line while the first card is in
+           front. Nothing sits before the first, and nothing returns after the last. */
+        const out = Math.abs(base) > p.reach + 1 || Math.abs(u) > p.reach + 1;
         if (out) {
           if (el.style.visibility !== "hidden") el.style.visibility = "hidden";
           continue;
