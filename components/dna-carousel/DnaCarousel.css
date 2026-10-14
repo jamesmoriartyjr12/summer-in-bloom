@@ -21,7 +21,8 @@
 }
 
 .dna--fill {
-  height: 100%;
+  /* The name row owns the bottom 132px. Cards live above it. */
+  height: calc(100% - 132px);
   aspect-ratio: auto;
 }
 

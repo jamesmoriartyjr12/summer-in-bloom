@@ -228,6 +228,30 @@ export function filmFrame(t: number, vw: number, vh: number) {
 
 /** Places along the helix from the card in front. Matches the carousel step. */
 const HELIX_STEP = 0.195;
+/** How far the helix reaches above and below its centre, as a fraction of width. */
+const HELIX_ABOVE = 0.26;
+const HELIX_BELOW = 0.275;
+
+/** Keeps every card in the space above the name row. The names stay at the bottom. */
+function seatHelix(root: HTMLElement) {
+  const dna = root.querySelector<HTMLElement>(".dna--fill");
+  const stage = root.querySelector<HTMLElement>(".dna__stage");
+  if (!dna || !stage) return;
+  const width = dna.clientWidth;
+  const height = dna.clientHeight;
+  if (!width || !height) return;
+  const above = HELIX_ABOVE * width;
+  const below = HELIX_BELOW * width;
+  const topPad = 16;
+  const bottomPad = 12;
+  const available = Math.max(1, height - topPad - bottomPad);
+  const scale = Math.min(1, available / (above + below));
+  const span = (above + below) * scale;
+  const top = topPad + (available - span) / 2;
+  const shift = top - height / 2 + above * scale;
+  const next = `translateY(${shift.toFixed(2)}px) scale(${scale.toFixed(4)})`;
+  if (stage.style.transform !== next) stage.style.transform = next;
+}
 
 /** `t` 0 holds the row off the right. `t` 1 is the row at full viewport width. */
 export function placeFilm(root: HTMLElement, t: number, vw: number, vh: number, lead = 0) {
@@ -335,6 +359,7 @@ function paint(root: HTMLElement, t: number, vw: number, vh: number, now: number
   if (root.dataset.helix === "1") {
     paintChips(root, now);
     placeMenu(root, t, lead);
+    seatHelix(root);
     return;
   }
   const nodes = readNodes(root);
