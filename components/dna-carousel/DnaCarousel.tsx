@@ -333,6 +333,37 @@ export default function DnaCarousel<T>({
     const history: Array<[number, number]> = [];
 
     const now = () => performance.now() / 1000;
+
+    /* Pointer tilt while the helix is still. One card at a time, eased back
+       to the helix the moment scroll moves it. */
+    const HOVER_DEG = 14;
+    const tiltX: number[] = [];
+    const tiltY: number[] = [];
+    const hover = { slot: -1, tx: 0, ty: 0, quietUntil: 0 };
+
+    const onHoverMove = (e: PointerEvent) => {
+      if (reduce.matches || performance.now() < hover.quietUntil) {
+        hover.slot = -1;
+        return;
+      }
+      const card = (e.target as HTMLElement | null)?.closest?.("[data-slot]") as HTMLElement | null;
+      if (!card || card.style.visibility === "hidden") {
+        hover.slot = -1;
+        m.dirty = true;
+        return;
+      }
+      const r = card.getBoundingClientRect();
+      if (r.width < 1 || r.height < 1) return;
+      hover.slot = Number(card.dataset.slot);
+      hover.tx = clamp((e.clientX - (r.left + r.width / 2)) / (r.width / 2), -1, 1);
+      hover.ty = clamp((e.clientY - (r.top + r.height / 2)) / (r.height / 2), -1, 1);
+      m.dirty = true;
+    };
+
+    const onHoverLeave = () => {
+      hover.slot = -1;
+      m.dirty = true;
+    };
     const settleTo = (target: number) => {
       m.target = target;
       m.idleAt = now();
@@ -459,10 +490,14 @@ export default function DnaCarousel<T>({
           continue;
         }
         const q = place(u, k % 2 ? -1 : 1, p);
+        /* The card under the pointer turns toward it. Scroll has already
+           cleared this, so a moving helix stays on its own pose. */
+        const hx = tiltX[k] || 0;
+        const hy = tiltY[k] || 0;
         el.style.visibility = "";
         el.style.transform =
           `translate3d(${f(q.x * 100, 4)}cqw, ${f(q.y * 100, 4)}cqw, ${f(q.z * 100, 4)}cqw) ` +
-          `rotateX(${f(q.rx)}deg) rotateY(${f(q.ry)}deg) rotateZ(${f(q.rz)}deg) scale(${f(q.scale, 4)})`;
+          `rotateX(${f(q.rx + hy * HOVER_DEG)}deg) rotateY(${f(q.ry - hx * HOVER_DEG)}deg) rotateZ(${f(q.rz)}deg) scale(${f(q.scale, 4)})`;
         el.style.opacity = String(f(q.opacity));
         el.style.zIndex = String(1000 - Math.round(q.away * 10));
 
@@ -533,6 +568,23 @@ export default function DnaCarousel<T>({
         if (m.target != null) m.target -= shift;
       }
 
+      const quiet = performance.now() >= hover.quietUntil && !reduce.matches;
+      const follow = 1 - Math.exp(-dt / 0.055);
+      const count = cardRefs.current.length;
+      let tilting = false;
+      for (let k = 0; k < count; k++) {
+        const wantX = quiet && k === hover.slot ? hover.tx : 0;
+        const wantY = quiet && k === hover.slot ? hover.ty : 0;
+        const x = tiltX[k] || 0;
+        const y = tiltY[k] || 0;
+        const nx = x + (wantX - x) * follow;
+        const ny = y + (wantY - y) * follow;
+        tiltX[k] = Math.abs(nx) < 0.002 && wantX === 0 ? 0 : nx;
+        tiltY[k] = Math.abs(ny) < 0.002 && wantY === 0 ? 0 : ny;
+        if (tiltX[k] !== 0 || tiltY[k] !== 0) tilting = true;
+      }
+      if (tilting) m.dirty = true;
+
       if (m.dirty || m.pos !== before) {
         m.dirty = false;
         paint();
@@ -543,13 +595,23 @@ export default function DnaCarousel<T>({
       scrollHelixTo = (t: number, lead = 0) => {
         const p = props.current;
         if (!p?.n) return;
-        m.pos = Math.max(0, Math.min(1, t)) * Math.max(0, p.n - 1);
-        m.lead = Math.max(0, lead);
+        const next = Math.max(0, Math.min(1, t)) * Math.max(0, p.n - 1);
+        const nextLead = Math.max(0, lead);
+        if (Math.abs(next - m.pos) > 1e-4 || Math.abs(nextLead - m.lead) > 1e-4) {
+          hover.slot = -1;
+          hover.quietUntil = performance.now() + 140;
+          tiltX.fill(0);
+          tiltY.fill(0);
+        }
+        m.pos = next;
+        m.lead = nextLead;
         m.vel = 0;
         m.target = null;
         m.drift = 0;
         paint();
       };
+      root.addEventListener("pointermove", onHoverMove);
+      root.addEventListener("pointerleave", onHoverLeave);
     } else {
       root.addEventListener("pointerdown", onDown);
       root.addEventListener("pointermove", onMove);
@@ -564,6 +626,8 @@ export default function DnaCarousel<T>({
       cancelAnimationFrame(raf);
       clearTimeout(wheelTimer);
       if (scrollHelixTo) scrollHelixTo = null;
+      root.removeEventListener("pointermove", onHoverMove);
+      root.removeEventListener("pointerleave", onHoverLeave);
       root.removeEventListener("pointerdown", onDown);
       root.removeEventListener("pointermove", onMove);
       root.removeEventListener("pointerup", onUp);
