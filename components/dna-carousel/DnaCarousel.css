@@ -77,8 +77,9 @@
   pointer-events: auto;
 }
 
-/* The ink circle is the pointer while it is on a card. */
-[data-helix="1"][data-aim="1"] .dna__hit {
+/* The circle is the pointer across the whole carousel. */
+[data-helix="1"][data-aim="1"],
+[data-helix="1"][data-aim="1"] * {
   cursor: none;
 }
 

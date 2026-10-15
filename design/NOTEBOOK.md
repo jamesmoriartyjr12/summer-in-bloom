@@ -36,6 +36,10 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-15 — The circle covers the carousel
+
+James asked for the circle to be bigger, white, and active across the whole carousel. It is 72px, white, with an ink arrow. It shows anywhere in the carousel while the scroll is still, and a click goes to the nearest company.
+
 ### 2026-10-15 — The circle is on the cards
 
 James looked and the circle was not on the page. It is the exception he asked to see. A 37px ink circle, paper arrow pointing down, only on a card, only while the scroll is still. It sits on the pointer. A click scrolls to that company in the portfolio.

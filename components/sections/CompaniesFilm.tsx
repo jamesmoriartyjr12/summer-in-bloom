@@ -726,19 +726,40 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
     let raf = 0;
     let arm = 0;
 
-    const cardUnder = () => {
+    const inCarousel = () => {
+      if (!seen || getComputedStyle(root).visibility === "hidden") return false;
+      const box = root.getBoundingClientRect();
+      if (x < box.left || x > box.right || y < box.top || y > box.bottom) return false;
+      const under = document.elementFromPoint(x, y);
+      if (!under || under.closest("nav")) return false;
+      return under === root || root.contains(under);
+    };
+
+    const nearestCard = () => {
       if (!seen) return null;
       const under = document.elementFromPoint(x, y);
-      const card = under?.closest?.("[data-slot]") as HTMLElement | null;
-      if (!card || !root.contains(card) || getComputedStyle(card).visibility === "hidden") return null;
-      return card;
+      const direct = under?.closest?.("[data-slot]") as HTMLElement | null;
+      if (direct && root.contains(direct) && getComputedStyle(direct).visibility !== "hidden") return direct;
+      let best: HTMLElement | null = null;
+      let bestD = Infinity;
+      for (const card of root.querySelectorAll<HTMLElement>(".dna__card")) {
+        if (getComputedStyle(card).visibility === "hidden") continue;
+        const rect = card.getBoundingClientRect();
+        const dx = rect.left + rect.width / 2 - x;
+        const dy = rect.top + rect.height / 2 - y;
+        const d = dx * dx + dy * dy;
+        if (d < bestD) {
+          bestD = d;
+          best = card;
+        }
+      }
+      return best;
     };
 
     const sync = () => {
       raf = 0;
       const scrolling = performance.now() - scrollAt < 180;
-      const card = cardUnder();
-      const show = Boolean(card) && !scrolling;
+      const show = inCarousel() && !scrolling;
       dot.style.opacity = show ? "1" : "0";
       dot.style.visibility = show ? "visible" : "hidden";
       dot.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`;
@@ -797,15 +818,17 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
     };
 
     const onDown = (e: PointerEvent) => {
-      if (e.pointerType === "touch") return;
-      const card = (e.target as HTMLElement).closest?.("[data-slot]") as HTMLElement | null;
-      if (!card || !root.contains(card)) return;
+      if (e.pointerType === "touch" || !inCarousel()) return;
+      const card = nearestCard();
+      if (!card) return;
       press(card);
     };
 
     const onClick = (e: MouseEvent) => {
-      const card = (e.target as HTMLElement).closest?.("[data-slot]") as HTMLElement | null;
-      if (!card || !root.contains(card)) return;
+      const target = e.target as HTMLElement | null;
+      if (!target || !root.contains(target)) return;
+      const card = nearestCard();
+      if (!card) return;
       const company = CARDS[Number(card.dataset.slot)];
       const name = company ? PORTFOLIO_NAME[company.id] : "";
       if (!name) return;
@@ -914,10 +937,11 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
                 position: "fixed",
                 left: 0,
                 top: 0,
-                width: 37,
-                height: 37,
+                width: 72,
+                height: 72,
                 borderRadius: 999,
-                background: INK,
+                background: "#FFFFFF",
+                border: `1.5px solid ${INK}`,
                 pointerEvents: "none",
                 zIndex: 90,
                 opacity: 0,
@@ -926,9 +950,9 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
                 placeItems: "center",
               }}
             >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-                <path d="M8 2.25v8.1" stroke={PAPER} strokeWidth="1.6" strokeLinecap="round" />
-                <path d="M4.15 8.05 8 12.85 11.85 8.05" stroke={PAPER} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+              <svg width="28" height="28" viewBox="0 0 16 16" fill="none" aria-hidden>
+                <path d="M8 2.25v8.1" stroke={INK} strokeWidth="1.6" strokeLinecap="round" />
+                <path d="M4.15 8.05 8 12.85 11.85 8.05" stroke={INK} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>,
             document.body,
