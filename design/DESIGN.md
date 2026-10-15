@@ -40,6 +40,10 @@ Reviews use `design/MOTION.md`. That file is the Motion install from Double Dutc
 
 ## Log
 
+### 2026-10-15 — The shadow finishes above the names
+
+The card shadow fades out on the paper. It is not cut off along the top of the name row.
+
 ### 2026-10-15 — The first card meets the line
 
 The first company comes in on the scroll that takes the word and the trusted line off the left. It stays just to their right, so the handoff is not a span of empty ground.

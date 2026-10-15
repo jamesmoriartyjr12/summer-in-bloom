@@ -243,7 +243,9 @@ function seatHelix(root: HTMLElement) {
   const above = HELIX_ABOVE * width;
   const below = HELIX_BELOW * width;
   const topPad = 16;
-  const bottomPad = 12;
+  /* The cast shadow has to finish on the paper. The box clips at the name
+     row, so this clearance is the shadow, not a gap in the cards. */
+  const bottomPad = 84;
   const available = Math.max(1, height - topPad - bottomPad);
   const scale = Math.min(1, available / (above + below));
   const span = (above + below) * scale;
