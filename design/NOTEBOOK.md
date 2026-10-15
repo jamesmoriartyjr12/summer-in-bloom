@@ -36,6 +36,10 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-15 — The stage colors
+
+I checked the filled bubbles. Orange was `#FA4C1F` and lime was `#D8FF34`, the palette, not a tint. Seed and Acquired were wearing the same Orange, which is why the pair felt quiet. Seed takes Lime. Acquired takes Ink. Series A and Growth stay Orange. There is no fourth accent.
+
 ### 2026-10-15 — Details on the turn
 
 James asked for options, not a build. The turn on the preview leans the card under the pointer and steps it forward. The neighbours stay full color and apart. I offered four details and refused a cursor, a scale, a chip wipe, and a sheen. None of them is a direction until he picks.

@@ -9,8 +9,8 @@ import DnaCarousel, { scrollHelix } from "../dna-carousel/DnaCarousel";
  * Scroll carries the row in. Frame 227:34 is the rest of every card.
  * Frame 227:222 is the hover and the focus of a card.
  * On the helix the name and the bubbles sit as one unit, centered on the company in front.
- * The stage bubble is Orange and the category bubble is Lime.
- * In front, each swipes to a fill of its own color, and swipes back to the stroke on the way out.
+ * The stage color follows the round. Seed is Lime, Acquired is Ink, Series A and Growth are Orange.
+ * The category takes the other accent. In front, each swipes to a fill of that color.
  * The photograph stays clear of those words.
  */
 const HOVER_MS = 560;
@@ -68,7 +68,7 @@ const CARDS: Card[] = ROW;
 const MONO = "var(--font-jetbrains), ui-monospace, monospace";
 const SANS = "var(--font-archivo), sans-serif";
 
-/** Frame 188:325. A 2px capsule. The stage is Orange, the category is Lime. */
+/** The explorations palette, unmixed. */
 const INK = "#070F18";
 const PAPER = "#FAF6EC";
 const ORANGE = "#FA4C1F";
@@ -88,8 +88,16 @@ const bubbleStyle = {
 
 type BubbleTone = { ring: string; strokeType: string; fillType: string };
 
-const STAGE_TONE: BubbleTone = { ring: ORANGE, strokeType: ORANGE, fillType: PAPER };
-const CATEGORY_TONE: BubbleTone = { ring: LIME, strokeType: INK, fillType: INK };
+const LIME_TONE: BubbleTone = { ring: LIME, strokeType: INK, fillType: INK };
+const ORANGE_TONE: BubbleTone = { ring: ORANGE, strokeType: ORANGE, fillType: PAPER };
+const INK_TONE: BubbleTone = { ring: INK, strokeType: INK, fillType: PAPER };
+
+/** Seed and Acquired do not share a color. Series A and Growth share Orange. There is no fourth accent. */
+function tonesFor(stage: string) {
+  if (stage === "Seed") return { stage: LIME_TONE, category: ORANGE_TONE };
+  if (stage === "Acquired") return { stage: INK_TONE, category: LIME_TONE };
+  return { stage: ORANGE_TONE, category: LIME_TONE };
+}
 
 function bezier(ease: readonly [number, number, number, number], t: number) {
   const [x1, y1, x2, y2] = ease;
@@ -398,8 +406,10 @@ function paintMenuLine(root: HTMLElement, now: number) {
     const shown = Boolean(run && (run.to === 1 || clock > 0.001));
     const stage = line.querySelector<HTMLElement>("[data-film='year']");
     const category = line.querySelector<HTMLElement>("[data-film='roles']");
-    if (stage) paintWord(stage, moving ? labelLocal(clock, 0) : 0, shown, STAGE_TONE);
-    if (category) paintWord(category, moving ? labelLocal(clock, 1) : 0, shown, CATEGORY_TONE);
+    const spec = CARDS.find((item) => item.id === id);
+    const tone = tonesFor(spec?.stage ?? "");
+    if (stage) paintWord(stage, moving ? labelLocal(clock, 0) : 0, shown, tone.stage);
+    if (category) paintWord(category, moving ? labelLocal(clock, 1) : 0, shown, tone.category);
   }
 }
 
