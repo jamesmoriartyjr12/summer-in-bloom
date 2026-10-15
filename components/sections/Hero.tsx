@@ -418,6 +418,7 @@ export function Hero() {
       }
       const companyPlace = places.find((place) => place.beat.dataset.word === "companies");
       const trustedPlace = places.find((place) => place.beat.dataset.word === "trusted");
+      let trustedX = lockX;
       if (companyPlace && trustedPlace && progress >= LINE_PORTION) {
         const rowX = vw + (lockX - vw) * textT;
         const investSlot = lockX + companyPlace.width + gap;
@@ -432,7 +433,7 @@ export function Hero() {
         const textW = trustedPlace.beat.offsetWidth || 1;
         const textSlot = lockX + textW + gap;
         const push = Math.max(0, textSlot - leadX);
-        const trustedX = rowX - push - exitDistance * exit;
+        trustedX = rowX - push - exitDistance * exit;
         const cover = easeOut(clamp01(push / Math.max(1, textSlot)));
         trustedPlace.beat.style.zIndex = "2";
         trustedPlace.beat.style.opacity = String(1 - cover);
@@ -455,7 +456,22 @@ export function Hero() {
       companies.style.opacity = "1";
       companies.style.transform = "";
       companies.style.visibility = filmT >= SUBTEXT_AT ? "visible" : "hidden";
-      placeFilm(companies, cardT, vw, vh, (1 - enterT) * 3.4);
+      /* The first card starts just off the right, then closes on the text.
+         After a short rush it stays a gutter to the right of the line, so the
+         handoff is not a span of empty ground. */
+      const STEP = 0.195;
+      const CARD_W = 0.252;
+      const GUTTER = 96;
+      const wordLeft = lockX + (restLeft - lockX) * wordT - exitDistance * exit;
+      const wordRight = wordLeft + companySpan;
+      const textRight = Math.max(wordRight, trustedX + trustedWidth);
+      const beside = textRight + GUTTER;
+      const half = (CARD_W * vw) / 2;
+      const rawLead = (beside - vw / 2 + half) / (STEP * Math.max(1, vw));
+      const targetLead = clamp01(rawLead / 3.4) * 3.4;
+      const rush = easeOut(clamp01(enterT / 0.12));
+      const lead = 3.4 + (targetLead - 3.4) * rush;
+      placeFilm(companies, cardT, vw, vh, lead);
 
       if (index) {
         index.style.opacity = String(clamp01(elapsed / 0.4));
