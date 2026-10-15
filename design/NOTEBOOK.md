@@ -36,6 +36,10 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-15 — The square reveals the line
+
+James wanted the sample’s small square, with a line revealed over each company. The square is ink, 17px. The line is the portfolio sentence, in paper. It closes between cards. The sample’s pink stays off.
+
 ### 2026-10-15 — The circle carries the company
 
 James looked and the name was not in the circle. It is there now. Over a card, the circle widens and shows that company’s name in Archivo, in ink. Between cards it is empty. The arrow is gone. The Motion+ Cursor stays off the page.

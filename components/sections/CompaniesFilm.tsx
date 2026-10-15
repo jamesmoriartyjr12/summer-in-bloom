@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type Ref } from "react";
 import { createPortal } from "react-dom";
 import { useReducedMotion } from "framer-motion";
+import { PORTFOLIO } from "@/content/portfolio";
 import DnaCarousel, { scrollHelix } from "../dna-carousel/DnaCarousel";
 import { useLenis } from "../LenisContext";
 
@@ -80,6 +81,10 @@ const PORTFOLIO_NAME: Record<string, string> = {
   outer: "OuterProduct",
   fanfix: "FanFix",
 };
+
+const LINE: Record<string, string> = Object.fromEntries(
+  PORTFOLIO.map((company) => [company.name, company.description]),
+);
 
 const MONO = "var(--font-jetbrains), ui-monospace, monospace";
 const SANS = "var(--font-archivo), sans-serif";
@@ -704,7 +709,7 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
   const lenisRef = useRef(lenis);
   lenisRef.current = lenis;
   const cursorRef = useRef<HTMLDivElement>(null);
-  const labelRef = useRef<HTMLSpanElement>(null);
+  const labelRef = useRef<HTMLParagraphElement>(null);
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setMounted(true);
@@ -767,13 +772,18 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
     const sync = () => {
       raf = 0;
       const show = inCarousel();
-      const next = show ? cardUnder()?.name ?? "" : "";
-      if (next !== label) {
+      const card = show ? cardUnder() : null;
+      const next = card ? LINE[PORTFOLIO_NAME[card.id]] ?? "" : "";
+      const word = labelRef.current;
+      if (word && next !== label) {
         label = next;
-        const word = labelRef.current;
-        if (word) word.textContent = next;
-        dot.style.width = next ? "max-content" : "72px";
-        dot.style.padding = next ? "0 22px" : "0";
+        word.textContent = next;
+        word.style.opacity = next ? "1" : "0";
+        word.style.transition = next
+          ? "opacity 200ms cubic-bezier(0.22, 1, 0.36, 1) 80ms"
+          : "opacity 120ms linear";
+        dot.style.width = next ? `${word.scrollWidth}px` : "17px";
+        dot.style.height = next ? `${word.scrollHeight}px` : "17px";
       }
       dot.style.opacity = show ? "1" : "0";
       dot.style.visibility = show ? "visible" : "hidden";
@@ -936,24 +946,32 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
                 position: "fixed",
                 left: 0,
                 top: 0,
-                width: 72,
-                height: 72,
-                borderRadius: 999,
-                background: "#FFFFFF",
-                color: INK,
-                fontFamily: SANS,
-                fontSize: 18,
-                lineHeight: 1,
-                whiteSpace: "nowrap",
+                width: 17,
+                height: 17,
+                borderRadius: 20,
+                background: INK,
+                color: PAPER,
+                overflow: "hidden",
                 pointerEvents: "none",
                 zIndex: 90,
                 opacity: 0,
                 visibility: "hidden",
-                display: "grid",
-                placeItems: "center",
+                transition: "width 360ms cubic-bezier(0.22, 1, 0.36, 1), height 360ms cubic-bezier(0.22, 1, 0.36, 1)",
               }}
             >
-              <span ref={labelRef} />
+              <p
+                ref={labelRef}
+                style={{
+                  margin: 0,
+                  padding: 15,
+                  width: "max-content",
+                  fontFamily: SANS,
+                  fontSize: 18,
+                  lineHeight: 1.3,
+                  whiteSpace: "nowrap",
+                  opacity: 0,
+                }}
+              />
             </div>,
             document.body,
           )
