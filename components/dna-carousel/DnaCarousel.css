@@ -77,6 +77,11 @@
   pointer-events: auto;
 }
 
+/* The ink circle is the pointer while it is on a card. */
+[data-helix="1"][data-aim="1"] .dna__hit {
+  cursor: none;
+}
+
 .dna__face {
   position: absolute;
   inset: 0;

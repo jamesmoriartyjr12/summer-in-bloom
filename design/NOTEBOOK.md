@@ -36,6 +36,10 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-15 — The circle is on the cards
+
+James looked and the circle was not on the page. It is the exception he asked to see. A 37px ink circle, paper arrow pointing down, only on a card, only while the scroll is still. It sits on the pointer. A click scrolls to that company in the portfolio.
+
 ### 2026-10-15 — A circle on the pointer
 
 James wants a circle with an arrow to take over the cursor on the carousel. A custom cursor is still banned. The one exception I would ship is a 37px ink circle, the bubble height, with a paper arrow inside, only on a card, only while the scroll is still. It sits on the pointer with no lag. The arrow points down, because a click scrolls to that company in the portfolio. It is not the Bloom mark. Orange and lime stay off it. Not a direction until he picks.

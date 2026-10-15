@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, type Ref } from "react";
+import { useEffect, useRef, useState, type Ref } from "react";
+import { createPortal } from "react-dom";
 import { useReducedMotion } from "framer-motion";
 import DnaCarousel, { scrollHelix } from "../dna-carousel/DnaCarousel";
+import { useLenis } from "../LenisContext";
 
 /**
  * Frames 187:181 and 210:404, on a 1920×1080 stage.
@@ -64,6 +66,20 @@ const ROW: Card[] = [
 ];
 
 const CARDS: Card[] = ROW;
+
+/** The portfolio row uses the longer name for two of these. */
+const PORTFOLIO_NAME: Record<string, string> = {
+  orion: "Orion",
+  jamie: "Jamie Ai",
+  meridian: "Meridian",
+  sunny: "Sunny Benefits",
+  collectible: "Collectible",
+  feno: "Feno Labs",
+  milly: "Milly Books",
+  tee: "TeeCommerce",
+  outer: "OuterProduct",
+  fanfix: "FanFix",
+};
 
 const MONO = "var(--font-jetbrains), ui-monospace, monospace";
 const SANS = "var(--font-archivo), sans-serif";
@@ -684,15 +700,144 @@ function CardFace({ card, helix }: { card: Card; helix?: boolean }) {
 
 export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
   const reduce = useReducedMotion();
+  const lenis = useLenis();
+  const lenisRef = useRef(lenis);
+  lenisRef.current = lenis;
+  const cursorRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
   useEffect(() => {
+    setMounted(true);
     return () => {
       live = false;
       cancelAnimationFrame(hoverRaf);
     };
   }, []);
 
+  useEffect(() => {
+    if (reduce || !mounted) return;
+    const root = document.querySelector<HTMLElement>("[data-helix='1']");
+    const dot = cursorRef.current;
+    if (!root || !dot) return;
+
+    let x = 0;
+    let y = 0;
+    let seen = false;
+    let scrollAt = 0;
+    let raf = 0;
+    let arm = 0;
+
+    const cardUnder = () => {
+      if (!seen) return null;
+      const under = document.elementFromPoint(x, y);
+      const card = under?.closest?.("[data-slot]") as HTMLElement | null;
+      if (!card || !root.contains(card) || getComputedStyle(card).visibility === "hidden") return null;
+      return card;
+    };
+
+    const sync = () => {
+      raf = 0;
+      const scrolling = performance.now() - scrollAt < 180;
+      const card = cardUnder();
+      const show = Boolean(card) && !scrolling;
+      dot.style.opacity = show ? "1" : "0";
+      dot.style.visibility = show ? "visible" : "hidden";
+      dot.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`;
+      if (show) root.dataset.aim = "1";
+      else delete root.dataset.aim;
+    };
+
+    const schedule = () => {
+      if (!raf) raf = requestAnimationFrame(sync);
+    };
+
+    const holdThroughScroll = () => {
+      if (arm) return;
+      const wait = () => {
+        if (performance.now() - scrollAt < 180) {
+          arm = requestAnimationFrame(wait);
+          return;
+        }
+        arm = 0;
+        sync();
+      };
+      arm = requestAnimationFrame(wait);
+    };
+
+    const onMove = (e: PointerEvent) => {
+      if (e.pointerType === "touch") {
+        seen = false;
+        schedule();
+        return;
+      }
+      x = e.clientX;
+      y = e.clientY;
+      seen = true;
+      schedule();
+    };
+
+    const onLeave = (e: PointerEvent) => {
+      if (e.relatedTarget) return;
+      seen = false;
+      schedule();
+    };
+
+    const onScroll = () => {
+      scrollAt = performance.now();
+      schedule();
+      holdThroughScroll();
+    };
+
+    const press = (card: HTMLElement) => {
+      const face = card.querySelector<HTMLElement>(".dna__face");
+      if (!face) return;
+      face.style.scale = "0.98";
+      window.setTimeout(() => {
+        if (face.style.scale === "0.98") face.style.scale = "";
+      }, 120);
+    };
+
+    const onDown = (e: PointerEvent) => {
+      if (e.pointerType === "touch") return;
+      const card = (e.target as HTMLElement).closest?.("[data-slot]") as HTMLElement | null;
+      if (!card || !root.contains(card)) return;
+      press(card);
+    };
+
+    const onClick = (e: MouseEvent) => {
+      const card = (e.target as HTMLElement).closest?.("[data-slot]") as HTMLElement | null;
+      if (!card || !root.contains(card)) return;
+      const company = CARDS[Number(card.dataset.slot)];
+      const name = company ? PORTFOLIO_NAME[company.id] : "";
+      if (!name) return;
+      const row = document.querySelector<HTMLElement>(
+        `#current-portfolio [data-company="${CSS.escape(name)}"]`,
+      );
+      if (!row) return;
+      const scroller = lenisRef.current;
+      if (scroller) scroller.scrollTo(row, { offset: -120 });
+      else row.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
+
+    window.addEventListener("pointermove", onMove, { passive: true });
+    window.addEventListener("pointerdown", onDown);
+    document.addEventListener("pointerout", onLeave);
+    window.addEventListener("lenis-scroll", onScroll);
+    root.addEventListener("click", onClick);
+    return () => {
+      cancelAnimationFrame(raf);
+      cancelAnimationFrame(arm);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerdown", onDown);
+      document.removeEventListener("pointerout", onLeave);
+      window.removeEventListener("lenis-scroll", onScroll);
+      root.removeEventListener("click", onClick);
+      delete root.dataset.aim;
+    };
+  }, [reduce, mounted]);
+
   if (!reduce) {
     return (
+      <>
       <div ref={rootRef} data-helix="1" className="invisible absolute inset-0 z-40 overflow-hidden text-ink">
         <DnaCarousel
           className="dna--fill"
@@ -759,6 +904,37 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
           </div>
         </div>
       </div>
+      {mounted
+        ? createPortal(
+            <div
+              ref={cursorRef}
+              data-card-cursor=""
+              aria-hidden
+              style={{
+                position: "fixed",
+                left: 0,
+                top: 0,
+                width: 37,
+                height: 37,
+                borderRadius: 999,
+                background: INK,
+                pointerEvents: "none",
+                zIndex: 90,
+                opacity: 0,
+                visibility: "hidden",
+                display: "grid",
+                placeItems: "center",
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+                <path d="M8 2.25v8.1" stroke={PAPER} strokeWidth="1.6" strokeLinecap="round" />
+                <path d="M4.15 8.05 8 12.85 11.85 8.05" stroke={PAPER} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>,
+            document.body,
+          )
+        : null}
+      </>
     );
   }
 
