@@ -65,6 +65,7 @@ export function PortfolioCompanyRow({
       }}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
+        data-company={company.name}
         className="flex flex-col"
         animate={{
           opacity: reduceMotion ? 1 : isActive ? 1 : inactiveOpacity,

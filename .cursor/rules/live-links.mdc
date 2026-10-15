@@ -1,0 +1,15 @@
+---
+description: After every site build, send the live Vercel preview link before the turn ends.
+alwaysApply: true
+---
+
+# Live links
+
+After every build of this site, the reply ends with the live links. This is not optional.
+
+- The Vercel preview URL for the branch that was just built.
+- The pull request URL when one is open.
+
+A localhost address does not count. If the latest work is not on the remote, commit it (leave `tsconfig.tsbuildinfo` out), push the branch, wait until Vercel marks that deployment Ready, then send the preview URL. Do not finish the turn on a local address alone.
+
+Do not merge. Do not point the production domain at the preview.

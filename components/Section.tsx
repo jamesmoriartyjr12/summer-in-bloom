@@ -20,7 +20,7 @@ export function Section({ id, theme, className, children }: SectionProps) {
   }, [id, theme, registerSection]);
 
   return (
-    <section ref={ref} id={id} className={className}>
+    <section ref={ref} id={id} data-nav-theme={theme} className={className}>
       {children}
     </section>
   );

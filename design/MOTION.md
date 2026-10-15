@@ -66,6 +66,23 @@ Primitives, used before any new wrapper:
 - No custom cursor, hover lift, card shadow, or decorative float.
 - Long ambient loops stay off UI chrome.
 
+## Header travel
+
+The bar leaving the page is not a chrome snap. `duration.snap` stays 200ms for color and the phone mark. The bar's own move uses the header travel tokens.
+
+Downscroll on its own does not move the bar, on a phone or on a desktop. The bar leaves when the locked word `companies` in the opening line reaches 40px from the bottom of the bar. It returns on the same ease when that word drops back below the line.
+
+| Token | Value | Rule |
+| --- | --- | --- |
+| `distance.headerClearance` | 40px | From the bottom edge of the bar to the top of `companies`. The edge is the bar's layout height, so the leaving transform does not move the line. |
+| `duration.header` | 650ms | The whole trip off or back. |
+| `ease.header` | `0.22, 1, 0.36, 1` | Leaves with the word, then settles. No fade. No overshoot. The return retargets the same ease from wherever the bar is. |
+| Reduced motion | duration 0 | The bar appears or disappears in place. Transforms do not keep running. |
+
+A spring from rest was measured here and spends the first fifth of a second almost still, then rushes. `ease.header` starts the move as the word crosses the line.
+
+`components/TopNav.tsx` imports these values from `lib/motion.ts`. A second duration on the header is a break.
+
 ## What Bloom still decides
 
 Kayla names what moves, when, and what it should feel like. Marco's samples are references for a reviewed implementation. Hero and Team are still open. Changing timing, or swapping `framer-motion` for `motion`, waits for a creative-director comment and for James to merge.

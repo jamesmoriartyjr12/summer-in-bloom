@@ -80,3 +80,5 @@ Do not open an unattended pull request for any of these:
 - Point bloomgrowthagency.com at this project
 
 Preview deploys are the working surface. Domain cutover is a separate decision.
+
+After every build, send the Vercel preview URL for that branch, and the pull request URL when one is open. A localhost address does not replace it. If the build is not on the remote, push the branch and wait until that preview is Ready.

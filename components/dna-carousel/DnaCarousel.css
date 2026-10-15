@@ -1,0 +1,127 @@
+/*
+ * DNA Carousel.
+ *
+ * All geometry is in container units: the frame loop writes each card's
+ * transform in `cqw`, so the helix scales with the component and never needs
+ * to measure it. `container-type` lives on the root; the viewport and cards
+ * read from it.
+ */
+
+.dna {
+  position: relative;
+  width: 100%;
+  aspect-ratio: var(--dna-aspect);
+  container-type: inline-size;
+  overflow: hidden;
+  background: var(--dna-bg);
+  outline: none;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.dna--fill {
+  height: 100%;
+  aspect-ratio: auto;
+}
+
+.dna:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--dna-focus);
+}
+
+.dna--grab {
+  cursor: grab;
+}
+.dna--grab.is-dragging {
+  cursor: grabbing;
+}
+
+/* Perspective is on the viewport, and the stage between it and the cards
+   preserves 3D, so the cards share one space and overlap by real depth. */
+.dna__viewport {
+  position: absolute;
+  inset: 0;
+  perspective: calc(var(--dna-perspective) * 100cqw);
+  perspective-origin: 50% 50%;
+}
+
+.dna__stage {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+
+.dna__card {
+  --w: calc(var(--dna-card-w) * 100cqw);
+  --h: calc(var(--dna-card-h) * 100cqw);
+
+  position: absolute;
+  left: calc(50% - var(--w) / 2);
+  top: calc(50% - var(--h) / 2);
+  width: var(--w);
+  height: var(--h);
+  overflow: visible;
+  border-radius: var(--dna-radius);
+  background: transparent;
+  transform-style: preserve-3d;
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* The hit box stays on the helix. The face is what turns toward the pointer,
+   so the turn cannot move the card out from under the cursor. */
+.dna__hit {
+  position: absolute;
+  inset: 0;
+  pointer-events: auto;
+}
+
+/* The circle is the pointer across the whole carousel. */
+[data-helix="1"][data-aim="1"],
+[data-helix="1"][data-aim="1"] * {
+  cursor: none;
+}
+
+.dna__face {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+
+.dna__photo {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  background: var(--dna-card);
+  pointer-events: none;
+}
+
+.dna__card img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+/* The company photograph fills the card. An inline crop (width, left, top) still wins. */
+.dna__card [data-film-card] > img:not([data-film="arrow"]) {
+  position: absolute;
+  max-width: none;
+  pointer-events: none;
+}
+
+.dna__card [data-film-card] img[data-film="arrow"] {
+  position: absolute;
+  left: 81.3%;
+  top: 13.9%;
+  width: 8.28%;
+  height: auto;
+  max-width: none;
+}

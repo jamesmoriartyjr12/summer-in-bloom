@@ -36,6 +36,66 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-15 — The line is a block
+
+James wanted the sample’s wrapped block, and type that stays readable. The line now wraps beside the square. It is white on a dark ground and black on a light one.
+
+### 2026-10-15 — The line sits beside the square
+
+James said the line was still inside the bubble. The square now stays 16px, and the portfolio line reveals beside it. The sample’s pink stays off.
+
+### 2026-10-15 — The square reveals the line
+
+James wanted the sample’s small square, with a line revealed over each company. The square is ink, 17px. The line is the portfolio sentence, in paper. It closes between cards. The sample’s pink stays off.
+
+### 2026-10-15 — The circle carries the company
+
+James looked and the name was not in the circle. It is there now. Over a card, the circle widens and shows that company’s name in Archivo, in ink. Between cards it is empty. The arrow is gone. The Motion+ Cursor stays off the page.
+
+### 2026-10-15 — The arrow follows the pointer
+
+James wanted the arrow to change direction as the pointer moves through the carousel. It turns with that travel and holds the last heading. The weight stays 1.2px. It still starts down.
+
+### 2026-10-15 — The circle stays through the scroll
+
+The circle no longer leaves while the page scrolls, as long as the carousel is in view. The stroke is off. The arrow is the same one as the press links, turned down, at 1.2px.
+
+### 2026-10-15 — The circle covers the carousel
+
+James asked for the circle to be bigger, white, and active across the whole carousel. It is 72px, white, with an ink arrow. It shows anywhere in the carousel while the scroll is still, and a click goes to the nearest company.
+
+### 2026-10-15 — The circle is on the cards
+
+James looked and the circle was not on the page. It is the exception he asked to see. A 37px ink circle, paper arrow pointing down, only on a card, only while the scroll is still. It sits on the pointer. A click scrolls to that company in the portfolio.
+
+### 2026-10-15 — A circle on the pointer
+
+James wants a circle with an arrow to take over the cursor on the carousel. A custom cursor is still banned. The one exception I would ship is a 37px ink circle, the bubble height, with a paper arrow inside, only on a card, only while the scroll is still. It sits on the pointer with no lag. The arrow points down, because a click scrolls to that company in the portfolio. It is not the Bloom mark. Orange and lime stay off it. Not a direction until he picks.
+
+### 2026-10-15 — A cursor on the cards
+
+James asked for a branded cursor over the carousel so the cards feel clickable. A custom cursor is banned, and the Motion+ Cursor is banned by name. The card under the pointer already turns. What I would ship is the system hand on that hit box, and a click that scrolls to the same company in the portfolio. The press is the 120ms scale to 0.98. A click has to go somewhere. Right now it does not. A follower, the Bloom mark, and a lime disc are refused. Not a direction until he picks.
+
+### 2026-10-15 — The lag follows the scroll
+
+The first pass sat the photograph 8px off whenever a card was away from the front. That did not read while the row was moving. The still now drags against the frame while the helix scrolls, at most 8px, and settles centered when the scroll stops. Still inside the clip.
+
+### 2026-10-15 — The still lags inside the frame
+
+James asked for a small parallax in the photographs. The still shifts at most 8px inside the clip as the card travels, and it is centered when that card is in front. It stays inside the picture that is already there. The pointer drift stays, and it is quiet while the page is scrolling. This brushes the rule that photography does not parallax against the frame. He picked the 8px, inside the clip only.
+
+### 2026-10-15 — A ground behind the cards
+
+James asked what could sit behind the cards. The preview is Paper, and the flower field is fully gone, which is what the direction asked for. I offered two things and refused a pattern, a grain, orange, a made-up object, and anything that floats on its own. Neither is a direction until he picks.
+
+### 2026-10-15 — The stage colors
+
+I checked the filled bubbles. Orange was `#FA4C1F` and lime was `#D8FF34`, the palette, not a tint. Seed and Acquired were wearing the same Orange, which is why the pair felt quiet. Seed takes Lime. Acquired takes Ink. Series A and Growth stay Orange. There is no fourth accent.
+
+### 2026-10-15 — Details on the turn
+
+James asked for options, not a build. The turn on the preview leans the card under the pointer and steps it forward. The neighbours stay full color and apart. I offered four details and refused a cursor, a scale, a chip wipe, and a sheen. None of them is a direction until he picks.
+
 ### 2026-10-06 — Feno and Milly fallbacks
 
 Looked at the preview for pull request 24. The rows still show The Verge and Coverager. The new lines are the descriptions that appear only when a company has no article. They are the companies’ own facts, and they replace “coming soon.” I left them. I did not ask for a warmer line. Press stays in front of the description.
