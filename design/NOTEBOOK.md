@@ -36,6 +36,10 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-15 — The lag follows the scroll
+
+The first pass sat the photograph 8px off whenever a card was away from the front. That did not read while the row was moving. The still now drags against the frame while the helix scrolls, at most 8px, and settles centered when the scroll stops. Still inside the clip.
+
 ### 2026-10-15 — The still lags inside the frame
 
 James asked for a small parallax in the photographs. The still shifts at most 8px inside the clip as the card travels, and it is centered when that card is in front. It stays inside the picture that is already there. The pointer drift stays, and it is quiet while the page is scrolling. This brushes the rule that photography does not parallax against the frame. He picked the 8px, inside the clip only.

@@ -391,6 +391,9 @@ export default function DnaCarousel<T>({
     const tiltVX: number[] = [];
     const tiltVY: number[] = [];
     const hover = { slot: -1, tx: 0, ty: 0, movedAt: 0, allow: 1, sent: null as number | null };
+    /* The photograph drags against the frame while the helix is moving, then
+       eases back. Eight pixels is the cap. */
+    const slip = { x: 0, pos: 0, at: 0, movedAt: 0 };
     const pointer = { x: 0, y: 0, on: false };
 
     const onHoverMove = (e: PointerEvent) => {
@@ -507,9 +510,30 @@ export default function DnaCarousel<T>({
     };
 
     /* --- frame ------------------------------------------------------------ */
+    const stepSlip = () => {
+      const tNow = performance.now();
+      const dt = Math.min(0.05, Math.max(1 / 120, slip.at ? (tNow - slip.at) / 1000 : 1 / 60));
+      slip.at = tNow;
+      const dPos = m.pos - slip.pos;
+      slip.pos = m.pos;
+      const moving = Math.abs(dPos) > 0.0004;
+      if (moving) {
+        slip.movedAt = tNow;
+        /* Scrolling forward moves the cards left, so the still shifts the other way.
+           Any real movement takes the full 8px, so the drag reads while the row travels. */
+        const target = Math.sign(dPos) * 8;
+        slip.x += (target - slip.x) * 0.45;
+        return;
+      }
+      if (tNow - slip.movedAt < 50) return;
+      slip.x += (0 - slip.x) * (1 - Math.exp(-dt / 0.28));
+      if (Math.abs(slip.x) < 0.05) slip.x = 0;
+    };
+
     const paint = () => {
       const p = props.current;
       if (!p) return;
+      stepSlip();
       const cards = cardRefs.current;
       const S = p.slots;
       const c = p.colours;
@@ -565,15 +589,14 @@ export default function DnaCarousel<T>({
         if (photo) photo.style.filter = parts.join(" ");
         const still = photo?.querySelector<HTMLImageElement>("img:not([data-film='arrow'])");
         if (still && photo) {
-          /* The still lags the frame as the card travels, and sits centered in front.
-             Eight pixels is the cap, and only inside the picture that is already there,
-             so the card edge never crosses the photograph. The pointer drift sits on
-             top, and it is already quiet while the scroll eases the turn off. */
-          const lag = Math.max(-8, Math.min(8, -base * 8));
+          /* While the row scrolls, the still drags against the frame, up to 8px,
+             then settles centered. The pointer drift sits on top, and it is already
+             quiet while the scroll eases the turn off. The shift stays inside the
+             picture that is already there. */
           const px = held < 0.02 ? 0 : -hx * 12;
           const py = held < 0.02 ? 0 : -hy * 12;
           const room = stillRoom(still, photo);
-          const x = Math.max(-room.r, Math.min(room.l, lag + px));
+          const x = Math.max(-room.r, Math.min(room.l, slip.x + px));
           const y = Math.max(-room.b, Math.min(room.t, py));
           const quiet = Math.abs(x) < 0.05 && Math.abs(y) < 0.05;
           if (room.crop) {
@@ -733,9 +756,10 @@ export default function DnaCarousel<T>({
         p.onHover?.(pointed);
       }
 
-      if (m.dirty || m.pos !== before) {
+      if (m.dirty || m.pos !== before || Math.abs(slip.x) > 0.05) {
         m.dirty = false;
         paint();
+        if (Math.abs(slip.x) > 0.05) m.dirty = true;
       }
     };
 
