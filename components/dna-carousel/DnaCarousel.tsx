@@ -336,8 +336,8 @@ export default function DnaCarousel<T>({
 
     /* The face springs toward the pointer. The hit box does not turn, so the
        pointer cannot fall off the card. Scroll eases the spring back to rest. */
-    const HOVER_DEG = 12;
-    const HOVER_Z = 2.4;
+    const HOVER_DEG = 22;
+    const HOVER_Z = 5.2;
     const tiltX: number[] = [];
     const tiltY: number[] = [];
     const tiltVX: number[] = [];
@@ -624,8 +624,8 @@ export default function DnaCarousel<T>({
       const scrolling = performance.now() - hover.movedAt < 180;
       const allowTarget = scrolling || reduce.matches ? 0 : 1;
       hover.allow += (allowTarget - hover.allow) * (1 - Math.exp(-dt / 0.18));
-      const kSpring = 320;
-      const damp = 2 * Math.sqrt(kSpring) * 1.12;
+      const kSpring = 420;
+      const damp = 2 * Math.sqrt(kSpring) * 1.05;
       const count = cardRefs.current.length;
       let tilting = false;
       for (let k = 0; k < count; k++) {
