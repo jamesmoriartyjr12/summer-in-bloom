@@ -36,6 +36,10 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-15 — A circle on the pointer
+
+James wants a circle with an arrow to take over the cursor on the carousel. A custom cursor is still banned. The one exception I would ship is a 37px ink circle, the bubble height, with a paper arrow inside, only on a card, only while the scroll is still. It sits on the pointer with no lag. The arrow points down, because a click scrolls to that company in the portfolio. It is not the Bloom mark. Orange and lime stay off it. Not a direction until he picks.
+
 ### 2026-10-15 — A cursor on the cards
 
 James asked for a branded cursor over the carousel so the cards feel clickable. A custom cursor is banned, and the Motion+ Cursor is banned by name. The card under the pointer already turns. What I would ship is the system hand on that hit box, and a click that scrolls to the same company in the portfolio. The press is the 120ms scale to 0.98. A click has to go somewhere. Right now it does not. A follower, the Bloom mark, and a lime disc are refused. Not a direction until he picks.
