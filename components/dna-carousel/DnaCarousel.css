@@ -61,11 +61,31 @@
   top: calc(50% - var(--h) / 2);
   width: var(--w);
   height: var(--h);
-  overflow: hidden;
+  overflow: visible;
   border-radius: var(--dna-radius);
-  background: var(--dna-card);
+  background: transparent;
+  transform-style: preserve-3d;
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* The hit box stays on the helix. The face is what turns toward the pointer,
+   so the turn cannot move the card out from under the cursor. */
+.dna__hit {
+  position: absolute;
+  inset: 0;
   pointer-events: auto;
-  will-change: transform, opacity, filter;
+}
+
+.dna__face {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  background: var(--dna-card);
+  pointer-events: none;
+  transform-origin: 50% 50%;
+  will-change: transform, filter;
 }
 
 .dna__card img {

@@ -334,33 +334,28 @@ export default function DnaCarousel<T>({
 
     const now = () => performance.now() / 1000;
 
-    /* Pointer tilt while the helix is still. One card at a time, eased back
-       to the helix the moment scroll moves it. */
-    const HOVER_DEG = 14;
+    /* The face springs toward the pointer. The hit box does not turn, so the
+       pointer cannot fall off the card. Scroll eases the spring back to rest. */
+    const HOVER_DEG = 12;
+    const HOVER_Z = 2.4;
     const tiltX: number[] = [];
     const tiltY: number[] = [];
-    const hover = { slot: -1, tx: 0, ty: 0, quietUntil: 0 };
+    const tiltVX: number[] = [];
+    const tiltVY: number[] = [];
+    const hover = { slot: -1, tx: 0, ty: 0, movedAt: 0, allow: 1 };
+    const pointer = { x: 0, y: 0, on: false };
 
     const onHoverMove = (e: PointerEvent) => {
-      if (reduce.matches || performance.now() < hover.quietUntil) {
-        hover.slot = -1;
-        return;
-      }
-      const card = (e.target as HTMLElement | null)?.closest?.("[data-slot]") as HTMLElement | null;
-      if (!card || card.style.visibility === "hidden") {
-        hover.slot = -1;
-        m.dirty = true;
-        return;
-      }
-      const r = card.getBoundingClientRect();
-      if (r.width < 1 || r.height < 1) return;
-      hover.slot = Number(card.dataset.slot);
-      hover.tx = clamp((e.clientX - (r.left + r.width / 2)) / (r.width / 2), -1, 1);
-      hover.ty = clamp((e.clientY - (r.top + r.height / 2)) / (r.height / 2), -1, 1);
+      if (e.pointerType === "touch") return;
+      pointer.x = e.clientX;
+      pointer.y = e.clientY;
+      pointer.on = true;
       m.dirty = true;
     };
 
-    const onHoverLeave = () => {
+    const onHoverOut = (e: PointerEvent) => {
+      if (e.relatedTarget) return;
+      pointer.on = false;
       hover.slot = -1;
       m.dirty = true;
     };
@@ -490,16 +485,21 @@ export default function DnaCarousel<T>({
           continue;
         }
         const q = place(u, k % 2 ? -1 : 1, p);
-        /* The card under the pointer turns toward it. Scroll has already
-           cleared this, so a moving helix stays on its own pose. */
         const hx = tiltX[k] || 0;
         const hy = tiltY[k] || 0;
+        const held = Math.min(1, Math.hypot(hx, hy));
         el.style.visibility = "";
         el.style.transform =
           `translate3d(${f(q.x * 100, 4)}cqw, ${f(q.y * 100, 4)}cqw, ${f(q.z * 100, 4)}cqw) ` +
-          `rotateX(${f(q.rx + hy * HOVER_DEG)}deg) rotateY(${f(q.ry - hx * HOVER_DEG)}deg) rotateZ(${f(q.rz)}deg) scale(${f(q.scale, 4)})`;
+          `rotateX(${f(q.rx)}deg) rotateY(${f(q.ry)}deg) rotateZ(${f(q.rz)}deg) scale(${f(q.scale, 4)})`;
         el.style.opacity = String(f(q.opacity));
-        el.style.zIndex = String(1000 - Math.round(q.away * 10));
+        el.style.zIndex = String(1000 - Math.round(q.away * 10) + (held > 0.04 ? 80 : 0));
+        const face = el.children[0] as HTMLElement | undefined;
+        if (face) {
+          face.style.transform = held < 0.001
+            ? ""
+            : `translateZ(${f(held * HOVER_Z, 3)}cqw) rotateX(${f(hy * HOVER_DEG)}deg) rotateY(${f(-hx * HOVER_DEG)}deg)`;
+        }
 
         const parts = [];
         if (q.blur > 0.01) {
@@ -514,7 +514,8 @@ export default function DnaCarousel<T>({
             `drop-shadow(rgba(${c.shadow}, ${p.shadowStrength}) 0 ${f(8 + 10 * q.near, 2)}px ${f(18 + 15 * q.near, 2)}px)`,
           );
         }
-        el.style.filter = parts.join(" ");
+        if (face) face.style.filter = parts.join(" ");
+        el.style.filter = "";
       }
 
       const active = p.n
@@ -527,6 +528,57 @@ export default function DnaCarousel<T>({
         cards.forEach((el, k) => el?.setAttribute("aria-hidden", p.n && k % p.n === active ? "false" : "true"));
         p.onChange?.(active);
       }
+    };
+
+    /* Which card the pointer is on, using the helix hit box rather than the
+       turned face. A card already held keeps the pointer across a short gap. */
+    const aimPointer = (rootEl: HTMLElement, reduced: boolean) => {
+      if (reduced || !pointer.on) {
+        hover.slot = -1;
+        return;
+      }
+      const parent = rootEl.parentElement;
+      if (parent && parent.style.visibility === "hidden") {
+        hover.slot = -1;
+        return;
+      }
+      const measure = (slot: number) => {
+        const el = cardRefs.current[slot];
+        const hit = el?.children[1] as HTMLElement | undefined;
+        if (!el || el.style.visibility === "hidden" || !hit) return null;
+        const r = hit.getBoundingClientRect();
+        if (r.width < 8 || r.height < 8) return null;
+        return {
+          nx: (pointer.x - (r.left + r.width / 2)) / (r.width / 2),
+          ny: (pointer.y - (r.top + r.height / 2)) / (r.height / 2),
+        };
+      };
+      const under = document.elementFromPoint(pointer.x, pointer.y);
+      const card = under?.closest?.("[data-slot]") as HTMLElement | null;
+      const direct = card && rootEl.contains(card) && card.style.visibility !== "hidden"
+        ? Number(card.dataset.slot)
+        : -1;
+      if (direct >= 0) {
+        const at = measure(direct);
+        if (!at) return;
+        hover.slot = direct;
+        hover.tx = clamp(at.nx, -1, 1);
+        hover.ty = clamp(at.ny, -1, 1);
+        return;
+      }
+      if (hover.slot >= 0) {
+        const at = measure(hover.slot);
+        if (at) {
+          const outside = Math.max(Math.min(1.8, Math.abs(at.nx)), Math.min(1.8, Math.abs(at.ny)));
+          const fall = outside <= 1 ? 1 : Math.max(0, 1 - (outside - 1) / 0.55);
+          if (fall > 0) {
+            hover.tx = clamp(at.nx, -1, 1) * fall;
+            hover.ty = clamp(at.ny, -1, 1) * fall;
+            return;
+          }
+        }
+      }
+      hover.slot = -1;
     };
 
     const frame = (t: number) => {
@@ -568,22 +620,40 @@ export default function DnaCarousel<T>({
         if (m.target != null) m.target -= shift;
       }
 
-      const quiet = performance.now() >= hover.quietUntil && !reduce.matches;
-      const follow = 1 - Math.exp(-dt / 0.055);
+      aimPointer(root, reduce.matches);
+      const scrolling = performance.now() - hover.movedAt < 180;
+      const allowTarget = scrolling || reduce.matches ? 0 : 1;
+      hover.allow += (allowTarget - hover.allow) * (1 - Math.exp(-dt / 0.18));
+      const kSpring = 320;
+      const damp = 2 * Math.sqrt(kSpring) * 1.12;
       const count = cardRefs.current.length;
       let tilting = false;
       for (let k = 0; k < count; k++) {
-        const wantX = quiet && k === hover.slot ? hover.tx : 0;
-        const wantY = quiet && k === hover.slot ? hover.ty : 0;
-        const x = tiltX[k] || 0;
-        const y = tiltY[k] || 0;
-        const nx = x + (wantX - x) * follow;
-        const ny = y + (wantY - y) * follow;
-        tiltX[k] = Math.abs(nx) < 0.002 && wantX === 0 ? 0 : nx;
-        tiltY[k] = Math.abs(ny) < 0.002 && wantY === 0 ? 0 : ny;
-        if (tiltX[k] !== 0 || tiltY[k] !== 0) tilting = true;
+        const wantX = k === hover.slot ? hover.tx * hover.allow : 0;
+        const wantY = k === hover.slot ? hover.ty * hover.allow : 0;
+        let x = tiltX[k] || 0;
+        let y = tiltY[k] || 0;
+        let vx = tiltVX[k] || 0;
+        let vy = tiltVY[k] || 0;
+        vx += (kSpring * (wantX - x) - damp * vx) * dt;
+        vy += (kSpring * (wantY - y) - damp * vy) * dt;
+        x += vx * dt;
+        y += vy * dt;
+        if (Math.abs(wantX) < 1e-3 && Math.abs(x) < 0.004 && Math.abs(vx) < 0.02) {
+          x = 0;
+          vx = 0;
+        }
+        if (Math.abs(wantY) < 1e-3 && Math.abs(y) < 0.004 && Math.abs(vy) < 0.02) {
+          y = 0;
+          vy = 0;
+        }
+        tiltX[k] = x;
+        tiltY[k] = y;
+        tiltVX[k] = vx;
+        tiltVY[k] = vy;
+        if (x !== 0 || y !== 0) tilting = true;
       }
-      if (tilting) m.dirty = true;
+      if (tilting || hover.slot >= 0) m.dirty = true;
 
       if (m.dirty || m.pos !== before) {
         m.dirty = false;
@@ -597,12 +667,8 @@ export default function DnaCarousel<T>({
         if (!p?.n) return;
         const next = Math.max(0, Math.min(1, t)) * Math.max(0, p.n - 1);
         const nextLead = Math.max(0, lead);
-        if (Math.abs(next - m.pos) > 1e-4 || Math.abs(nextLead - m.lead) > 1e-4) {
-          hover.slot = -1;
-          hover.quietUntil = performance.now() + 140;
-          tiltX.fill(0);
-          tiltY.fill(0);
-        }
+        const delta = Math.abs(next - m.pos) + Math.abs(nextLead - m.lead) * 0.25;
+        if (delta > 0.0015) hover.movedAt = performance.now();
         m.pos = next;
         m.lead = nextLead;
         m.vel = 0;
@@ -610,8 +676,8 @@ export default function DnaCarousel<T>({
         m.drift = 0;
         paint();
       };
-      root.addEventListener("pointermove", onHoverMove);
-      root.addEventListener("pointerleave", onHoverLeave);
+      window.addEventListener("pointermove", onHoverMove, { passive: true });
+      document.addEventListener("pointerout", onHoverOut);
     } else {
       root.addEventListener("pointerdown", onDown);
       root.addEventListener("pointermove", onMove);
@@ -626,8 +692,8 @@ export default function DnaCarousel<T>({
       cancelAnimationFrame(raf);
       clearTimeout(wheelTimer);
       if (scrollHelixTo) scrollHelixTo = null;
-      root.removeEventListener("pointermove", onHoverMove);
-      root.removeEventListener("pointerleave", onHoverLeave);
+      window.removeEventListener("pointermove", onHoverMove);
+      document.removeEventListener("pointerout", onHoverOut);
       root.removeEventListener("pointerdown", onDown);
       root.removeEventListener("pointermove", onMove);
       root.removeEventListener("pointerup", onUp);
@@ -673,11 +739,14 @@ export default function DnaCarousel<T>({
                 className="dna__card"
                 data-slot={k}
               >
-                {renderItem ? (
-                  renderItem(item, k % n)
-                ) : (
-                  <img src={image.src} alt={image.alt ?? ""} draggable={false} decoding="async" />
-                )}
+                <div className="dna__face">
+                  {renderItem ? (
+                    renderItem(item, k % n)
+                  ) : (
+                    <img src={image.src} alt={image.alt ?? ""} draggable={false} decoding="async" />
+                  )}
+                </div>
+                <div className="dna__hit" data-hit="" />
               </div>
             );
           })}

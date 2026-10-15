@@ -488,24 +488,27 @@ function CardFace({ card, helix }: { card: Card; helix?: boolean }) {
       className={helix ? "relative h-full w-full overflow-hidden outline-none" : "relative overflow-hidden rounded-[4px] bg-white outline-none"}
       style={helix ? { containerType: "inline-size" } : undefined}
               onPointerEnter={(event) => {
-                if (event.pointerType === "touch") return;
+                if (helix || event.pointerType === "touch") return;
                 pointerId = card.id;
                 setHover(activeId());
               }}
               onPointerLeave={(event) => {
-                if (event.pointerType === "touch") return;
+                if (helix || event.pointerType === "touch") return;
                 if (pointerId === card.id) pointerId = null;
                 setHover(activeId());
               }}
               onFocus={() => {
+                if (helix) return;
                 focusId = card.id;
                 setHover(activeId());
               }}
               onBlur={() => {
+                if (helix) return;
                 if (focusId === card.id) focusId = null;
                 setHover(activeId());
               }}
               onClick={() => {
+                if (helix) return;
                 if (window.matchMedia("(hover: hover)").matches) return;
                 focusId = focusId === card.id ? null : card.id;
                 setHover(activeId());
