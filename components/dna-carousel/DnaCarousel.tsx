@@ -462,32 +462,6 @@ export default function DnaCarousel<T>({
       settleTo(Math.round(m.target ?? m.pos) + dir);
     };
 
-    /* A paper edge on the side turning away from the pointer. */
-    const placeEdge = (edge: HTMLElement, hx: number, hy: number, held: number) => {
-      if (held < 0.12) {
-        edge.style.opacity = "0";
-        return;
-      }
-      edge.style.opacity = String(Math.min(1, (held - 0.12) / 0.4));
-      if (Math.abs(hx) >= Math.abs(hy)) {
-        const left = hx > 0;
-        edge.style.top = "0";
-        edge.style.bottom = "0";
-        edge.style.width = "2px";
-        edge.style.height = "auto";
-        edge.style.left = left ? "-2px" : "auto";
-        edge.style.right = left ? "auto" : "-2px";
-      } else {
-        const top = hy > 0;
-        edge.style.left = "0";
-        edge.style.right = "0";
-        edge.style.height = "2px";
-        edge.style.width = "auto";
-        edge.style.top = top ? "-2px" : "auto";
-        edge.style.bottom = top ? "auto" : "-2px";
-      }
-    };
-
     /* --- frame ------------------------------------------------------------ */
     const paint = () => {
       const p = props.current;
@@ -529,8 +503,6 @@ export default function DnaCarousel<T>({
           ? ""
           : `translateZ(${f(held * HOVER_Z, 3)}cqw) rotateX(${f(hy * HOVER_DEG)}deg) rotateY(${f(-hx * HOVER_DEG)}deg)`;
         if (face) face.style.transform = turn;
-        const edge = face?.querySelector<HTMLElement>(".dna__edge");
-        if (edge) placeEdge(edge, hx, hy, held);
 
         const parts = [];
         if (q.blur > 0.01) {
@@ -790,7 +762,6 @@ export default function DnaCarousel<T>({
                       <img src={image.src} alt={image.alt ?? ""} draggable={false} decoding="async" />
                     )}
                   </div>
-                  <div className="dna__edge" />
                 </div>
                 <div className="dna__hit" data-hit="" />
               </div>
