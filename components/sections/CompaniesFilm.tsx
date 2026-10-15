@@ -525,13 +525,13 @@ function CardFace({ card, helix }: { card: Card; helix?: boolean }) {
               />
               <div
                 data-film="pad"
-                className={`pointer-events-none relative flex h-full flex-col justify-between ${helix ? "" : "p-10"}`}
+                className={`pointer-events-none relative flex h-full flex-col ${helix ? "justify-end" : "justify-between p-10"}`}
                 style={helix ? { padding: "8.4cqw" } : undefined}
               >
                 <div
                   data-film="labels"
-                  className={`flex items-start justify-between font-normal uppercase leading-[1.4] text-[#FAF6EC] ${helix ? "" : "p-0"}`}
-                  style={{ fontFamily: MONO, fontSize: helix ? "2.94cqw" : undefined }}
+                  className={`flex items-end justify-between font-normal uppercase leading-[1.4] text-[#FAF6EC] ${helix ? "" : "p-0"}`}
+                  style={{ fontFamily: MONO, fontSize: helix ? "3.528cqw" : undefined }}
                 >
                   <span data-film="year" className="inline-flex shrink-0 bg-[#070E18]" style={{ paddingLeft: 8, paddingRight: 8 }}>
                     <span data-film="face">{card.stage}</span>
