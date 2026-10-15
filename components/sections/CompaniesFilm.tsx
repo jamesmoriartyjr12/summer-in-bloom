@@ -8,8 +8,8 @@ import DnaCarousel, { scrollHelix } from "../dna-carousel/DnaCarousel";
  * Frames 187:181 and 210:404, on a 1920×1080 stage.
  * Scroll carries the row in. Frame 227:34 is the rest of every card.
  * Frame 227:222 is the hover and the focus of a card.
- * On the helix the stage and the category sit centered above the name in front.
- * They stay ink chips. They wipe in left to right, and wipe back when that company leaves the front.
+ * On the helix the stage and the category sit beside the name in front, in ink bubbles.
+ * They wipe in left to right, and wipe back when that company leaves the front.
  * The photograph stays clear of those words.
  */
 const HOVER_MS = 560;
@@ -66,6 +66,21 @@ const CARDS: Card[] = ROW;
 
 const MONO = "var(--font-jetbrains), ui-monospace, monospace";
 const SANS = "var(--font-archivo), sans-serif";
+
+/** Frame 188:325. An ink ring, 2px on a 37px capsule, paper inside. */
+const bubbleStyle = {
+  display: "inline-flex",
+  alignItems: "center",
+  height: 37,
+  paddingLeft: 16,
+  paddingRight: 16,
+  borderRadius: 999,
+  border: "2px solid #070E18",
+  backgroundColor: "transparent",
+  color: "#070E18",
+  boxSizing: "border-box" as const,
+  clipPath: "inset(0 100% 0 0)",
+};
 
 function bezier(ease: readonly [number, number, number, number], t: number) {
   const [x1, y1, x2, y2] = ease;
@@ -235,7 +250,7 @@ const HELIX_STEP = HELIX_CARD + HELIX_GAP;
  *  High enough that the real cards fit, so the top is never cut off. */
 const HELIX_ABOVE = 0.28;
 const HELIX_BELOW = 0.26;
-const NAME_BAND = 168;
+const NAME_BAND = 132;
 
 /** Fits the helix in view and sits it just above the names. */
 function seatHelix(root: HTMLElement) {
@@ -322,11 +337,11 @@ function paintChip(chip: HTMLElement, amount: number) {
   });
 }
 
-/** The ink chip wipes in. The type stays paper. */
+/** The bubble wipes in. The ring and the type stay ink. */
 function paintWord(word: HTMLElement, amount: number) {
   const local = Math.min(1, Math.max(0, amount));
-  word.style.color = "#FAF6EC";
-  word.style.backgroundColor = "#070E18";
+  word.style.color = "#070E18";
+  word.style.backgroundColor = "transparent";
   word.style.clipPath = `inset(0 ${(1 - local) * 100}% 0 0)`;
 }
 
@@ -387,7 +402,15 @@ function placeMenu(root: HTMLElement, t: number, lead = 0, animateNames = false)
     .filter((el): el is HTMLElement => el != null);
   if (!items.length || names.length !== items.length) return;
   const pos = Math.max(0, Math.min(1, t)) * (names.length - 1);
-  const centers = items.map((el) => el.offsetLeft + el.offsetWidth / 2);
+  const centers = names.map((el) => {
+    let x = 0;
+    let node: HTMLElement | null = el;
+    while (node && node !== track) {
+      x += node.offsetLeft;
+      node = node.offsetParent as HTMLElement | null;
+    }
+    return x + el.offsetWidth / 2;
+  });
   const index = Math.min(names.length - 1, Math.floor(pos));
   const next = Math.min(names.length - 1, index + 1);
   const mix = pos - index;
@@ -637,7 +660,7 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
           onHover={pointMenu}
           label="Companies"
         />
-        <div data-film="menu" className="pointer-events-none absolute inset-x-0 bottom-0 z-50 h-[168px] overflow-hidden">
+        <div data-film="menu" className="pointer-events-none absolute inset-x-0 bottom-0 z-50 h-[132px] overflow-hidden">
           <div
             data-film="menu-track"
             className="absolute bottom-[42px] left-0 flex w-max items-end"
@@ -650,7 +673,7 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
             }}
           >
             {CARDS.map((card) => (
-              <span key={card.id} data-film="menu-item" className="relative m-0 shrink-0" style={{ flexShrink: 0 }}>
+              <span key={card.id} data-film="menu-item" className="m-0 flex shrink-0 items-center" style={{ flexShrink: 0 }}>
                 <p
                   data-film="menu-name"
                   className="m-0 whitespace-nowrap leading-none"
@@ -661,45 +684,22 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
                 <span
                   data-film="menu-line"
                   data-film-line={card.id}
-                  className="absolute flex uppercase"
+                  className="flex items-center uppercase"
                   style={{
-                    left: "50%",
-                    bottom: "100%",
-                    transform: "translateX(-50%)",
-                    marginBottom: 10,
+                    marginLeft: 16,
                     gap: 8,
                     fontFamily: MONO,
-                    fontSize: 14,
+                    fontSize: 13,
                     fontWeight: 500,
                     letterSpacing: "0.04em",
-                    lineHeight: 1.4,
+                    lineHeight: 1,
                     whiteSpace: "nowrap",
                   }}
                 >
-                  <span
-                    data-film="year"
-                    style={{
-                      display: "inline-block",
-                      backgroundColor: "#070E18",
-                      color: "#FAF6EC",
-                      paddingLeft: 8,
-                      paddingRight: 8,
-                      clipPath: "inset(0 100% 0 0)",
-                    }}
-                  >
+                  <span data-film="year" style={bubbleStyle}>
                     {card.stage}
                   </span>
-                  <span
-                    data-film="roles"
-                    style={{
-                      display: "inline-block",
-                      backgroundColor: "#070E18",
-                      color: "#FAF6EC",
-                      paddingLeft: 8,
-                      paddingRight: 8,
-                      clipPath: "inset(0 100% 0 0)",
-                    }}
-                  >
+                  <span data-film="roles" style={bubbleStyle}>
                     {card.category}
                   </span>
                 </span>
