@@ -722,9 +722,7 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
     let x = 0;
     let y = 0;
     let seen = false;
-    let scrollAt = 0;
     let raf = 0;
-    let arm = 0;
 
     const inCarousel = () => {
       if (!seen || getComputedStyle(root).visibility === "hidden") return false;
@@ -758,8 +756,7 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
 
     const sync = () => {
       raf = 0;
-      const scrolling = performance.now() - scrollAt < 180;
-      const show = inCarousel() && !scrolling;
+      const show = inCarousel();
       dot.style.opacity = show ? "1" : "0";
       dot.style.visibility = show ? "visible" : "hidden";
       dot.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`;
@@ -769,19 +766,6 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
 
     const schedule = () => {
       if (!raf) raf = requestAnimationFrame(sync);
-    };
-
-    const holdThroughScroll = () => {
-      if (arm) return;
-      const wait = () => {
-        if (performance.now() - scrollAt < 180) {
-          arm = requestAnimationFrame(wait);
-          return;
-        }
-        arm = 0;
-        sync();
-      };
-      arm = requestAnimationFrame(wait);
     };
 
     const onMove = (e: PointerEvent) => {
@@ -803,9 +787,7 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
     };
 
     const onScroll = () => {
-      scrollAt = performance.now();
       schedule();
-      holdThroughScroll();
     };
 
     const press = (card: HTMLElement) => {
@@ -848,7 +830,6 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
     root.addEventListener("click", onClick);
     return () => {
       cancelAnimationFrame(raf);
-      cancelAnimationFrame(arm);
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerdown", onDown);
       document.removeEventListener("pointerout", onLeave);
@@ -941,7 +922,6 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
                 height: 72,
                 borderRadius: 999,
                 background: "#FFFFFF",
-                border: `1.5px solid ${INK}`,
                 pointerEvents: "none",
                 zIndex: 90,
                 opacity: 0,
@@ -950,9 +930,17 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
                 placeItems: "center",
               }}
             >
-              <svg width="28" height="28" viewBox="0 0 16 16" fill="none" aria-hidden>
-                <path d="M8 2.25v8.1" stroke={INK} strokeWidth="1.6" strokeLinecap="round" />
-                <path d="M4.15 8.05 8 12.85 11.85 8.05" stroke={INK} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+              <svg width="22" height="22" viewBox="0 0 10 10" fill="none" aria-hidden>
+                <g transform="rotate(135 5 5)">
+                  <path
+                    d="M2.5 7.5L7.5 2.5M7.5 2.5H3.5M7.5 2.5V6.5"
+                    stroke={INK}
+                    strokeWidth="1.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    vectorEffect="non-scaling-stroke"
+                  />
+                </g>
               </svg>
             </div>,
             document.body,

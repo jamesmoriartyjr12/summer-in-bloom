@@ -36,6 +36,10 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-15 — The circle stays through the scroll
+
+The circle no longer leaves while the page scrolls, as long as the carousel is in view. The stroke is off. The arrow is the same one as the press links, turned down, at 1.2px.
+
 ### 2026-10-15 — The circle covers the carousel
 
 James asked for the circle to be bigger, white, and active across the whole carousel. It is 72px, white, with an ink arrow. It shows anywhere in the carousel while the scroll is still, and a click goes to the nearest company.
