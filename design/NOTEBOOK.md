@@ -36,6 +36,10 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-15 — The line is a block
+
+James wanted the sample’s wrapped block, and type that stays readable. The line now wraps beside the square. It is white on a dark ground and black on a light one.
+
 ### 2026-10-15 — The line sits beside the square
 
 James said the line was still inside the bubble. The square now stays 16px, and the portfolio line reveals beside it. The sample’s pink stays off.

@@ -86,6 +86,235 @@ const LINE: Record<string, string> = Object.fromEntries(
   PORTFOLIO.map((company) => [company.name, company.description]),
 );
 
+const inkOf = new WeakMap<HTMLImageElement, HTMLCanvasElement>();
+const placed = new WeakMap<HTMLElement, { key: string; H: number[] | null }>();
+
+const relLuminance = (r: number, g: number, b: number) => {
+  const channel = (v: number) => {
+    const s = v / 255;
+    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+  };
+  return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
+};
+
+/** The turned card is a quad on screen. Four corners map that quad back onto the picture. */
+const solveH = (src: number[][], dst: number[][]) => {
+  const rows = src.flatMap((point, i) => {
+    const [x, y] = point;
+    const [u, v] = dst[i];
+    return [
+      [x, y, 1, 0, 0, 0, -u * x, -u * y, u],
+      [0, 0, 0, x, y, 1, -v * x, -v * y, v],
+    ];
+  });
+  const n = 8;
+  for (let col = 0; col < n; col += 1) {
+    let pivot = col;
+    for (let row = col + 1; row < n; row += 1) {
+      if (Math.abs(rows[row][col]) > Math.abs(rows[pivot][col])) pivot = row;
+    }
+    [rows[col], rows[pivot]] = [rows[pivot], rows[col]];
+    const div = rows[col][col];
+    if (Math.abs(div) < 1e-8) return null;
+    for (let c = col; c <= n; c += 1) rows[col][c] /= div;
+    for (let row = 0; row < n; row += 1) {
+      if (row === col) continue;
+      const factor = rows[row][col];
+      for (let c = col; c <= n; c += 1) rows[row][c] -= factor * rows[col][c];
+    }
+  }
+  return rows.map((row) => row[n]);
+};
+
+const quadOf = (card: HTMLElement, frame: HTMLElement) => {
+  const viewport = card.closest(".dna__viewport") as HTMLElement | null;
+  if (!viewport) return null;
+  const w = frame.offsetWidth;
+  const h = frame.offsetHeight;
+  if (w < 1 || h < 1) return null;
+  const perspective = parseFloat(getComputedStyle(viewport).perspective);
+  if (!perspective) return null;
+  const face = card.querySelector(".dna__face") as HTMLElement | null;
+  const faceRaw = face ? getComputedStyle(face).transform : "none";
+  const faceMatrix = faceRaw && faceRaw !== "none" ? new DOMMatrix(faceRaw) : new DOMMatrix();
+  const cardRaw = getComputedStyle(card).transform;
+  const cardMatrix = cardRaw && cardRaw !== "none" ? new DOMMatrix(cardRaw) : new DOMMatrix();
+  const view = viewport.getBoundingClientRect();
+  const project = (lx: number, ly: number) => {
+    const point = new DOMPoint(lx - w / 2, ly - h / 2, 0).matrixTransform(faceMatrix).matrixTransform(cardMatrix);
+    const vx = card.offsetLeft + w / 2 + point.x;
+    const vy = card.offsetTop + h / 2 + point.y;
+    const div = 1 - point.z / perspective;
+    if (!Number.isFinite(div) || Math.abs(div) < 1e-4) return null;
+    return [
+      view.left + (vx - viewport.offsetWidth / 2) / div + viewport.offsetWidth / 2,
+      view.top + (vy - viewport.offsetHeight / 2) / div + viewport.offsetHeight / 2,
+    ];
+  };
+  const corners = [project(0, 0), project(w, 0), project(w, h), project(0, h)];
+  if (corners.some((corner) => !corner)) return null;
+  return solveH(corners as number[][], [
+    [0, 0],
+    [w, 0],
+    [w, h],
+    [0, h],
+  ]);
+};
+
+const framePoint = (frame: HTMLElement, clientX: number, clientY: number) => {
+  const card = frame.closest("[data-slot]") as HTMLElement | null;
+  if (!card) return null;
+  const face = card.querySelector(".dna__face") as HTMLElement | null;
+  const key = `${card.style.transform}|${face?.style.transform ?? ""}`;
+  let saved = placed.get(frame);
+  if (!saved || saved.key !== key) {
+    saved = { key, H: quadOf(card, frame) };
+    placed.set(frame, saved);
+  }
+  const H = saved.H;
+  if (!H) return null;
+  const den = H[6] * clientX + H[7] * clientY + 1;
+  if (!Number.isFinite(den) || Math.abs(den) < 1e-6) return null;
+  return {
+    x: (H[0] * clientX + H[1] * clientY + H[2]) / den,
+    y: (H[3] * clientX + H[4] * clientY + H[5]) / den,
+  };
+};
+
+const splitPosition = (value: string) => {
+  const parts: string[] = [];
+  let depth = 0;
+  let current = "";
+  for (const char of value.trim()) {
+    if (char === "(") depth += 1;
+    else if (char === ")") depth = Math.max(0, depth - 1);
+    if (depth === 0 && /\s/.test(char)) {
+      if (current) parts.push(current);
+      current = "";
+      continue;
+    }
+    current += char;
+  }
+  if (current) parts.push(current);
+  return parts;
+};
+
+const axisOffset = (token: string, box: number, rendered: number) => {
+  const calc = token.match(/calc\(([-\d.]+)%\s*([+-])\s*([\d.]+)px\)/);
+  if (calc) {
+    const percent = parseFloat(calc[1]) / 100;
+    const shift = parseFloat(calc[3]) * (calc[2] === "-" ? -1 : 1);
+    return (box - rendered) * percent + shift;
+  }
+  if (token.endsWith("%")) return (box - rendered) * (parseFloat(token) / 100);
+  if (token.endsWith("px")) return parseFloat(token);
+  if (token === "left" || token === "top") return 0;
+  if (token === "right" || token === "bottom") return box - rendered;
+  if (token === "center") return (box - rendered) / 2;
+  const n = parseFloat(token);
+  return Number.isFinite(n) ? n : (box - rendered) / 2;
+};
+
+const paintShift = (img: HTMLImageElement) => {
+  const raw = getComputedStyle(img).translate;
+  if (!raw || raw === "none") return { x: 0, y: 0 };
+  const parts = raw.split(/\s+/);
+  return { x: parseFloat(parts[0]) || 0, y: parseFloat(parts[1]) || 0 };
+};
+
+const imagePixel = (img: HTMLImageElement, clientX: number, clientY: number) => {
+  const nw = img.naturalWidth;
+  const nh = img.naturalHeight;
+  const boxW = img.offsetWidth;
+  const boxH = img.offsetHeight;
+  if (!nw || !nh || boxW < 1 || boxH < 1) return null;
+  const frame = (img.closest(".dna__photo") as HTMLElement | null) ?? img;
+  const local = framePoint(frame, clientX, clientY);
+  if (!local) return null;
+  let originX = 0;
+  let originY = 0;
+  let node: HTMLElement | null = img;
+  while (node && node !== frame) {
+    originX += node.offsetLeft;
+    originY += node.offsetTop;
+    node = node.offsetParent as HTMLElement | null;
+  }
+  const shift = paintShift(img);
+  const lx = local.x - originX - shift.x;
+  const ly = local.y - originY - shift.y;
+  const scale = Math.max(boxW / nw, boxH / nh);
+  const pos = splitPosition(getComputedStyle(img).objectPosition || "50% 50%");
+  const ox = axisOffset(pos[0] || "50%", boxW, nw * scale);
+  const oy = axisOffset(pos[1] || pos[0] || "50%", boxH, nh * scale);
+  const px = (lx - ox) / scale;
+  const py = (ly - oy) / scale;
+  if (px < 0 || py < 0 || px >= nw || py >= nh) return null;
+  let canvas = inkOf.get(img);
+  if (!canvas || canvas.width !== nw || canvas.height !== nh) {
+    canvas = document.createElement("canvas");
+    canvas.width = nw;
+    canvas.height = nh;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    if (!ctx) return null;
+    try {
+      ctx.drawImage(img, 0, 0);
+    } catch {
+      return null;
+    }
+    inkOf.set(img, canvas);
+  }
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  if (!ctx) return null;
+  try {
+    const data = ctx.getImageData(Math.round(px), Math.round(py), 1, 1).data;
+    return [data[0], data[1], data[2]] as const;
+  } catch {
+    inkOf.delete(img);
+    return null;
+  }
+};
+
+const colorBehind = (clientX: number, clientY: number) => {
+  const under = document.elementFromPoint(clientX, clientY);
+  const card = under?.closest?.("[data-slot]");
+  const photo = card?.querySelector("img:not([data-film='arrow'])");
+  if (photo instanceof HTMLImageElement) {
+    const pixel = imagePixel(photo, clientX, clientY);
+    if (pixel) return pixel;
+  }
+  const stack = document.elementsFromPoint(clientX, clientY);
+  for (const el of stack) {
+    if (el.closest("[data-card-cursor]")) continue;
+    if (el instanceof HTMLImageElement && !el.closest("[data-card-cursor]")) {
+      const pixel = imagePixel(el, clientX, clientY);
+      if (pixel) return pixel;
+    }
+    const bg = getComputedStyle(el).backgroundColor;
+    const match = bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+    if (!match || match[4] === "0") continue;
+    return [Number(match[1]), Number(match[2]), Number(match[3])] as const;
+  }
+  return [250, 246, 236] as const;
+};
+
+const legibleInk = (rect: DOMRect) => {
+  const spots = [
+    [0.3, 0.3],
+    [0.7, 0.3],
+    [0.3, 0.7],
+    [0.7, 0.7],
+  ];
+  let total = 0;
+  let count = 0;
+  for (const [fx, fy] of spots) {
+    const [r, g, b] = colorBehind(rect.left + rect.width * fx, rect.top + rect.height * fy);
+    total += relLuminance(r, g, b);
+    count += 1;
+  }
+  const avg = total / count;
+  return avg < 0.4 ? "#fff" : "#000";
+};
+
 const MONO = "var(--font-jetbrains), ui-monospace, monospace";
 const SANS = "var(--font-archivo), sans-serif";
 
@@ -787,6 +1016,18 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
       if (next !== label) {
         label = next;
         setCursorLine(next);
+        requestAnimationFrame(() => {
+          const word = document.querySelector<HTMLElement>("[data-card-cursor] p");
+          if (word && next) {
+            const target = new DOMRect(x + 8, y - 8, 180, word.offsetHeight || 84);
+            word.style.color = legibleInk(target);
+          }
+        });
+      }
+      const word = document.querySelector<HTMLElement>("[data-card-cursor] p");
+      if (word && next) {
+        const target = new DOMRect(x + 8, y - 8, 180, word.offsetHeight || 84);
+        word.style.color = legibleInk(target);
       }
       if (show) root.dataset.aim = "1";
       else delete root.dataset.aim;
@@ -966,16 +1207,16 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
                   transition={{ duration: 0.36, ease: [0.22, 1, 0.36, 1] }}
                   style={{
                     position: "absolute",
-                    left: "100%",
-                    top: "50%",
-                    translate: "0 -50%",
+                    left: 16,
+                    top: 0,
+                    width: 180,
+                    boxSizing: "border-box",
                     margin: 0,
                     padding: "10px 12px",
                     color: "#fff",
                     fontFamily: SANS,
                     fontSize: 14,
-                    lineHeight: 1.2,
-                    whiteSpace: "nowrap",
+                    lineHeight: "21px",
                   }}
                 >
                   {cursorLine}
