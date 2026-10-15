@@ -36,6 +36,10 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-15 — A ground behind the cards
+
+James asked what could sit behind the cards. The preview is Paper, and the flower field is fully gone, which is what the direction asked for. I offered two things and refused a pattern, a grain, orange, a made-up object, and anything that floats on its own. Neither is a direction until he picks.
+
 ### 2026-10-15 — The stage colors
 
 I checked the filled bubbles. Orange was `#FA4C1F` and lime was `#D8FF34`, the palette, not a tint. Seed and Acquired were wearing the same Orange, which is why the pair felt quiet. Seed takes Lime. Acquired takes Ink. Series A and Growth stay Orange. There is no fourth accent.
