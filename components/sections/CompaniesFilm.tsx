@@ -9,8 +9,8 @@ import DnaCarousel, { scrollHelix } from "../dna-carousel/DnaCarousel";
  * Scroll carries the row in. Frame 227:34 is the rest of every card.
  * Frame 227:222 is the hover and the focus of a card.
  * On the helix the name and the bubbles sit as one unit, centered on the company in front.
- * The stage color follows the round. Seed is Lime, Acquired is Ink, Series A and Growth are Orange.
- * The category takes the other accent. In front, each swipes to a fill of that color.
+ * The stage color follows the round. Seed is Lime. Acquired, Series A, and Growth are Ink.
+ * The category takes the other of those two. Orange is not on the bubbles.
  * The photograph stays clear of those words.
  */
 const HOVER_MS = 560;
@@ -71,7 +71,6 @@ const SANS = "var(--font-archivo), sans-serif";
 /** The explorations palette, unmixed. */
 const INK = "#070F18";
 const PAPER = "#FAF6EC";
-const ORANGE = "#FA4C1F";
 const LIME = "#D8FF34";
 const bubbleStyle = {
   display: "inline-flex",
@@ -89,14 +88,12 @@ const bubbleStyle = {
 type BubbleTone = { ring: string; strokeType: string; fillType: string };
 
 const LIME_TONE: BubbleTone = { ring: LIME, strokeType: INK, fillType: INK };
-const ORANGE_TONE: BubbleTone = { ring: ORANGE, strokeType: ORANGE, fillType: PAPER };
 const INK_TONE: BubbleTone = { ring: INK, strokeType: INK, fillType: PAPER };
 
-/** Seed and Acquired do not share a color. Series A and Growth share Orange. There is no fourth accent. */
+/** Seed wears Lime. Every other stage wears Ink. The category takes the other of the two. */
 function tonesFor(stage: string) {
-  if (stage === "Seed") return { stage: LIME_TONE, category: ORANGE_TONE };
-  if (stage === "Acquired") return { stage: INK_TONE, category: LIME_TONE };
-  return { stage: ORANGE_TONE, category: LIME_TONE };
+  if (stage === "Seed") return { stage: LIME_TONE, category: INK_TONE };
+  return { stage: INK_TONE, category: LIME_TONE };
 }
 
 function bezier(ease: readonly [number, number, number, number], t: number) {
