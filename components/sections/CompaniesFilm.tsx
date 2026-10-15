@@ -8,8 +8,8 @@ import DnaCarousel, { scrollHelix } from "../dna-carousel/DnaCarousel";
  * Frames 187:181 and 210:404, on a 1920×1080 stage.
  * Scroll carries the row in. Frame 227:34 is the rest of every card.
  * Frame 227:222 is the hover and the focus of a card.
- * On the helix the stage and the category sit beside the name in front, in ink bubbles.
- * They wipe in left to right, and wipe back when that company leaves the front.
+ * On the helix the name and the bubbles sit as one unit, centered on the company in front.
+ * The bubbles rest as an ink stroke. In front, they swipe to a fill of Ink, and swipe back to the stroke on the way out.
  * The photograph stays clear of those words.
  */
 const HOVER_MS = 560;
@@ -67,7 +67,9 @@ const CARDS: Card[] = ROW;
 const MONO = "var(--font-jetbrains), ui-monospace, monospace";
 const SANS = "var(--font-archivo), sans-serif";
 
-/** Frame 188:325. An ink ring, 2px on a 37px capsule, paper inside. */
+/** Frame 188:325. An ink ring, 2px on a 37px capsule. Focus fills it with Ink. */
+const INK = "#070F18";
+const PAPER = "#FAF6EC";
 const bubbleStyle = {
   display: "inline-flex",
   alignItems: "center",
@@ -75,9 +77,9 @@ const bubbleStyle = {
   paddingLeft: 16,
   paddingRight: 16,
   borderRadius: 999,
-  border: "2px solid #070E18",
+  border: `2px solid ${INK}`,
   backgroundColor: "transparent",
-  color: "#070E18",
+  color: INK,
   boxSizing: "border-box" as const,
   clipPath: "inset(0 100% 0 0)",
 };
@@ -337,12 +339,46 @@ function paintChip(chip: HTMLElement, amount: number) {
   });
 }
 
-/** The bubble wipes in. The ring and the type stay ink. */
-function paintWord(word: HTMLElement, amount: number) {
+/** Stroke at rest. Focus swipes a fill of Ink across the bubble, and the type goes paper on that fill. */
+function paintWord(word: HTMLElement, amount: number, shown: boolean) {
+  const face = word.querySelector<HTMLElement>("[data-film='face']");
+  if (!shown) {
+    word.style.clipPath = "inset(0 100% 0 0)";
+    return;
+  }
+  word.style.clipPath = "none";
+  word.style.border = `2px solid ${INK}`;
   const local = Math.min(1, Math.max(0, amount));
-  word.style.color = "#070E18";
+  if (!face) return;
+  if (local <= 0) {
+    word.style.backgroundImage = "none";
+    word.style.backgroundColor = "transparent";
+    paintFaceSolid(face, INK);
+    return;
+  }
+  if (local >= 1) {
+    word.style.backgroundImage = "none";
+    word.style.backgroundColor = INK;
+    paintFaceSolid(face, PAPER);
+    return;
+  }
+  const at = `${local * 100}%`;
   word.style.backgroundColor = "transparent";
-  word.style.clipPath = `inset(0 ${(1 - local) * 100}% 0 0)`;
+  word.style.backgroundImage = `linear-gradient(90deg, ${INK} ${at}, transparent ${at})`;
+  word.style.backgroundRepeat = "no-repeat";
+  word.style.backgroundSize = "100% 100%";
+  const wordBox = word.getBoundingClientRect();
+  const box = face.getBoundingClientRect();
+  face.style.backgroundImage = `linear-gradient(90deg, ${PAPER} ${at}, ${INK} ${at})`;
+  face.style.backgroundSize = `${wordBox.width}px 100%`;
+  face.style.backgroundRepeat = "no-repeat";
+  face.style.backgroundPosition = `${-(box.left - wordBox.left)}px 0`;
+  face.style.webkitBackgroundClip = "text";
+  face.style.backgroundClip = "text";
+  face.style.color = INK;
+  face.style.webkitTextFillColor = "transparent";
+  face.style.webkitTextStroke = "0";
+  face.style.textShadow = "none";
 }
 
 function paintMenuLine(root: HTMLElement, now: number) {
@@ -352,10 +388,11 @@ function paintMenuLine(root: HTMLElement, now: number) {
     const run = runs.get(id);
     const clock = run ? clockOf(run, now) : 0;
     const moving = clock > 0.001;
+    const shown = Boolean(run && (run.to === 1 || clock > 0.001));
     const stage = line.querySelector<HTMLElement>("[data-film='year']");
     const category = line.querySelector<HTMLElement>("[data-film='roles']");
-    if (stage) paintWord(stage, moving ? labelLocal(clock, 0) : 0);
-    if (category) paintWord(category, moving ? labelLocal(clock, 1) : 0);
+    if (stage) paintWord(stage, moving ? labelLocal(clock, 0) : 0, shown);
+    if (category) paintWord(category, moving ? labelLocal(clock, 1) : 0, shown);
   }
 }
 
@@ -392,7 +429,7 @@ function syncFront(pos: number) {
   setHover(CARDS[front]?.id ?? null);
 }
 
-function placeMenu(root: HTMLElement, t: number, lead = 0, animateNames = false) {
+function placeMenu(root: HTMLElement, t: number, _lead = 0, animateNames = false) {
   const menu = root.querySelector<HTMLElement>("[data-film='menu']");
   const track = root.querySelector<HTMLElement>("[data-film='menu-track']");
   if (!menu || !track) return;
@@ -402,21 +439,21 @@ function placeMenu(root: HTMLElement, t: number, lead = 0, animateNames = false)
     .filter((el): el is HTMLElement => el != null);
   if (!items.length || names.length !== items.length) return;
   const pos = Math.max(0, Math.min(1, t)) * (names.length - 1);
-  const centers = names.map((el) => {
-    let x = 0;
-    let node: HTMLElement | null = el;
-    while (node && node !== track) {
-      x += node.offsetLeft;
-      node = node.offsetParent as HTMLElement | null;
-    }
-    return x + el.offsetWidth / 2;
-  });
+  const centers = items.map((el) => el.offsetLeft + el.offsetWidth / 2);
   const index = Math.min(names.length - 1, Math.floor(pos));
   const next = Math.min(names.length - 1, index + 1);
   const mix = pos - index;
   const center = centers[index] * (1 - mix) + centers[next] * mix;
-  const shift = lead * HELIX_STEP * root.clientWidth;
-  track.style.transform = `translate3d(${menu.clientWidth / 2 - center + shift}px, 0, 0)`;
+  const menuBox = menu.getBoundingClientRect();
+  const artAt = (i: number) => {
+    const card = root.querySelector<HTMLElement>(`.dna__card[data-slot="${i}"]`);
+    if (!card) return menuBox.left + menuBox.width / 2;
+    const box = card.getBoundingClientRect();
+    if (box.width < 2) return menuBox.left + menuBox.width / 2;
+    return box.left + box.width / 2;
+  };
+  const art = artAt(index) * (1 - mix) + artAt(next) * mix;
+  track.style.transform = `translate3d(${art - menuBox.left - center}px, 0, 0)`;
   const ink = [27, 27, 27];
   const mute = [229, 221, 203];
   const snap = "color 200ms cubic-bezier(0.2, 0.8, 0.2, 1)";
@@ -697,10 +734,10 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
                   }}
                 >
                   <span data-film="year" style={bubbleStyle}>
-                    {card.stage}
+                    <span data-film="face">{card.stage}</span>
                   </span>
                   <span data-film="roles" style={bubbleStyle}>
-                    {card.category}
+                    <span data-film="face">{card.category}</span>
                   </span>
                 </span>
               </span>
