@@ -8,9 +8,9 @@ import DnaCarousel, { scrollHelix } from "../dna-carousel/DnaCarousel";
  * Frames 187:181 and 210:404, on a 1920×1080 stage.
  * Scroll carries the row in. Frame 227:34 is the rest of every card.
  * Frame 227:222 is the hover and the focus of a card.
- * The card lifts, and the labels wipe left to right.
- * Leaving plays that scene backward over the same span.
- * The wipe is one scene, on one layer of type. Paper sits under a white chip, so the ink cannot edge it.
+ * On the helix the stage and the category sit under the name in front.
+ * They wipe in left to right, and wipe back when that company leaves the front.
+ * The photograph stays clear of those words.
  */
 const HOVER_MS = 560;
 const NAME_AT = { start: 0, span: 280 } as const;
@@ -322,6 +322,29 @@ function paintChip(chip: HTMLElement, amount: number) {
   });
 }
 
+const LINE_INK = "#1b1b1b";
+
+/** The words wipe across themselves. No chip. Paper ground shows through the unwritten part. */
+function paintWord(word: HTMLElement, amount: number) {
+  const local = Math.min(1, Math.max(0, amount));
+  word.style.color = LINE_INK;
+  word.style.clipPath = `inset(0 ${(1 - local) * 100}% 0 0)`;
+}
+
+function paintMenuLine(root: HTMLElement, now: number) {
+  for (const line of root.querySelectorAll<HTMLElement>("[data-film='menu-line']")) {
+    const id = line.dataset.filmLine;
+    if (!id) continue;
+    const run = runs.get(id);
+    const clock = run ? clockOf(run, now) : 0;
+    const moving = clock > 0.001;
+    const stage = line.querySelector<HTMLElement>("[data-film='year']");
+    const category = line.querySelector<HTMLElement>("[data-film='roles']");
+    if (stage) paintWord(stage, moving ? labelLocal(clock, 0) : 0);
+    if (category) paintWord(category, moving ? labelLocal(clock, 1) : 0);
+  }
+}
+
 function paintChips(root: HTMLElement, now: number) {
   for (const card of root.querySelectorAll<HTMLElement>("[data-film-card]")) {
     const spec = CARDS.find((item) => item.id === card.dataset.filmCard);
@@ -338,24 +361,34 @@ function paintChips(root: HTMLElement, now: number) {
 
 /** The company under the pointer. Scroll still owns who is in front. */
 let menuPointer: number | null = null;
+/** The name that carries the stage and the category. */
+let menuFront: number | null = null;
 
 export function pointMenu(index: number | null) {
   if (menuPointer === index) return;
   menuPointer = index;
-  pointerId = index == null ? null : CARDS[index]?.id ?? null;
-  if (live) setHover(pointerId);
   if (!pose || pose.root.dataset.helix !== "1") return;
   placeMenu(pose.root, pose.t, pose.lead, true);
+}
+
+function syncFront(pos: number) {
+  const front = Math.round(Math.max(0, Math.min(CARDS.length - 1, pos)));
+  if (menuFront === front) return;
+  menuFront = front;
+  setHover(CARDS[front]?.id ?? null);
 }
 
 function placeMenu(root: HTMLElement, t: number, lead = 0, animateNames = false) {
   const menu = root.querySelector<HTMLElement>("[data-film='menu']");
   const track = root.querySelector<HTMLElement>("[data-film='menu-track']");
   if (!menu || !track) return;
-  const names = [...track.querySelectorAll<HTMLElement>("[data-film='menu-name']")];
-  if (!names.length) return;
+  const items = [...track.querySelectorAll<HTMLElement>("[data-film='menu-item']")];
+  const names = items
+    .map((item) => item.querySelector<HTMLElement>("[data-film='menu-name']"))
+    .filter((el): el is HTMLElement => el != null);
+  if (!items.length || names.length !== items.length) return;
   const pos = Math.max(0, Math.min(1, t)) * (names.length - 1);
-  const centers = names.map((el) => el.offsetLeft + el.offsetWidth / 2);
+  const centers = items.map((el) => el.offsetLeft + el.offsetWidth / 2);
   const index = Math.min(names.length - 1, Math.floor(pos));
   const next = Math.min(names.length - 1, index + 1);
   const mix = pos - index;
@@ -371,12 +404,13 @@ function placeMenu(root: HTMLElement, t: number, lead = 0, animateNames = false)
     el.style.transition = animateNames ? snap : "none";
     el.style.color = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
   });
+  syncFront(pos);
 }
 
 function paint(root: HTMLElement, t: number, vw: number, vh: number, now: number, lead = 0) {
   if (root.dataset.helix === "1") {
-    paintChips(root, now);
     placeMenu(root, t, lead);
+    paintMenuLine(root, now);
     seatHelix(root);
     return;
   }
@@ -448,6 +482,7 @@ export function restFilm(root: HTMLElement) {
   live = false;
   pointerId = null;
   focusId = null;
+  menuFront = null;
   runs.clear();
   cancelAnimationFrame(hoverRaf);
   const nodes = readNodes(root);
@@ -542,15 +577,15 @@ function CardFace({ card, helix }: { card: Card; helix?: boolean }) {
                 height={32}
                 className="pointer-events-none absolute max-w-none"
               />
+              {helix ? null : (
               <div
                 data-film="pad"
-                className={`pointer-events-none relative flex h-full flex-col ${helix ? "justify-end" : "justify-between p-10"}`}
-                style={helix ? { padding: "8.4cqw" } : undefined}
+                className="pointer-events-none relative flex h-full flex-col justify-between p-10"
               >
                 <div
                   data-film="labels"
-                  className={`flex items-end justify-between font-normal uppercase leading-[1.4] text-[#FAF6EC] ${helix ? "" : "p-0"}`}
-                  style={{ fontFamily: MONO, fontSize: helix ? "5.29cqw" : undefined }}
+                  className="flex items-end justify-between p-0 font-normal uppercase leading-[1.4] text-[#FAF6EC]"
+                  style={{ fontFamily: MONO }}
                 >
                   <span data-film="year" className="inline-flex shrink-0 bg-[#070E18]" style={{ paddingLeft: 8, paddingRight: 8 }}>
                     <span data-film="face">{card.stage}</span>
@@ -559,18 +594,17 @@ function CardFace({ card, helix }: { card: Card; helix?: boolean }) {
                     <span data-film="face">{card.category}</span>
                   </span>
                 </div>
-                {helix ? null : (
-                  <div data-film="stack" className="flex flex-col items-start">
-                    <p
-                      data-film="name"
-                      className="leading-none"
-                      style={{ fontFamily: SANS, fontSize: 48, color: card.ink ? "#070F18" : "#FAF6EC" }}
-                    >
-                      {card.name}
-                    </p>
-                  </div>
-                )}
+                <div data-film="stack" className="flex flex-col items-start">
+                  <p
+                    data-film="name"
+                    className="leading-none"
+                    style={{ fontFamily: SANS, fontSize: 48, color: card.ink ? "#070F18" : "#FAF6EC" }}
+                  >
+                    {card.name}
+                  </p>
+                </div>
               </div>
+              )}
             </article>
   );
 }
@@ -617,14 +651,37 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
             }}
           >
             {CARDS.map((card) => (
-              <p
-                key={card.id}
-                data-film="menu-name"
-                className="m-0 shrink-0 whitespace-nowrap leading-none"
-                style={{ color: "#e5ddcb", whiteSpace: "nowrap", flexShrink: 0 }}
-              >
-                {card.name}
-              </p>
+              <span key={card.id} data-film="menu-item" className="relative m-0 shrink-0" style={{ flexShrink: 0 }}>
+                <p
+                  data-film="menu-name"
+                  className="m-0 whitespace-nowrap leading-none"
+                  style={{ color: "#e5ddcb", whiteSpace: "nowrap" }}
+                >
+                  {card.name}
+                </p>
+                <span
+                  data-film="menu-line"
+                  data-film-line={card.id}
+                  className="absolute left-0 top-full flex uppercase"
+                  style={{
+                    marginTop: 8,
+                    gap: 16,
+                    fontFamily: MONO,
+                    fontSize: 14,
+                    fontWeight: 500,
+                    letterSpacing: "0.04em",
+                    lineHeight: 1.4,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  <span data-film="year" style={{ display: "inline-block", color: LINE_INK, clipPath: "inset(0 100% 0 0)" }}>
+                    {card.stage}
+                  </span>
+                  <span data-film="roles" style={{ display: "inline-block", color: LINE_INK, clipPath: "inset(0 100% 0 0)" }}>
+                    {card.category}
+                  </span>
+                </span>
+              </span>
             ))}
           </div>
         </div>
