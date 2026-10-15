@@ -36,6 +36,10 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-15 — The arrow follows the pointer
+
+James wanted the arrow to change direction as the pointer moves through the carousel. It turns with that travel and holds the last heading. The weight stays 1.2px. It still starts down.
+
 ### 2026-10-15 — The circle stays through the scroll
 
 The circle no longer leaves while the page scrolls, as long as the carousel is in view. The stroke is off. The arrow is the same one as the press links, turned down, at 1.2px.
