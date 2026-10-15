@@ -28,6 +28,8 @@ The lead holds all five. One pull request, one lane, unless James asks for more.
 
 The lead opens a pull request. Simon comments when the diff touches layout, motion, type, color, imagery, or voice. Mia names the owner and what is waiting. James merges.
 
+On weekday mornings Simon reads the recent sessions and the comments on open pull requests. The same mistake twice becomes one pull request that edits only `design/NOTEBOOK.md`, and `design/DESIGN.md` if the direction should change. He proposes it. James merges it.
+
 Checks on the pull request are lint, `tsc --noEmit`, and `next build`. Locally those are `npm run lint`, `npm run typecheck`, and `npm run build`. The preview is the Vercel deploy for that pull request. Production deploys from `main`. The live domain is a separate decision.
 
 Whether the agents are awake stays with Mia. She names it when someone asks. She does not take over the lead, Simon, or the four automations.
