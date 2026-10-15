@@ -227,7 +227,10 @@ export function filmFrame(t: number, vw: number, vh: number) {
 }
 
 /** Places along the helix from the card in front. Matches the carousel step. */
-const HELIX_STEP = 0.195;
+const HELIX_CARD = 0.252;
+/** Open space between cards, so the photographs do not cover one another. */
+const HELIX_GAP = 0.06;
+const HELIX_STEP = HELIX_CARD + HELIX_GAP;
 /** How far the helix reaches above and below its centre, as a fraction of width.
  *  High enough that the real cards fit, so the top is never cut off. */
 const HELIX_ABOVE = 0.28;
@@ -574,6 +577,7 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
           preset="paper"
           theme={{ background: "transparent", card: "transparent" }}
           radius={4}
+          gap={HELIX_GAP}
           autoplay={false}
           wheel={false}
           keyboard={false}
