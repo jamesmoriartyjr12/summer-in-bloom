@@ -75,6 +75,50 @@ function place(u: number, s: number, p: PlaceProps) {
 /** Wraps `v` into [-m/2, m/2) — the loop, centred on the focused card. */
 const wrap = (v: number, m: number) => ((((v + m / 2) % m) + m) % m) - m / 2;
 
+/** How far the photograph can shift inside the frame before the edge shows.
+ * A crop already hangs past the clip. A cover image has the slack object-fit leaves. */
+function stillRoom(still: HTMLImageElement, photo: HTMLElement) {
+  const w = photo.clientWidth;
+  const h = photo.clientHeight;
+  const key = `${w}x${h}x${still.naturalWidth}`;
+  if (still.dataset.slackKey === key && still.dataset.slackL) {
+    return {
+      l: Number(still.dataset.slackL),
+      r: Number(still.dataset.slackR),
+      t: Number(still.dataset.slackT),
+      b: Number(still.dataset.slackB),
+      crop: still.dataset.crop === "1",
+    };
+  }
+  const crop = Boolean(still.style.width);
+  const pct = (v: string) => (v.endsWith("%") ? parseFloat(v) / 100 : 0);
+  let l = 0;
+  let r = 0;
+  let t = 0;
+  let b = 0;
+  if (crop && w && h) {
+    const left = pct(still.style.left);
+    const top = pct(still.style.top);
+    const width = still.style.width.endsWith("%") ? parseFloat(still.style.width) / 100 : 1;
+    const height = still.style.height.endsWith("%") ? parseFloat(still.style.height) / 100 : 1;
+    l = Math.max(0, -left * w);
+    r = Math.max(0, (left + width - 1) * w);
+    t = Math.max(0, -top * h);
+    b = Math.max(0, (top + height - 1) * h);
+  } else if (still.naturalWidth && still.naturalHeight && w && h) {
+    const scale = Math.max(w / still.naturalWidth, h / still.naturalHeight);
+    l = r = Math.max(0, (still.naturalWidth * scale - w) / 2);
+    t = b = Math.max(0, (still.naturalHeight * scale - h) / 2);
+  }
+  still.dataset.slackKey = key;
+  still.dataset.crop = crop ? "1" : "0";
+  still.dataset.slackL = String(l);
+  still.dataset.slackR = String(r);
+  still.dataset.slackT = String(t);
+  still.dataset.slackB = String(b);
+  return { l, r, t, b, crop };
+}
+
 /** The page scroll writes this. `t` 0 is the first card. `t` 1 is the last.
  * `lead` holds the first card that many places to the right of centre. */
 let scrollHelixTo: ((t: number, lead?: number) => void) | null = null;
@@ -519,9 +563,28 @@ export default function DnaCarousel<T>({
         }
         const photo = face?.querySelector<HTMLElement>(".dna__photo");
         if (photo) photo.style.filter = parts.join(" ");
-        const still = photo?.querySelector<HTMLElement>("img:not([data-film='arrow'])");
-        if (still) {
-          still.style.translate = held < 0.02 ? "" : `${f(-hx * 12, 2)}px ${f(-hy * 12, 2)}px`;
+        const still = photo?.querySelector<HTMLImageElement>("img:not([data-film='arrow'])");
+        if (still && photo) {
+          /* The still lags the frame as the card travels, and sits centered in front.
+             Eight pixels is the cap, and only inside the picture that is already there,
+             so the card edge never crosses the photograph. The pointer drift sits on
+             top, and it is already quiet while the scroll eases the turn off. */
+          const lag = Math.max(-8, Math.min(8, -base * 8));
+          const px = held < 0.02 ? 0 : -hx * 12;
+          const py = held < 0.02 ? 0 : -hy * 12;
+          const room = stillRoom(still, photo);
+          const x = Math.max(-room.r, Math.min(room.l, lag + px));
+          const y = Math.max(-room.b, Math.min(room.t, py));
+          const quiet = Math.abs(x) < 0.05 && Math.abs(y) < 0.05;
+          if (room.crop) {
+            still.style.objectPosition = "";
+            still.style.translate = quiet ? "" : `${f(x, 2)}px ${f(y, 2)}px`;
+          } else {
+            still.style.translate = "";
+            still.style.objectPosition = quiet
+              ? ""
+              : `calc(50% + ${f(x, 2)}px) calc(50% + ${f(y, 2)}px)`;
+          }
         }
         if (face) face.style.filter = "";
         el.style.filter = "";

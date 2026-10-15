@@ -36,6 +36,10 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-15 — The still lags inside the frame
+
+James asked for a small parallax in the photographs. The still shifts at most 8px inside the clip as the card travels, and it is centered when that card is in front. It stays inside the picture that is already there. The pointer drift stays, and it is quiet while the page is scrolling. This brushes the rule that photography does not parallax against the frame. He picked the 8px, inside the clip only.
+
 ### 2026-10-15 — A ground behind the cards
 
 James asked what could sit behind the cards. The preview is Paper, and the flower field is fully gone, which is what the direction asked for. I offered two things and refused a pattern, a grain, orange, a made-up object, and anything that floats on its own. Neither is a direction until he picks.
