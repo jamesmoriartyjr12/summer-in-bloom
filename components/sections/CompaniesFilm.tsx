@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type Ref } from "react";
 import { createPortal } from "react-dom";
-import { useReducedMotion } from "framer-motion";
+import { motion, useMotionValue, useReducedMotion, useSpring } from "framer-motion";
 import { PORTFOLIO } from "@/content/portfolio";
 import DnaCarousel, { scrollHelix } from "../dna-carousel/DnaCarousel";
 import { useLenis } from "../LenisContext";
@@ -708,8 +708,12 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
   const lenis = useLenis();
   const lenisRef = useRef(lenis);
   lenisRef.current = lenis;
-  const cursorRef = useRef<HTMLDivElement>(null);
-  const labelRef = useRef<HTMLParagraphElement>(null);
+  const pointerX = useMotionValue(0);
+  const pointerY = useMotionValue(0);
+  const springX = useSpring(pointerX, { stiffness: 900, damping: 55 });
+  const springY = useSpring(pointerY, { stiffness: 900, damping: 55 });
+  const [cursorOn, setCursorOn] = useState(false);
+  const [cursorLine, setCursorLine] = useState("");
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setMounted(true);
@@ -722,14 +726,14 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
   useEffect(() => {
     if (reduce || !mounted) return;
     const root = document.querySelector<HTMLElement>("[data-helix='1']");
-    const dot = cursorRef.current;
-    if (!root || !dot) return;
+    if (!root) return;
 
     let x = 0;
     let y = 0;
     let seen = false;
     let raf = 0;
     let label = "";
+    let shown = false;
 
     const inCarousel = () => {
       if (!seen || getComputedStyle(root).visibility === "hidden") return false;
@@ -774,20 +778,16 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
       const show = inCarousel();
       const card = show ? cardUnder() : null;
       const next = card ? LINE[PORTFOLIO_NAME[card.id]] ?? "" : "";
-      const word = labelRef.current;
-      if (word && next !== label) {
-        label = next;
-        word.textContent = next;
-        word.style.opacity = next ? "1" : "0";
-        word.style.transition = next
-          ? "opacity 200ms cubic-bezier(0.22, 1, 0.36, 1) 80ms"
-          : "opacity 120ms linear";
-        dot.style.width = next ? `${word.scrollWidth}px` : "17px";
-        dot.style.height = next ? `${word.scrollHeight}px` : "17px";
+      pointerX.set(x);
+      pointerY.set(y);
+      if (show !== shown) {
+        shown = show;
+        setCursorOn(show);
       }
-      dot.style.opacity = show ? "1" : "0";
-      dot.style.visibility = show ? "visible" : "hidden";
-      dot.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`;
+      if (next !== label) {
+        label = next;
+        setCursorLine(next);
+      }
       if (show) root.dataset.aim = "1";
       else delete root.dataset.aim;
     };
@@ -865,7 +865,7 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
       root.removeEventListener("click", onClick);
       delete root.dataset.aim;
     };
-  }, [reduce, mounted]);
+  }, [pointerX, pointerY, reduce, mounted]);
 
   if (!reduce) {
     return (
@@ -938,41 +938,50 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
       </div>
       {mounted
         ? createPortal(
-            <div
-              ref={cursorRef}
+            <motion.div
               data-card-cursor=""
               aria-hidden
               style={{
                 position: "fixed",
                 left: 0,
                 top: 0,
-                width: 17,
-                height: 17,
-                borderRadius: 20,
+                x: springX,
+                y: springY,
+                translateX: "-50%",
+                translateY: "-50%",
+                width: 16,
+                height: 16,
                 background: INK,
-                color: PAPER,
-                overflow: "hidden",
                 pointerEvents: "none",
                 zIndex: 90,
-                opacity: 0,
-                visibility: "hidden",
-                transition: "width 360ms cubic-bezier(0.22, 1, 0.36, 1), height 360ms cubic-bezier(0.22, 1, 0.36, 1)",
+                opacity: cursorOn ? 1 : 0,
+                visibility: cursorOn ? "visible" : "hidden",
               }}
             >
-              <p
-                ref={labelRef}
-                style={{
-                  margin: 0,
-                  padding: 15,
-                  width: "max-content",
-                  fontFamily: SANS,
-                  fontSize: 18,
-                  lineHeight: 1.3,
-                  whiteSpace: "nowrap",
-                  opacity: 0,
-                }}
-              />
-            </div>,
+              {cursorLine ? (
+                <motion.p
+                  key={cursorLine}
+                  initial={{ clipPath: "inset(0 100% 0 0)" }}
+                  animate={{ clipPath: "inset(0 0% 0 0)" }}
+                  transition={{ duration: 0.36, ease: [0.22, 1, 0.36, 1] }}
+                  style={{
+                    position: "absolute",
+                    left: "100%",
+                    top: "50%",
+                    translate: "0 -50%",
+                    margin: 0,
+                    padding: "10px 12px",
+                    color: "#fff",
+                    fontFamily: SANS,
+                    fontSize: 14,
+                    lineHeight: 1.2,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {cursorLine}
+                </motion.p>
+              ) : null}
+            </motion.div>,
             document.body,
           )
         : null}

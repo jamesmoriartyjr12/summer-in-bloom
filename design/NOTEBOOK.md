@@ -36,6 +36,10 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-15 — The line sits beside the square
+
+James said the line was still inside the bubble. The square now stays 16px, and the portfolio line reveals beside it. The sample’s pink stays off.
+
 ### 2026-10-15 — The square reveals the line
 
 James wanted the sample’s small square, with a line revealed over each company. The square is ink, 17px. The line is the portfolio sentence, in paper. It closes between cards. The sample’s pink stays off.
