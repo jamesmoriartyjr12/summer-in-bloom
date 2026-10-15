@@ -8,8 +8,8 @@ import DnaCarousel, { scrollHelix } from "../dna-carousel/DnaCarousel";
  * Frames 187:181 and 210:404, on a 1920×1080 stage.
  * Scroll carries the row in. Frame 227:34 is the rest of every card.
  * Frame 227:222 is the hover and the focus of a card.
- * On the helix the stage and the category sit under the name in front.
- * They wipe in left to right, and wipe back when that company leaves the front.
+ * On the helix the stage and the category sit centered above the name in front.
+ * They stay ink chips. They wipe in left to right, and wipe back when that company leaves the front.
  * The photograph stays clear of those words.
  */
 const HOVER_MS = 560;
@@ -235,7 +235,7 @@ const HELIX_STEP = HELIX_CARD + HELIX_GAP;
  *  High enough that the real cards fit, so the top is never cut off. */
 const HELIX_ABOVE = 0.28;
 const HELIX_BELOW = 0.26;
-const NAME_BAND = 132;
+const NAME_BAND = 168;
 
 /** Fits the helix in view and sits it just above the names. */
 function seatHelix(root: HTMLElement) {
@@ -322,12 +322,11 @@ function paintChip(chip: HTMLElement, amount: number) {
   });
 }
 
-const LINE_INK = "#1b1b1b";
-
-/** The words wipe across themselves. No chip. Paper ground shows through the unwritten part. */
+/** The ink chip wipes in. The type stays paper. */
 function paintWord(word: HTMLElement, amount: number) {
   const local = Math.min(1, Math.max(0, amount));
-  word.style.color = LINE_INK;
+  word.style.color = "#FAF6EC";
+  word.style.backgroundColor = "#070E18";
   word.style.clipPath = `inset(0 ${(1 - local) * 100}% 0 0)`;
 }
 
@@ -638,7 +637,7 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
           onHover={pointMenu}
           label="Companies"
         />
-        <div data-film="menu" className="pointer-events-none absolute inset-x-0 bottom-0 z-50 h-[132px] overflow-hidden">
+        <div data-film="menu" className="pointer-events-none absolute inset-x-0 bottom-0 z-50 h-[168px] overflow-hidden">
           <div
             data-film="menu-track"
             className="absolute bottom-[42px] left-0 flex w-max items-end"
@@ -662,10 +661,13 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
                 <span
                   data-film="menu-line"
                   data-film-line={card.id}
-                  className="absolute left-0 top-full flex uppercase"
+                  className="absolute flex uppercase"
                   style={{
-                    marginTop: 8,
-                    gap: 16,
+                    left: "50%",
+                    bottom: "100%",
+                    transform: "translateX(-50%)",
+                    marginBottom: 10,
+                    gap: 8,
                     fontFamily: MONO,
                     fontSize: 14,
                     fontWeight: 500,
@@ -674,10 +676,30 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
                     whiteSpace: "nowrap",
                   }}
                 >
-                  <span data-film="year" style={{ display: "inline-block", color: LINE_INK, clipPath: "inset(0 100% 0 0)" }}>
+                  <span
+                    data-film="year"
+                    style={{
+                      display: "inline-block",
+                      backgroundColor: "#070E18",
+                      color: "#FAF6EC",
+                      paddingLeft: 8,
+                      paddingRight: 8,
+                      clipPath: "inset(0 100% 0 0)",
+                    }}
+                  >
                     {card.stage}
                   </span>
-                  <span data-film="roles" style={{ display: "inline-block", color: LINE_INK, clipPath: "inset(0 100% 0 0)" }}>
+                  <span
+                    data-film="roles"
+                    style={{
+                      display: "inline-block",
+                      backgroundColor: "#070E18",
+                      color: "#FAF6EC",
+                      paddingLeft: 8,
+                      paddingRight: 8,
+                      clipPath: "inset(0 100% 0 0)",
+                    }}
+                  >
                     {card.category}
                   </span>
                 </span>
