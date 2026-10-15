@@ -547,6 +547,10 @@ export default function DnaCarousel<T>({
         }
         const photo = face?.querySelector<HTMLElement>(".dna__photo");
         if (photo) photo.style.filter = parts.join(" ");
+        const still = photo?.querySelector<HTMLElement>("img:not([data-film='arrow'])");
+        if (still) {
+          still.style.translate = held < 0.02 ? "" : `${f(-hx * 12, 2)}px ${f(-hy * 12, 2)}px`;
+        }
         if (face) face.style.filter = "";
         el.style.filter = "";
       }

@@ -342,6 +342,8 @@ let menuPointer: number | null = null;
 export function pointMenu(index: number | null) {
   if (menuPointer === index) return;
   menuPointer = index;
+  pointerId = index == null ? null : CARDS[index]?.id ?? null;
+  if (live) setHover(pointerId);
   if (!pose || pose.root.dataset.helix !== "1") return;
   placeMenu(pose.root, pose.t, pose.lead, true);
 }
