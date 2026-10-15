@@ -704,7 +704,7 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
   const lenisRef = useRef(lenis);
   lenisRef.current = lenis;
   const cursorRef = useRef<HTMLDivElement>(null);
-  const arrowRef = useRef<SVGSVGElement>(null);
+  const labelRef = useRef<HTMLSpanElement>(null);
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setMounted(true);
@@ -724,12 +724,7 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
     let y = 0;
     let seen = false;
     let raf = 0;
-    let vx = 0;
-    let vy = 0;
-    let heading = 135;
-    let aim = 135;
-    let spin = 0;
-    let spunAt = 0;
+    let label = "";
 
     const inCarousel = () => {
       if (!seen || getComputedStyle(root).visibility === "hidden") return false;
@@ -761,9 +756,25 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
       return best;
     };
 
+    const cardUnder = () => {
+      if (!seen) return null;
+      const under = document.elementFromPoint(x, y);
+      const direct = under?.closest?.("[data-slot]") as HTMLElement | null;
+      if (!direct || !root.contains(direct) || getComputedStyle(direct).visibility === "hidden") return null;
+      return CARDS[Number(direct.dataset.slot)] ?? null;
+    };
+
     const sync = () => {
       raf = 0;
       const show = inCarousel();
+      const next = show ? cardUnder()?.name ?? "" : "";
+      if (next !== label) {
+        label = next;
+        const word = labelRef.current;
+        if (word) word.textContent = next;
+        dot.style.width = next ? "max-content" : "72px";
+        dot.style.padding = next ? "0 22px" : "0";
+      }
       dot.style.opacity = show ? "1" : "0";
       dot.style.visibility = show ? "visible" : "hidden";
       dot.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`;
@@ -775,18 +786,6 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
       if (!raf) raf = requestAnimationFrame(sync);
     };
 
-    const paintArrow = (now: number) => {
-      spin = 0;
-      const dt = spunAt ? Math.min(0.05, (now - spunAt) / 1000) : 0.016;
-      spunAt = now;
-      let delta = aim - heading;
-      delta = ((((delta + 180) % 360) + 360) % 360) - 180;
-      heading += delta * (1 - Math.exp(-dt / 0.07));
-      const arrow = arrowRef.current;
-      if (arrow) arrow.style.transform = `rotate(${heading}deg)`;
-      if (Math.abs(delta) > 0.4) spin = requestAnimationFrame(paintArrow);
-    };
-
     const onMove = (e: PointerEvent) => {
       if (e.pointerType === "touch") {
         seen = false;
@@ -796,12 +795,6 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
       x = e.clientX;
       y = e.clientY;
       seen = true;
-      vx = vx * 0.45 + e.movementX;
-      vy = vy * 0.45 + e.movementY;
-      if (vx * vx + vy * vy > 2.25) {
-        aim = (Math.atan2(vy, vx) * 180) / Math.PI + 45;
-        if (!spin) spin = requestAnimationFrame(paintArrow);
-      }
       schedule();
     };
 
@@ -855,7 +848,6 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
     root.addEventListener("click", onClick);
     return () => {
       cancelAnimationFrame(raf);
-      cancelAnimationFrame(spin);
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerdown", onDown);
       document.removeEventListener("pointerout", onLeave);
@@ -948,6 +940,11 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
                 height: 72,
                 borderRadius: 999,
                 background: "#FFFFFF",
+                color: INK,
+                fontFamily: SANS,
+                fontSize: 18,
+                lineHeight: 1,
+                whiteSpace: "nowrap",
                 pointerEvents: "none",
                 zIndex: 90,
                 opacity: 0,
@@ -956,24 +953,7 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
                 placeItems: "center",
               }}
             >
-              <svg
-                ref={arrowRef}
-                width="22"
-                height="22"
-                viewBox="0 0 10 10"
-                fill="none"
-                aria-hidden
-                style={{ transform: "rotate(135deg)" }}
-              >
-                <path
-                  d="M2.5 7.5L7.5 2.5M7.5 2.5H3.5M7.5 2.5V6.5"
-                  stroke={INK}
-                  strokeWidth="1.2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  vectorEffect="non-scaling-stroke"
-                />
-              </svg>
+              <span ref={labelRef} />
             </div>,
             document.body,
           )
