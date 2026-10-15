@@ -579,6 +579,7 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
           keyboard={false}
           grabCursor={false}
           scrollDriven
+          inactiveOpacity={1}
           label="Companies"
         />
         <div data-film="menu" className="pointer-events-none absolute inset-x-0 bottom-0 z-50 h-[132px] overflow-hidden">
