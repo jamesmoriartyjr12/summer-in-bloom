@@ -15,7 +15,9 @@ Every pull request:
 3. Comment on the pull request.
 4. Add one dated note below. A fact you checked. Something the preview does that the direction did not ask for. A conflict you are leaving for James. If you are unsure, write that you are unsure. A comment is not a new rule.
 
-Every weekday morning, study one source, then the next, in this order: the main preview, the brand hub, the Figma explorations, `design/MOTION.md`, the last change merged to `main`. Write what you learned here. If the page direction should change, open one pull request that edits only this file and `design/DESIGN.md`. Leave the site alone.
+Every weekday morning, before the study below, read the recent chats and the comments on open pull requests. If the same mistake appears more than once, open one pull request that edits only this file, and `design/DESIGN.md` when the page direction should change. Propose the note. Do not turn a transcript into a rule. James accepts it by merging. Do not edit `AGENTS.md`. Leave the site alone.
+
+Then study one source, then the next, in this order: the main preview, the brand hub, the Figma explorations, `design/MOTION.md`, the last change merged to `main`. Write what you learned here. If the page direction should change, that change belongs in the same kind of pull request.
 
 Record a visual fact you checked, a conflict between the hub and Figma, a motion rule from the Double Dutch install, a decision James, Marco, or Kayla already made, or a drift the preview is showing.
 
@@ -35,6 +37,10 @@ The automation's private memory is a scratch pad for this same habit. It does no
 - You comment. James merges. You do not restyle the site.
 
 ## Log
+
+### 2026-10-15 — Across sessions
+
+A weekday morning reads the recent chats and the open comments before it studies one reference. The same mistake twice becomes a proposed note. James merges it. A transcript does not rewrite the contract.
 
 ### 2026-10-06 — Feno and Milly fallbacks
 
