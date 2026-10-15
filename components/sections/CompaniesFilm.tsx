@@ -9,7 +9,8 @@ import DnaCarousel, { scrollHelix } from "../dna-carousel/DnaCarousel";
  * Scroll carries the row in. Frame 227:34 is the rest of every card.
  * Frame 227:222 is the hover and the focus of a card.
  * On the helix the name and the bubbles sit as one unit, centered on the company in front.
- * The bubbles rest as an ink stroke. In front, they swipe to a fill of Ink, and swipe back to the stroke on the way out.
+ * The stage bubble is Orange and the category bubble is Lime.
+ * In front, each swipes to a fill of its own color, and swipes back to the stroke on the way out.
  * The photograph stays clear of those words.
  */
 const HOVER_MS = 560;
@@ -67,9 +68,11 @@ const CARDS: Card[] = ROW;
 const MONO = "var(--font-jetbrains), ui-monospace, monospace";
 const SANS = "var(--font-archivo), sans-serif";
 
-/** Frame 188:325. An ink ring, 2px on a 37px capsule. Focus fills it with Ink. */
+/** Frame 188:325. A 2px capsule. The stage is Orange, the category is Lime. */
 const INK = "#070F18";
 const PAPER = "#FAF6EC";
+const ORANGE = "#FA4C1F";
+const LIME = "#D8FF34";
 const bubbleStyle = {
   display: "inline-flex",
   alignItems: "center",
@@ -77,12 +80,16 @@ const bubbleStyle = {
   paddingLeft: 16,
   paddingRight: 16,
   borderRadius: 999,
-  border: `2px solid ${INK}`,
+  border: "2px solid transparent",
   backgroundColor: "transparent",
-  color: INK,
   boxSizing: "border-box" as const,
   clipPath: "inset(0 100% 0 0)",
 };
+
+type BubbleTone = { ring: string; strokeType: string; fillType: string };
+
+const STAGE_TONE: BubbleTone = { ring: ORANGE, strokeType: ORANGE, fillType: PAPER };
+const CATEGORY_TONE: BubbleTone = { ring: LIME, strokeType: INK, fillType: INK };
 
 function bezier(ease: readonly [number, number, number, number], t: number) {
   const [x1, y1, x2, y2] = ease;
@@ -339,43 +346,43 @@ function paintChip(chip: HTMLElement, amount: number) {
   });
 }
 
-/** Stroke at rest. Focus swipes a fill of Ink across the bubble, and the type goes paper on that fill. */
-function paintWord(word: HTMLElement, amount: number, shown: boolean) {
+/** Stroke at rest. Focus swipes that bubble's color across the fill. */
+function paintWord(word: HTMLElement, amount: number, shown: boolean, tone: BubbleTone) {
   const face = word.querySelector<HTMLElement>("[data-film='face']");
   if (!shown) {
     word.style.clipPath = "inset(0 100% 0 0)";
     return;
   }
   word.style.clipPath = "none";
-  word.style.border = `2px solid ${INK}`;
+  word.style.border = `2px solid ${tone.ring}`;
   const local = Math.min(1, Math.max(0, amount));
   if (!face) return;
   if (local <= 0) {
     word.style.backgroundImage = "none";
     word.style.backgroundColor = "transparent";
-    paintFaceSolid(face, INK);
+    paintFaceSolid(face, tone.strokeType);
     return;
   }
   if (local >= 1) {
     word.style.backgroundImage = "none";
-    word.style.backgroundColor = INK;
-    paintFaceSolid(face, PAPER);
+    word.style.backgroundColor = tone.ring;
+    paintFaceSolid(face, tone.fillType);
     return;
   }
   const at = `${local * 100}%`;
   word.style.backgroundColor = "transparent";
-  word.style.backgroundImage = `linear-gradient(90deg, ${INK} ${at}, transparent ${at})`;
+  word.style.backgroundImage = `linear-gradient(90deg, ${tone.ring} ${at}, transparent ${at})`;
   word.style.backgroundRepeat = "no-repeat";
   word.style.backgroundSize = "100% 100%";
   const wordBox = word.getBoundingClientRect();
   const box = face.getBoundingClientRect();
-  face.style.backgroundImage = `linear-gradient(90deg, ${PAPER} ${at}, ${INK} ${at})`;
+  face.style.backgroundImage = `linear-gradient(90deg, ${tone.fillType} ${at}, ${tone.strokeType} ${at})`;
   face.style.backgroundSize = `${wordBox.width}px 100%`;
   face.style.backgroundRepeat = "no-repeat";
   face.style.backgroundPosition = `${-(box.left - wordBox.left)}px 0`;
   face.style.webkitBackgroundClip = "text";
   face.style.backgroundClip = "text";
-  face.style.color = INK;
+  face.style.color = tone.strokeType;
   face.style.webkitTextFillColor = "transparent";
   face.style.webkitTextStroke = "0";
   face.style.textShadow = "none";
@@ -391,8 +398,8 @@ function paintMenuLine(root: HTMLElement, now: number) {
     const shown = Boolean(run && (run.to === 1 || clock > 0.001));
     const stage = line.querySelector<HTMLElement>("[data-film='year']");
     const category = line.querySelector<HTMLElement>("[data-film='roles']");
-    if (stage) paintWord(stage, moving ? labelLocal(clock, 0) : 0, shown);
-    if (category) paintWord(category, moving ? labelLocal(clock, 1) : 0, shown);
+    if (stage) paintWord(stage, moving ? labelLocal(clock, 0) : 0, shown, STAGE_TONE);
+    if (category) paintWord(category, moving ? labelLocal(clock, 1) : 0, shown, CATEGORY_TONE);
   }
 }
 
