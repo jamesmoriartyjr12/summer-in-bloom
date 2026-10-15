@@ -228,11 +228,13 @@ export function filmFrame(t: number, vw: number, vh: number) {
 
 /** Places along the helix from the card in front. Matches the carousel step. */
 const HELIX_STEP = 0.195;
-/** How far the helix reaches above and below its centre, as a fraction of width. */
-const HELIX_ABOVE = 0.26;
-const HELIX_BELOW = 0.275;
+/** How far the helix reaches above and below its centre, as a fraction of width.
+ *  High enough that the real cards fit, so the top is never cut off. */
+const HELIX_ABOVE = 0.28;
+const HELIX_BELOW = 0.26;
+const NAME_BAND = 132;
 
-/** Keeps every card in the space above the name row. The names stay at the bottom. */
+/** Fits the helix in view and sits it just above the names. */
 function seatHelix(root: HTMLElement) {
   const dna = root.querySelector<HTMLElement>(".dna--fill");
   const stage = root.querySelector<HTMLElement>(".dna__stage");
@@ -242,15 +244,12 @@ function seatHelix(root: HTMLElement) {
   if (!width || !height) return;
   const above = HELIX_ABOVE * width;
   const below = HELIX_BELOW * width;
-  const topPad = 16;
-  /* The cast shadow has to finish on the paper. The box clips at the name
-     row, so this clearance is the shadow, not a gap in the cards. */
-  const bottomPad = 84;
-  const available = Math.max(1, height - topPad - bottomPad);
+  const topPad = 8;
+  const bottomGap = 8;
+  const limit = height - NAME_BAND - bottomGap;
+  const available = Math.max(1, limit - topPad);
   const scale = Math.min(1, available / (above + below));
-  const span = (above + below) * scale;
-  const top = topPad + (available - span) / 2;
-  const shift = top - height / 2 + above * scale;
+  const shift = limit - height / 2 - below * scale;
   const next = `translateY(${shift.toFixed(2)}px) scale(${scale.toFixed(4)})`;
   if (stage.style.transform !== next) stage.style.transform = next;
 }
@@ -531,7 +530,7 @@ function CardFace({ card, helix }: { card: Card; helix?: boolean }) {
                 <div
                   data-film="labels"
                   className={`flex items-end justify-between font-normal uppercase leading-[1.4] text-[#FAF6EC] ${helix ? "" : "p-0"}`}
-                  style={{ fontFamily: MONO, fontSize: helix ? "3.528cqw" : undefined }}
+                  style={{ fontFamily: MONO, fontSize: helix ? "5.29cqw" : undefined }}
                 >
                   <span data-film="year" className="inline-flex shrink-0 bg-[#070E18]" style={{ paddingLeft: 8, paddingRight: 8 }}>
                     <span data-film="face">{card.stage}</span>
