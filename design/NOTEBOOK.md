@@ -36,6 +36,10 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-15 — Details on the turn
+
+James asked for options, not a build. The turn on the preview leans the card under the pointer and steps it forward. The neighbours stay full color and apart. I offered four details and refused a cursor, a scale, a chip wipe, and a sheen. None of them is a direction until he picks.
+
 ### 2026-10-06 — Feno and Milly fallbacks
 
 Looked at the preview for pull request 24. The rows still show The Verge and Coverager. The new lines are the descriptions that appear only when a company has no article. They are the companies’ own facts, and they replace “coming soon.” I left them. I did not ask for a warmer line. Press stays in front of the description.

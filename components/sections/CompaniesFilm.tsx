@@ -336,7 +336,17 @@ function paintChips(root: HTMLElement, now: number) {
   }
 }
 
-function placeMenu(root: HTMLElement, t: number, lead = 0) {
+/** The company under the pointer. Scroll still owns who is in front. */
+let menuPointer: number | null = null;
+
+export function pointMenu(index: number | null) {
+  if (menuPointer === index) return;
+  menuPointer = index;
+  if (!pose || pose.root.dataset.helix !== "1") return;
+  placeMenu(pose.root, pose.t, pose.lead, true);
+}
+
+function placeMenu(root: HTMLElement, t: number, lead = 0, animateNames = false) {
   const menu = root.querySelector<HTMLElement>("[data-film='menu']");
   const track = root.querySelector<HTMLElement>("[data-film='menu-track']");
   if (!menu || !track) return;
@@ -352,9 +362,11 @@ function placeMenu(root: HTMLElement, t: number, lead = 0) {
   track.style.transform = `translate3d(${menu.clientWidth / 2 - center + shift}px, 0, 0)`;
   const ink = [27, 27, 27];
   const mute = [229, 221, 203];
+  const snap = "color 200ms cubic-bezier(0.2, 0.8, 0.2, 1)";
   names.forEach((el, i) => {
-    const away = Math.min(1, Math.abs(i - pos));
+    const away = i === menuPointer ? 0 : Math.min(1, Math.abs(i - pos));
     const rgb = ink.map((channel, k) => Math.round(channel + (mute[k] - channel) * away));
+    el.style.transition = animateNames ? snap : "none";
     el.style.color = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
   });
 }
@@ -587,6 +599,7 @@ export function CompaniesFilm({ rootRef }: { rootRef: Ref<HTMLDivElement> }) {
           grabCursor={false}
           scrollDriven
           inactiveOpacity={1}
+          onHover={pointMenu}
           label="Companies"
         />
         <div data-film="menu" className="pointer-events-none absolute inset-x-0 bottom-0 z-50 h-[132px] overflow-hidden">

@@ -114,6 +114,7 @@ type LoopProps = PlaceProps & {
   n: number;
   colours: DnaColours;
   onChange?: (index: number) => void;
+  onHover?: (index: number | null) => void;
 };
 
 export default function DnaCarousel<T>({
@@ -186,6 +187,7 @@ export default function DnaCarousel<T>({
   scrollDriven = false,
   startIndex = 0,
   onChange,
+  onHover,
 
   className = "",
   style,
@@ -228,6 +230,7 @@ export default function DnaCarousel<T>({
   scrollDriven?: boolean;
   startIndex?: number;
   onChange?: (index: number) => void;
+  onHover?: (index: number | null) => void;
   className?: string;
   style?: CSSProperties;
 }) {
@@ -288,6 +291,7 @@ export default function DnaCarousel<T>({
     n,
     colours,
     onChange,
+    onHover,
   };
 
   const motion = useRef<Motion | null>(null);
@@ -342,7 +346,7 @@ export default function DnaCarousel<T>({
     const tiltY: number[] = [];
     const tiltVX: number[] = [];
     const tiltVY: number[] = [];
-    const hover = { slot: -1, tx: 0, ty: 0, movedAt: 0, allow: 1 };
+    const hover = { slot: -1, tx: 0, ty: 0, movedAt: 0, allow: 1, sent: null as number | null };
     const pointer = { x: 0, y: 0, on: false };
 
     const onHoverMove = (e: PointerEvent) => {
@@ -458,6 +462,32 @@ export default function DnaCarousel<T>({
       settleTo(Math.round(m.target ?? m.pos) + dir);
     };
 
+    /* A paper edge on the side turning away from the pointer. */
+    const placeEdge = (edge: HTMLElement, hx: number, hy: number, held: number) => {
+      if (held < 0.12) {
+        edge.style.opacity = "0";
+        return;
+      }
+      edge.style.opacity = String(Math.min(1, (held - 0.12) / 0.4));
+      if (Math.abs(hx) >= Math.abs(hy)) {
+        const left = hx > 0;
+        edge.style.top = "0";
+        edge.style.bottom = "0";
+        edge.style.width = "2px";
+        edge.style.height = "auto";
+        edge.style.left = left ? "-2px" : "auto";
+        edge.style.right = left ? "auto" : "-2px";
+      } else {
+        const top = hy > 0;
+        edge.style.left = "0";
+        edge.style.right = "0";
+        edge.style.height = "2px";
+        edge.style.width = "auto";
+        edge.style.top = top ? "-2px" : "auto";
+        edge.style.bottom = top ? "auto" : "-2px";
+      }
+    };
+
     /* --- frame ------------------------------------------------------------ */
     const paint = () => {
       const p = props.current;
@@ -495,11 +525,12 @@ export default function DnaCarousel<T>({
         el.style.opacity = String(f(q.opacity));
         el.style.zIndex = String(1000 - Math.round(q.away * 10) + (held > 0.04 ? 80 : 0));
         const face = el.children[0] as HTMLElement | undefined;
-        if (face) {
-          face.style.transform = held < 0.001
-            ? ""
-            : `translateZ(${f(held * HOVER_Z, 3)}cqw) rotateX(${f(hy * HOVER_DEG)}deg) rotateY(${f(-hx * HOVER_DEG)}deg)`;
-        }
+        const turn = held < 0.001
+          ? ""
+          : `translateZ(${f(held * HOVER_Z, 3)}cqw) rotateX(${f(hy * HOVER_DEG)}deg) rotateY(${f(-hx * HOVER_DEG)}deg)`;
+        if (face) face.style.transform = turn;
+        const edge = face?.querySelector<HTMLElement>(".dna__edge");
+        if (edge) placeEdge(edge, hx, hy, held);
 
         const parts = [];
         if (q.blur > 0.01) {
@@ -514,7 +545,9 @@ export default function DnaCarousel<T>({
             `drop-shadow(rgba(${c.shadow}, ${p.shadowStrength}) 0 ${f(8 + 10 * q.near, 2)}px ${f(18 + 15 * q.near, 2)}px)`,
           );
         }
-        if (face) face.style.filter = parts.join(" ");
+        const photo = face?.querySelector<HTMLElement>(".dna__photo");
+        if (photo) photo.style.filter = parts.join(" ");
+        if (face) face.style.filter = "";
         el.style.filter = "";
       }
 
@@ -655,6 +688,12 @@ export default function DnaCarousel<T>({
       }
       if (tilting || hover.slot >= 0) m.dirty = true;
 
+      const pointed = hover.slot >= 0 ? hover.slot % p.n : null;
+      if (pointed !== hover.sent) {
+        hover.sent = pointed;
+        p.onHover?.(pointed);
+      }
+
       if (m.dirty || m.pos !== before) {
         m.dirty = false;
         paint();
@@ -740,11 +779,14 @@ export default function DnaCarousel<T>({
                 data-slot={k}
               >
                 <div className="dna__face">
-                  {renderItem ? (
-                    renderItem(item, k % n)
-                  ) : (
-                    <img src={image.src} alt={image.alt ?? ""} draggable={false} decoding="async" />
-                  )}
+                  <div className="dna__photo">
+                    {renderItem ? (
+                      renderItem(item, k % n)
+                    ) : (
+                      <img src={image.src} alt={image.alt ?? ""} draggable={false} decoding="async" />
+                    )}
+                  </div>
+                  <div className="dna__edge" />
                 </div>
                 <div className="dna__hit" data-hit="" />
               </div>

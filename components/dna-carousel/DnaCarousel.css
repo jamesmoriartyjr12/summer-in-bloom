@@ -80,12 +80,28 @@
 .dna__face {
   position: absolute;
   inset: 0;
+  overflow: visible;
+  pointer-events: none;
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+
+.dna__photo {
+  position: absolute;
+  inset: 0;
   overflow: hidden;
   border-radius: inherit;
   background: var(--dna-card);
   pointer-events: none;
-  transform-origin: 50% 50%;
-  will-change: transform, filter;
+}
+
+/* A 2px board edge, off the photograph, on the side turning away.
+   Ink, so it reads on the paper ground. */
+.dna__edge {
+  position: absolute;
+  background: #070f18;
+  pointer-events: none;
+  opacity: 0;
 }
 
 .dna__card img {
