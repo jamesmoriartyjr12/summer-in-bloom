@@ -40,6 +40,10 @@ Reviews use `design/MOTION.md`. That file is the Motion install from Double Dutc
 
 ## Log
 
+### 2026-10-16 — Companies settles across the field
+
+The word `companies` no longer stops when the flower field leaves. It eases horizontally from the cruise into its rest, and the field finishes leaving on that same ease.
+
 ### 2026-10-16 — The cards meet the line, then leave
 
 The first card comes in from the right on the scroll that takes the trusted line off, and it stays a gutter to the right of that line until the card is in front. The line does not walk away and leave empty ground. After the last card, the row travels off to the left as the studio rises into the space the scene leaves.

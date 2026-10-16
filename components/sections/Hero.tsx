@@ -143,6 +143,15 @@ function travelPx(seconds: number, speed: number) {
   return 0.5 * speed * ramp + speed * (t - ramp);
 }
 
+/** Scroll time at which `travelPx` has covered `distance`. */
+function invertTravel(distance: number, speed: number) {
+  const ramp = TRAVEL_RAMP_S;
+  const safe = Math.max(speed, 1);
+  const rampDist = 0.5 * safe * ramp;
+  if (distance <= rampDist) return Math.sqrt((2 * Math.max(0, distance) * ramp) / safe);
+  return ramp + (distance - rampDist) / safe;
+}
+
 export function Hero() {
   const reduce = useReducedMotion();
   const trackRef = useRef<HTMLDivElement>(null);
@@ -288,7 +297,6 @@ export function Hero() {
       const packedAt = HANDOFF_PORTION + (1 - HANDOFF_PORTION) * WORD_AT;
       const textT = clamp01((filmT - WORD_AT) / (SUBTEXT_AT - WORD_AT));
       const cardT = clamp01((filmT - EXIT_AT) / (1 - EXIT_AT));
-      const wordT = clamp01((progress - LINE_PORTION) / (packedAt - LINE_PORTION));
       const introT = (performance.now() - introFrom) / 1000;
       const presenting = !introDone && progress <= 0 && introT < WORD_DONE_S;
       const nextStart = GLYPH_DELAY_S + FIRST_WORD_LETTERS * GLYPH_STAGGER_S;
@@ -326,9 +334,19 @@ export function Hero() {
       let companyOffset = 0;
       for (let i = 0; i < COMPANY_AT; i++) companyOffset += chars[i].offsetWidth;
       const unclampedLeft = x + companyOffset;
-      if (!held && unclampedLeft < lockX) x = lockX - companyOffset;
-      if (!held && wordT > 0) {
-        x = lockX + (restLeft - lockX) * wordT - companyOffset - exitShift;
+      /* The cruise meets the inset, then companies eases horizontally to its
+         rest. A cubic ease-out starts at the cruise speed and settles, so the
+         word does not stop while the field leaves. */
+      const travelToLock = Math.max(0, fitX - (lockX - companyOffset));
+      const elapsedLock = invertTravel(travelPx(nextStart, speed) + travelToLock, speed);
+      const lockSpan = Math.max(0.0001, TRAVEL_END_S - nextStart);
+      const lockProgress = clamp01((elapsedLock - nextStart) / lockSpan) * LINE_PORTION;
+      const closeT = held ? 0 : clamp01((progress - lockProgress) / Math.max(0.0001, packedAt - lockProgress));
+      const closeEase = 1 - Math.pow(1 - closeT, 3);
+      if (!held && closeT > 0) {
+        x = lockX + (restLeft - lockX) * closeEase - companyOffset - exitShift;
+      } else if (!held && unclampedLeft < lockX) {
+        x = lockX - companyOffset;
       }
       const fieldOpen = Math.min(1, (performance.now() - introFrom) / AUTO_OPEN_MS);
       const sx = vw / FRAME_W;
@@ -372,7 +390,7 @@ export function Hero() {
         fitX - (travelPx(TRAVEL_END_S, speed) - travelPx(nextStart, speed)) + companyOffset;
       const slideSpan = vw - companyRest;
       const fieldSlide = slideSpan > 8 ? clamp01((vw - unclampedLeft) / slideSpan) : 0;
-      const videoShift = Math.min(1, FIELD_SHIFT * fieldSlide + (1 - FIELD_SHIFT) * wordT);
+      const videoShift = Math.min(1, FIELD_SHIFT * fieldSlide + (1 - FIELD_SHIFT) * closeEase);
       const paperEdge = vw * (1 - videoShift);
       if (video) {
         video.style.transform = videoShift > 0 ? `translate3d(${(-videoShift * 100).toFixed(3)}%,0,0)` : "none";
