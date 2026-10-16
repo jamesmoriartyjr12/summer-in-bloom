@@ -506,10 +506,16 @@ export function filmFrame(t: number, vw: number, vh: number) {
 }
 
 /** Places along the helix from the card in front. Matches the carousel step. */
-const HELIX_CARD = 0.252;
+export const HELIX_CARD = 0.252;
 /** Open space between cards, so the photographs do not cover one another. */
 const HELIX_GAP = 0.06;
 const HELIX_STEP = HELIX_CARD + HELIX_GAP;
+
+/** Lead that places the focused card's left edge at `left` pixels. */
+export function helixLead(left: number, vw: number) {
+  const half = (HELIX_CARD * vw) / 2;
+  return (left - vw / 2 + half) / (HELIX_STEP * Math.max(1, vw));
+}
 /** How far the helix reaches above and below its centre, as a fraction of width.
  *  High enough that the real cards fit, so the top is never cut off. */
 const HELIX_ABOVE = 0.28;

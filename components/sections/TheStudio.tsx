@@ -2,6 +2,7 @@
 
 import { useRef, useEffect, useState } from "react";
 import Image from "next/image";
+import { useReducedMotion } from "framer-motion";
 import { Section } from "../Section";
 
 const STUDIO_IMAGE_SMALL = "/studio-small.png";
@@ -33,18 +34,18 @@ function useScrollProgress(ref: React.RefObject<HTMLDivElement | null>) {
 export function TheStudio() {
   const outerRef = useRef<HTMLDivElement>(null);
   const progress = useScrollProgress(outerRef);
+  const reduce = useReducedMotion();
 
-  // Phase 1: headline scrolls in (0 → 0.25), then holds
+  // The section's own arrival is the handoff from the cards. These settles
+  // stay inside 16px so the studio is in the frame as the row leaves.
   const headlineP = Math.min(1, progress / 0.25);
-  const headlineY = (1 - headlineP) * 100;
+  const headlineY = reduce ? 0 : (1 - headlineP) * 16;
 
-  // Phase 2: photo scrolls in after headline locks (0.25 → 0.5), then holds
   const photoP = Math.min(1, Math.max(0, (progress - 0.25) / 0.25));
-  const photoY = (1 - photoP) * 100;
+  const photoY = reduce ? 0 : (1 - photoP) * 16;
 
-  // Phase 3: all stats enter together (0.5 → 0.7)
   const statsP = Math.min(1, Math.max(0, (progress - 0.5) / 0.2));
-  const statsY = (1 - statsP) * 100;
+  const statsY = reduce ? 0 : (1 - statsP) * 16;
 
   return (
     <div ref={outerRef} className="relative h-[300vh]">
@@ -58,7 +59,7 @@ export function TheStudio() {
           className="absolute left-0 right-[48px] pl-[76px] mobile:pl-[200px] desktop:pl-[248px] xl:pl-[320px]"
           style={{
             top: "100px",
-            transform: `translateY(${headlineY}vh)`,
+            transform: `translateY(${headlineY}px)`,
           }}
         >
           <p className="text-l2 font-medium uppercase mb-[24px]">The Studio • Execution Meets Capital</p>
@@ -75,7 +76,7 @@ export function TheStudio() {
           className="absolute left-0 right-0 pl-[76px] mobile:pl-[200px] desktop:pl-[248px] xl:pl-[320px]"
           style={{
             bottom: "100px",
-            transform: `translateY(${photoY}vh)`,
+            transform: `translateY(${photoY}px)`,
           }}
         >
           <div className="w-[336px] h-[400px] overflow-hidden relative">
@@ -94,7 +95,7 @@ export function TheStudio() {
           {STATS.map((stat) => (
             <div
               key={stat.label}
-              style={{ transform: `translateY(${statsY}vh)` }}
+              style={{ transform: `translateY(${statsY}px)` }}
             >
               <div className="border-t border-black/20 py-[20px]">
                 <p className="font-display text-h3 leading-none tracking-[-1.28px]">{stat.value}</p>

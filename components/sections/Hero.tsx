@@ -3,7 +3,8 @@
 import { useEffect, useRef } from "react";
 import { useReducedMotion } from "framer-motion";
 import { Section } from "../Section";
-import { CompaniesFilm, filmFrame, placeFilm, restFilm } from "./CompaniesFilm";
+import { mediaEase, sampleEase } from "@/lib/motion";
+import { CompaniesFilm, HELIX_CARD, helixLead, placeFilm, restFilm } from "./CompaniesFilm";
 
 const LINE = "Purposely designed to create great companies.";
 const INVEST = "We invest in emerging companies with ambitious ideas.";
@@ -286,7 +287,6 @@ export function Hero() {
       const originY = (vh - FRAME_H * stage) / 2;
       const packedAt = HANDOFF_PORTION + (1 - HANDOFF_PORTION) * WORD_AT;
       const textT = clamp01((filmT - WORD_AT) / (SUBTEXT_AT - WORD_AT));
-      const enterT = clamp01((filmT - SUBTEXT_AT) / (EXIT_AT - SUBTEXT_AT));
       const cardT = clamp01((filmT - EXIT_AT) / (1 - EXIT_AT));
       const wordT = clamp01((progress - LINE_PORTION) / (packedAt - LINE_PORTION));
       const introT = (performance.now() - introFrom) / 1000;
@@ -309,15 +309,26 @@ export function Hero() {
       for (let i = COMPANY_AT; i <= COMPANY_END && i < chars.length; i++) companySpan += chars[i]?.offsetWidth ?? 0;
       const trustedWidth = beats.querySelector<HTMLElement>("[data-word='trusted']")?.offsetWidth ?? 0;
       const restLeft = originX + TITLE_REST * stage;
-      const exitDistance = Math.max(restLeft + companySpan, lockX + trustedWidth) + 32;
-      const exit = easeOut(clamp01((filmT - SUBTEXT_AT) / (EXIT_AT - SUBTEXT_AT)));
+      /* The line stops a gutter short of the centered card. It does not keep
+         traveling after the card has arrived, which is what opened the gap.
+         Once the helix turns, the leftover line slips off the left. */
+      const exitT = clamp01((filmT - SUBTEXT_AT) / (EXIT_AT - SUBTEXT_AT));
+      const exitEase = sampleEase(mediaEase, exitT);
+      const gutter = phone ? 24 : 96;
+      const cardW = HELIX_CARD * vw;
+      const centerLeft = (vw - cardW) / 2;
+      const restRight = Math.max(lockX + trustedWidth, restLeft + companySpan);
+      const dockRight = centerLeft - gutter;
+      const slip = sampleEase(mediaEase, clamp01(cardT / 0.18));
+      const exitShift =
+        Math.max(0, restRight - dockRight) * exitEase + Math.max(0, dockRight + gutter) * slip;
       let x = held ? fitX : fitX - (travelPx(elapsed, speed) - travelPx(nextStart, speed));
       let companyOffset = 0;
       for (let i = 0; i < COMPANY_AT; i++) companyOffset += chars[i].offsetWidth;
       const unclampedLeft = x + companyOffset;
       if (!held && unclampedLeft < lockX) x = lockX - companyOffset;
       if (!held && wordT > 0) {
-        x = lockX + (restLeft - lockX) * wordT - companyOffset - exitDistance * exit;
+        x = lockX + (restLeft - lockX) * wordT - companyOffset - exitShift;
       }
       const fieldOpen = Math.min(1, (performance.now() - introFrom) / AUTO_OPEN_MS);
       const sx = vw / FRAME_W;
@@ -424,19 +435,14 @@ export function Hero() {
         const investSlot = lockX + companyPlace.width + gap;
         const investTravel = Math.max(0, investSlot - rowX);
         const investLeave = easeOut(clamp01(investTravel / Math.max(1, investSlot - lockX)));
-        const investingX = lockX - investTravel - exitDistance * exit;
+        const investingX = lockX - investTravel - exitShift;
         companyPlace.beat.style.zIndex = "1";
         companyPlace.beat.style.opacity = String(1 - investLeave);
         companyPlace.beat.style.transform = `translate3d(${investingX}px, 0, 0)`;
         companyPlace.beat.style.color = videoShift > 0 && investingX + companyPlace.width * 0.5 > paperEdge ? INK : "";
-        const leadX = filmFrame(cardT, vw, vh).rowX;
-        const textW = trustedPlace.beat.offsetWidth || 1;
-        const textSlot = lockX + textW + gap;
-        const push = Math.max(0, textSlot - leadX);
-        trustedX = rowX - push - exitDistance * exit;
-        const cover = easeOut(clamp01(push / Math.max(1, textSlot)));
+        trustedX = rowX - exitShift;
         trustedPlace.beat.style.zIndex = "2";
-        trustedPlace.beat.style.opacity = String(1 - cover);
+        trustedPlace.beat.style.opacity = "1";
         trustedPlace.beat.style.transform = `translate3d(${trustedX}px, 0, 0)`;
         trustedPlace.beat.style.color = videoShift > 0 ? INK : "";
       }
@@ -456,25 +462,26 @@ export function Hero() {
       companies.style.opacity = "1";
       companies.style.transform = "";
       companies.style.visibility = filmT >= SUBTEXT_AT ? "visible" : "hidden";
-      /* The first card starts just off the right, then closes on the text.
-         After a short rush it stays a gutter to the right of the line, so the
-         handoff is not a span of empty ground. */
-      const STEP = 0.195;
-      const CARD_W = 0.252;
-      const GUTTER = 96;
-      const wordLeft = lockX + (restLeft - lockX) * wordT - exitDistance * exit;
-      const wordRight = wordLeft + companySpan;
-      const textRight = Math.max(wordRight, trustedX + trustedWidth);
-      const beside = textRight + GUTTER;
-      const half = (CARD_W * vw) / 2;
-      const rawLead = (beside - vw / 2 + half) / (STEP * Math.max(1, vw));
-      const targetLead = clamp01(rawLead / 3.4) * 3.4;
-      const rush = easeOut(clamp01(enterT / 0.12));
-      const lead = 3.4 + (targetLead - 3.4) * rush;
+      /* The first card comes in from just off the right and closes on the line.
+         Once it has caught the gutter, the two move together until the card is
+         in front. After the last card, the row travels off the left as the
+         studio rises into the space the scene leaves. */
+      const besideLeft = restRight - exitShift + gutter;
+      const offLeft = vw + 32;
+      const caught = sampleEase(mediaEase, Math.min(1, exitT / 0.42));
+      const cardLeft = Math.max(centerLeft, offLeft + (besideLeft - offLeft) * caught);
+      let lead = helixLead(cardLeft, vw);
+      if (cardT > 0) {
+        const rect = track.getBoundingClientRect();
+        const past = Math.max(0, -rect.top - (rect.height - vh));
+        const departing = clamp01(past / (vh * 0.9));
+        lead = -departing * 2.8;
+      }
       placeFilm(companies, cardT, vw, vh, lead);
 
       if (index) {
-        index.style.opacity = String(clamp01(elapsed / 0.4));
+        const indexFade = 1 - sampleEase(mediaEase, clamp01((exitT - 0.15) / 0.4));
+        index.style.opacity = String(clamp01(elapsed / 0.4) * indexFade);
         index.style.color = handoff > 0.45 ? INK : "";
         const label = index.querySelector("span");
         if (label) label.textContent = handoff > 0.45 ? "02" : "01";
