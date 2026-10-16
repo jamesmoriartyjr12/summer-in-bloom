@@ -333,16 +333,16 @@ export function Hero() {
       let companyOffset = 0;
       for (let i = 0; i < COMPANY_AT; i++) companyOffset += chars[i].offsetWidth;
       const unclampedLeft = x + companyOffset;
-      /* Companies keeps the cruise speed through the field leaving, and holds
-         once it reaches its rest. It does not brake at the inset. */
+      /* Companies keeps the cruise speed through the field and the subtext.
+         There is no rest hold. The investing line comes in on its own. */
       const travelToLock = Math.max(0, fitX - (lockX - companyOffset));
       const elapsedLock = invertTravel(travelPx(nextStart, speed) + travelToLock, speed);
       const lockSpan = Math.max(0.0001, TRAVEL_END_S - nextStart);
       const lockProgress = clamp01((elapsedLock - nextStart) / lockSpan) * LINE_PORTION;
       const pxPerProgress = (speed * lockSpan) / LINE_PORTION;
-      const settledLeft = Math.max(restLeft, lockX - pxPerProgress * Math.max(0, progress - lockProgress));
+      const companyLeft = lockX - pxPerProgress * Math.max(0, progress - lockProgress);
       if (!held && progress > lockProgress) {
-        x = settledLeft - companyOffset - exitShift;
+        x = companyLeft - companyOffset - exitShift;
       } else if (!held && unclampedLeft < lockX) {
         x = lockX - companyOffset;
       }
@@ -389,7 +389,7 @@ export function Hero() {
       const slideSpan = vw - companyRest;
       const fieldSlide = slideSpan > 8 ? clamp01((vw - unclampedLeft) / slideSpan) : 0;
       const restTravel = Math.max(1, lockX - restLeft);
-      const fieldClose = clamp01((lockX - settledLeft) / restTravel);
+      const fieldClose = clamp01((lockX - companyLeft) / restTravel);
       const videoShift = Math.min(1, FIELD_SHIFT * fieldSlide + (1 - FIELD_SHIFT) * fieldClose);
       const paperEdge = vw * (1 - videoShift);
       if (video) {
