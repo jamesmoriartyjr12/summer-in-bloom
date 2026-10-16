@@ -40,9 +40,9 @@ Reviews use `design/MOTION.md`. That file is the Motion install from Double Dutc
 
 ## Log
 
-### 2026-10-16 — Companies settles across the field
+### 2026-10-16 — Companies keeps its speed
 
-The word `companies` no longer stops when the flower field leaves. It eases horizontally from the cruise into its rest, and the field finishes leaving on that same ease.
+The word `companies` keeps the cruise speed while the flower field leaves. It holds at its rest. It does not brake at the inset.
 
 ### 2026-10-16 — The cards meet the line, then leave
 
