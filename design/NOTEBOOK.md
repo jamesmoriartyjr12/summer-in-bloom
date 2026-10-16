@@ -36,6 +36,10 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-16 — No fade on the carousel
+
+James refused the fade. The companies row is a scrolling carousel. It comes in from the right. Opacity stays up.
+
 ### 2026-10-15 — The line is a block
 
 James wanted the sample’s wrapped block, and type that stays readable. The line now wraps beside the square. It is white on a dark ground and black on a light one.

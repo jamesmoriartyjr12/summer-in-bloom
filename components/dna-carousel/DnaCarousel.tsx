@@ -768,7 +768,7 @@ export default function DnaCarousel<T>({
         const p = props.current;
         if (!p?.n) return;
         const next = Math.max(0, Math.min(1, t)) * Math.max(0, p.n - 1);
-        const nextLead = Math.max(0, lead);
+        const nextLead = Math.max(-6, Math.min(8, lead));
         const delta = Math.abs(next - m.pos) + Math.abs(nextLead - m.lead) * 0.25;
         if (delta > 0.0015) hover.movedAt = performance.now();
         m.pos = next;

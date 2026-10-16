@@ -506,20 +506,27 @@ export function filmFrame(t: number, vw: number, vh: number) {
 }
 
 /** Places along the helix from the card in front. Matches the carousel step. */
-const HELIX_CARD = 0.252;
+export const HELIX_CARD = 0.252;
 /** Open space between cards, so the photographs do not cover one another. */
 const HELIX_GAP = 0.06;
 const HELIX_STEP = HELIX_CARD + HELIX_GAP;
+
+/** Lead that places the focused card's left edge at `left` pixels. */
+export function helixLead(left: number, vw: number) {
+  const half = (HELIX_CARD * vw) / 2;
+  return (left - vw / 2 + half) / (HELIX_STEP * Math.max(1, vw));
+}
 /** How far the helix reaches above and below its centre, as a fraction of width.
  *  High enough that the real cards fit, so the top is never cut off. */
 const HELIX_ABOVE = 0.28;
 const HELIX_BELOW = 0.26;
 const NAME_BAND = 132;
 
-/** Fits the helix in view and sits it just above the names. */
+/** Fits the helix in view and centers it with the names in the viewport. */
 function seatHelix(root: HTMLElement) {
   const dna = root.querySelector<HTMLElement>(".dna--fill");
   const stage = root.querySelector<HTMLElement>(".dna__stage");
+  const menu = root.querySelector<HTMLElement>("[data-film='menu']");
   if (!dna || !stage) return;
   const width = dna.clientWidth;
   const height = dna.clientHeight;
@@ -528,12 +535,18 @@ function seatHelix(root: HTMLElement) {
   const below = HELIX_BELOW * width;
   const topPad = 8;
   const bottomGap = 8;
-  const limit = height - NAME_BAND - bottomGap;
-  const available = Math.max(1, limit - topPad);
+  const available = Math.max(1, height - topPad - bottomGap - NAME_BAND);
   const scale = Math.min(1, available / (above + below));
-  const shift = limit - height / 2 - below * scale;
+  const helixH = (above + below) * scale;
+  const groupH = helixH + bottomGap + NAME_BAND;
+  const groupTop = Math.max(topPad, (height - groupH) / 2);
+  const shift = groupTop + above * scale - height / 2;
   const next = `translateY(${shift.toFixed(2)}px) scale(${scale.toFixed(4)})`;
   if (stage.style.transform !== next) stage.style.transform = next;
+  if (menu) {
+    const nameTop = groupTop + helixH + bottomGap;
+    menu.style.bottom = `${Math.max(0, height - nameTop - NAME_BAND).toFixed(2)}px`;
+  }
 }
 
 /** `t` 0 holds the row off the right. `t` 1 is the row at full viewport width. */

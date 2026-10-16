@@ -3,7 +3,8 @@
 import { useEffect, useRef } from "react";
 import { useReducedMotion } from "framer-motion";
 import { Section } from "../Section";
-import { CompaniesFilm, filmFrame, placeFilm, restFilm } from "./CompaniesFilm";
+import { mediaEase, sampleEase } from "@/lib/motion";
+import { CompaniesFilm, HELIX_CARD, helixLead, placeFilm, restFilm } from "./CompaniesFilm";
 
 const LINE = "Purposely designed to create great companies.";
 const INVEST = "We invest in emerging companies with ambitious ideas.";
@@ -103,19 +104,13 @@ const INK = "#070F18";
  */
 const LINE_SCROLL_VH = 322;
 const HANDOFF_VH = 48;
-/** `companies.` reaches its rest, the line under it arrives, then that line leaves as the cards scroll in. */
-const WORD_SCROLL_VH = 160;
-const SUBTEXT_SCROLL_VH = 100;
-const EXIT_SCROLL_VH = 100;
+/** The trusted line rides with the word. The carousel follows on that same scroll. */
 const CARD_SCROLL_VH = 220;
-const FILM_SCROLL_VH = WORD_SCROLL_VH + SUBTEXT_SCROLL_VH + EXIT_SCROLL_VH + CARD_SCROLL_VH;
+const FILM_SCROLL_VH = CARD_SCROLL_VH;
 const SCROLLABLE_VH = LINE_SCROLL_VH + FILM_SCROLL_VH;
 const TRACK_VH = SCROLLABLE_VH + 100;
 const LINE_PORTION = LINE_SCROLL_VH / SCROLLABLE_VH;
 const HANDOFF_PORTION = (LINE_SCROLL_VH + HANDOFF_VH) / SCROLLABLE_VH;
-const WORD_AT = WORD_SCROLL_VH / FILM_SCROLL_VH;
-const SUBTEXT_AT = (WORD_SCROLL_VH + SUBTEXT_SCROLL_VH) / FILM_SCROLL_VH;
-const EXIT_AT = (WORD_SCROLL_VH + SUBTEXT_SCROLL_VH + EXIT_SCROLL_VH) / FILM_SCROLL_VH;
 const FRAME_W = 1920;
 const FRAME_H = 1080;
 const SLIT_Y = 533;
@@ -140,6 +135,15 @@ function travelPx(seconds: number, speed: number) {
   const ramp = TRAVEL_RAMP_S;
   if (t <= ramp) return (0.5 * speed * t * t) / ramp;
   return 0.5 * speed * ramp + speed * (t - ramp);
+}
+
+/** Scroll time at which `travelPx` has covered `distance`. */
+function invertTravel(distance: number, speed: number) {
+  const ramp = TRAVEL_RAMP_S;
+  const safe = Math.max(speed, 1);
+  const rampDist = 0.5 * safe * ramp;
+  if (distance <= rampDist) return Math.sqrt((2 * Math.max(0, distance) * ramp) / safe);
+  return ramp + (distance - rampDist) / safe;
 }
 
 export function Hero() {
@@ -280,15 +284,9 @@ export function Hero() {
       }
       const fontSize = parseFloat(getComputedStyle(line).fontSize) || DESIGN_FONT;
       const handoff = clamp01((progress - LINE_PORTION) / (HANDOFF_PORTION - LINE_PORTION));
-      const filmT = clamp01((progress - HANDOFF_PORTION) / (1 - HANDOFF_PORTION));
       const stage = Math.min(vw / FRAME_W, vh / FRAME_H);
       const originX = (vw - FRAME_W * stage) / 2;
       const originY = (vh - FRAME_H * stage) / 2;
-      const packedAt = HANDOFF_PORTION + (1 - HANDOFF_PORTION) * WORD_AT;
-      const textT = clamp01((filmT - WORD_AT) / (SUBTEXT_AT - WORD_AT));
-      const enterT = clamp01((filmT - SUBTEXT_AT) / (EXIT_AT - SUBTEXT_AT));
-      const cardT = clamp01((filmT - EXIT_AT) / (1 - EXIT_AT));
-      const wordT = clamp01((progress - LINE_PORTION) / (packedAt - LINE_PORTION));
       const introT = (performance.now() - introFrom) / 1000;
       const presenting = !introDone && progress <= 0 && introT < WORD_DONE_S;
       const nextStart = GLYPH_DELAY_S + FIRST_WORD_LETTERS * GLYPH_STAGGER_S;
@@ -309,15 +307,25 @@ export function Hero() {
       for (let i = COMPANY_AT; i <= COMPANY_END && i < chars.length; i++) companySpan += chars[i]?.offsetWidth ?? 0;
       const trustedWidth = beats.querySelector<HTMLElement>("[data-word='trusted']")?.offsetWidth ?? 0;
       const restLeft = originX + TITLE_REST * stage;
-      const exitDistance = Math.max(restLeft + companySpan, lockX + trustedWidth) + 32;
-      const exit = easeOut(clamp01((filmT - SUBTEXT_AT) / (EXIT_AT - SUBTEXT_AT)));
+      const gutter = phone ? 24 : 96;
+      const cardW = HELIX_CARD * vw;
+      const centerLeft = (vw - cardW) / 2;
       let x = held ? fitX : fitX - (travelPx(elapsed, speed) - travelPx(nextStart, speed));
       let companyOffset = 0;
       for (let i = 0; i < COMPANY_AT; i++) companyOffset += chars[i].offsetWidth;
       const unclampedLeft = x + companyOffset;
-      if (!held && unclampedLeft < lockX) x = lockX - companyOffset;
-      if (!held && wordT > 0) {
-        x = lockX + (restLeft - lockX) * wordT - companyOffset - exitDistance * exit;
+      /* Companies keeps the cruise speed through the field and the subtext.
+         There is no rest hold. The investing line comes in on its own. */
+      const travelToLock = Math.max(0, fitX - (lockX - companyOffset));
+      const elapsedLock = invertTravel(travelPx(nextStart, speed) + travelToLock, speed);
+      const lockSpan = Math.max(0.0001, TRAVEL_END_S - nextStart);
+      const lockProgress = clamp01((elapsedLock - nextStart) / lockSpan) * LINE_PORTION;
+      const pxPerProgress = (speed * lockSpan) / LINE_PORTION;
+      const companyLeft = lockX - pxPerProgress * Math.max(0, progress - lockProgress);
+      if (!held && progress > lockProgress) {
+        x = companyLeft - companyOffset;
+      } else if (!held && unclampedLeft < lockX) {
+        x = lockX - companyOffset;
       }
       const fieldOpen = Math.min(1, (performance.now() - introFrom) / AUTO_OPEN_MS);
       const sx = vw / FRAME_W;
@@ -361,7 +369,9 @@ export function Hero() {
         fitX - (travelPx(TRAVEL_END_S, speed) - travelPx(nextStart, speed)) + companyOffset;
       const slideSpan = vw - companyRest;
       const fieldSlide = slideSpan > 8 ? clamp01((vw - unclampedLeft) / slideSpan) : 0;
-      const videoShift = Math.min(1, FIELD_SHIFT * fieldSlide + (1 - FIELD_SHIFT) * wordT);
+      const restTravel = Math.max(1, lockX - restLeft);
+      const fieldClose = clamp01((lockX - companyLeft) / restTravel);
+      const videoShift = Math.min(1, FIELD_SHIFT * fieldSlide + (1 - FIELD_SHIFT) * fieldClose);
       const paperEdge = vw * (1 - videoShift);
       if (video) {
         video.style.transform = videoShift > 0 ? `translate3d(${(-videoShift * 100).toFixed(3)}%,0,0)` : "none";
@@ -418,25 +428,27 @@ export function Hero() {
       }
       const companyPlace = places.find((place) => place.beat.dataset.word === "companies");
       const trustedPlace = places.find((place) => place.beat.dataset.word === "trusted");
-      let trustedX = lockX;
-      if (companyPlace && trustedPlace && progress >= LINE_PORTION) {
-        const rowX = vw + (lockX - vw) * textT;
-        const investSlot = lockX + companyPlace.width + gap;
-        const investTravel = Math.max(0, investSlot - rowX);
-        const investLeave = easeOut(clamp01(investTravel / Math.max(1, investSlot - lockX)));
-        const investingX = lockX - investTravel - exitDistance * exit;
+      let trustedX = vw + 32;
+      /* Trusted enters while companies is still on screen and lands just short
+         of the word's right edge. After that it keeps the word's speed. */
+      const trustedEnterSpan = 0.045;
+      const trustedEnter = clamp01((progress - (lockProgress - trustedEnterSpan)) / trustedEnterSpan);
+      if (companyPlace && trustedPlace && trustedEnter > 0) {
+        const enterEase = sampleEase(mediaEase, trustedEnter);
+        let companyLetters = 0;
+        for (let i = COMPANY_AT; i < COMPANY_END && i < chars.length; i++) companyLetters += chars[i].offsetWidth;
+        const companyVisualRight = x + companyOffset + companyLetters;
+        const alignGap = phone ? 8 : 12;
+        const alignedX = companyVisualRight - trustedWidth - alignGap;
+        trustedX = vw + 32 + (alignedX - (vw + 32)) * enterEase;
+        const investLeave = easeOut(trustedEnter);
+        const investingX = companyPlace.x - investLeave * (companyPlace.width + gap);
         companyPlace.beat.style.zIndex = "1";
-        companyPlace.beat.style.opacity = String(1 - investLeave);
+        companyPlace.beat.style.opacity = String((1 - investLeave) * companyPlace.reveal);
         companyPlace.beat.style.transform = `translate3d(${investingX}px, 0, 0)`;
         companyPlace.beat.style.color = videoShift > 0 && investingX + companyPlace.width * 0.5 > paperEdge ? INK : "";
-        const leadX = filmFrame(cardT, vw, vh).rowX;
-        const textW = trustedPlace.beat.offsetWidth || 1;
-        const textSlot = lockX + textW + gap;
-        const push = Math.max(0, textSlot - leadX);
-        trustedX = rowX - push - exitDistance * exit;
-        const cover = easeOut(clamp01(push / Math.max(1, textSlot)));
         trustedPlace.beat.style.zIndex = "2";
-        trustedPlace.beat.style.opacity = String(1 - cover);
+        trustedPlace.beat.style.opacity = "1";
         trustedPlace.beat.style.transform = `translate3d(${trustedX}px, 0, 0)`;
         trustedPlace.beat.style.color = videoShift > 0 ? INK : "";
       }
@@ -453,28 +465,30 @@ export function Hero() {
         chars[i].style.clipPath = `inset(${top}px 0 ${bottomInset}px 0)`;
       }
 
+      /* The word leaves first. The first card follows 128px behind it,
+         scrolling in from the right, and holds the center once it arrives.
+         Opacity stays up. There is no fade. */
+      const companyVisualLeft = x + companyOffset;
+      const companyVisualRight = companyVisualLeft + companySpan;
+      const followGap = phone ? gutter : 128;
+      const cardLeft = Math.max(centerLeft, companyVisualRight + followGap);
+      const arriveDistance = Math.max(0, lockX + companySpan + followGap - centerLeft);
+      const arriveProgress = lockProgress + arriveDistance / Math.max(1, pxPerProgress);
+      const cardTravel = clamp01((progress - arriveProgress) / Math.max(0.0001, 1 - arriveProgress));
+      let lead = helixLead(cardLeft, vw);
+      const rect = track.getBoundingClientRect();
+      const past = Math.max(0, -rect.top - (rect.height - vh));
+      const departing = clamp01(past / (vh * 0.9));
+      if (departing > 0) lead = -departing * 2.8;
+      companies.style.visibility = cardLeft < vw - 4 ? "visible" : "hidden";
       companies.style.opacity = "1";
       companies.style.transform = "";
-      companies.style.visibility = filmT >= SUBTEXT_AT ? "visible" : "hidden";
-      /* The first card starts just off the right, then closes on the text.
-         After a short rush it stays a gutter to the right of the line, so the
-         handoff is not a span of empty ground. */
-      const STEP = 0.195;
-      const CARD_W = 0.252;
-      const GUTTER = 96;
-      const wordLeft = lockX + (restLeft - lockX) * wordT - exitDistance * exit;
-      const wordRight = wordLeft + companySpan;
-      const textRight = Math.max(wordRight, trustedX + trustedWidth);
-      const beside = textRight + GUTTER;
-      const half = (CARD_W * vw) / 2;
-      const rawLead = (beside - vw / 2 + half) / (STEP * Math.max(1, vw));
-      const targetLead = clamp01(rawLead / 3.4) * 3.4;
-      const rush = easeOut(clamp01(enterT / 0.12));
-      const lead = 3.4 + (targetLead - 3.4) * rush;
-      placeFilm(companies, cardT, vw, vh, lead);
+      companies.style.zIndex = "40";
+      placeFilm(companies, cardTravel, vw, vh, lead);
 
       if (index) {
-        index.style.opacity = String(clamp01(elapsed / 0.4));
+        const indexFade = 1 - sampleEase(mediaEase, clamp01(cardTravel / 0.12));
+        index.style.opacity = String(clamp01(elapsed / 0.4) * indexFade);
         index.style.color = handoff > 0.45 ? INK : "";
         const label = index.querySelector("span");
         if (label) label.textContent = handoff > 0.45 ? "02" : "01";
