@@ -465,28 +465,22 @@ export function Hero() {
         chars[i].style.clipPath = `inset(${top}px 0 ${bottomInset}px 0)`;
       }
 
-      /* The word leaves first. The carousel then scrolls in from the right
-         and settles in the center. Opacity stays up. There is no fade. */
+      /* The word leaves first. The first card follows a short gap behind it,
+         scrolling in from the right, and holds the center once it arrives.
+         Opacity stays up. There is no fade. */
       const companyVisualLeft = x + companyOffset;
       const companyVisualRight = companyVisualLeft + companySpan;
-      const cardLeft = Math.max(centerLeft, companyVisualRight + gutter);
-      const arriveDistance = Math.max(0, lockX + companySpan + gutter - centerLeft);
+      const followGap = phone ? gutter : 28;
+      const cardLeft = Math.max(centerLeft, companyVisualRight + followGap);
+      const arriveDistance = Math.max(0, lockX + companySpan + followGap - centerLeft);
       const arriveProgress = lockProgress + arriveDistance / Math.max(1, pxPerProgress);
-      const clearDistance = Math.max(0, lockX + companySpan + gutter - centerLeft);
-      const clearProgress = lockProgress + clearDistance / Math.max(1, pxPerProgress);
-      const arriveSpan = 0.08;
-      const slideT = clamp01((progress - clearProgress) / arriveSpan);
-      const cardTravel = phone
-        ? clamp01((progress - arriveProgress) / Math.max(0.0001, 1 - arriveProgress))
-        : clamp01((progress - (clearProgress + arriveSpan)) / Math.max(0.0001, 1 - (clearProgress + arriveSpan)));
-      const offLead = helixLead(vw + 64, vw);
-      let lead = phone ? helixLead(cardLeft, vw) : offLead * (1 - slideT);
+      const cardTravel = clamp01((progress - arriveProgress) / Math.max(0.0001, 1 - arriveProgress));
+      let lead = helixLead(cardLeft, vw);
       const rect = track.getBoundingClientRect();
       const past = Math.max(0, -rect.top - (rect.height - vh));
       const departing = clamp01(past / (vh * 0.9));
       if (departing > 0) lead = -departing * 2.8;
-      const show = phone ? cardLeft < vw - 4 : slideT > 0;
-      companies.style.visibility = show ? "visible" : "hidden";
+      companies.style.visibility = cardLeft < vw - 4 ? "visible" : "hidden";
       companies.style.opacity = "1";
       companies.style.transform = "";
       companies.style.zIndex = "40";
