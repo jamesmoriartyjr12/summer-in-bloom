@@ -467,26 +467,26 @@ export function Hero() {
 
       companies.style.opacity = "1";
       companies.style.transform = "";
-      /* On a desktop the focused card stays in the center of the browser.
-         The row moves with the word companies. It does not sit off to the side. */
+      /* The word leaves first. On a desktop the carousel stays hidden until
+         companies has cleared the center, then the focused card sits there. */
       const companyVisualLeft = x + companyOffset;
       const companyVisualRight = companyVisualLeft + companySpan;
       const cardLeft = Math.max(centerLeft, companyVisualRight + gutter);
       const arriveDistance = Math.max(0, lockX + companySpan + gutter - centerLeft);
       const arriveProgress = lockProgress + arriveDistance / Math.max(1, pxPerProgress);
-      const besideCenter = lockX + companySpan / 2 - vw / 2;
-      const centerProgress = lockProgress + Math.max(0, besideCenter) / Math.max(1, pxPerProgress);
+      const clearDistance = Math.max(0, lockX + companySpan + gutter - centerLeft);
+      const clearProgress = lockProgress + clearDistance / Math.max(1, pxPerProgress);
       const cardTravel = phone
         ? clamp01((progress - arriveProgress) / Math.max(0.0001, 1 - arriveProgress))
-        : clamp01((progress - centerProgress) / Math.max(0.0001, 1 - centerProgress));
+        : clamp01((progress - clearProgress) / Math.max(0.0001, 1 - clearProgress));
       let lead = phone ? helixLead(cardLeft, vw) : 0;
       const rect = track.getBoundingClientRect();
       const past = Math.max(0, -rect.top - (rect.height - vh));
       const departing = clamp01(past / (vh * 0.9));
       if (departing > 0) lead = -departing * 2.8;
-      const wordIn = companyVisualLeft < vw * 0.92;
-      companies.style.visibility = phone ? (cardLeft < vw - 4 ? "visible" : "hidden") : wordIn ? "visible" : "hidden";
-      companies.style.zIndex = !phone && companyVisualRight > lockX ? "20" : "40";
+      const cleared = companyVisualRight <= centerLeft - gutter;
+      companies.style.visibility = phone ? (cardLeft < vw - 4 ? "visible" : "hidden") : cleared ? "visible" : "hidden";
+      companies.style.zIndex = "40";
       placeFilm(companies, cardTravel, vw, vh, lead);
 
       if (index) {
