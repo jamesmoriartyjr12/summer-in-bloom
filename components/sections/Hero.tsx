@@ -104,19 +104,13 @@ const INK = "#070F18";
  */
 const LINE_SCROLL_VH = 322;
 const HANDOFF_VH = 48;
-/** `companies.` reaches its rest, the line under it arrives, then that line leaves as the cards scroll in. */
-const WORD_SCROLL_VH = 160;
-const SUBTEXT_SCROLL_VH = 100;
-const EXIT_SCROLL_VH = 100;
+/** The trusted line rides with the word. The carousel follows on that same scroll. */
 const CARD_SCROLL_VH = 220;
-const FILM_SCROLL_VH = WORD_SCROLL_VH + SUBTEXT_SCROLL_VH + EXIT_SCROLL_VH + CARD_SCROLL_VH;
+const FILM_SCROLL_VH = CARD_SCROLL_VH;
 const SCROLLABLE_VH = LINE_SCROLL_VH + FILM_SCROLL_VH;
 const TRACK_VH = SCROLLABLE_VH + 100;
 const LINE_PORTION = LINE_SCROLL_VH / SCROLLABLE_VH;
 const HANDOFF_PORTION = (LINE_SCROLL_VH + HANDOFF_VH) / SCROLLABLE_VH;
-const WORD_AT = WORD_SCROLL_VH / FILM_SCROLL_VH;
-const SUBTEXT_AT = (WORD_SCROLL_VH + SUBTEXT_SCROLL_VH) / FILM_SCROLL_VH;
-const EXIT_AT = (WORD_SCROLL_VH + SUBTEXT_SCROLL_VH + EXIT_SCROLL_VH) / FILM_SCROLL_VH;
 const FRAME_W = 1920;
 const FRAME_H = 1080;
 const SLIT_Y = 533;
@@ -290,11 +284,9 @@ export function Hero() {
       }
       const fontSize = parseFloat(getComputedStyle(line).fontSize) || DESIGN_FONT;
       const handoff = clamp01((progress - LINE_PORTION) / (HANDOFF_PORTION - LINE_PORTION));
-      const filmT = clamp01((progress - HANDOFF_PORTION) / (1 - HANDOFF_PORTION));
       const stage = Math.min(vw / FRAME_W, vh / FRAME_H);
       const originX = (vw - FRAME_W * stage) / 2;
       const originY = (vh - FRAME_H * stage) / 2;
-      const cardT = clamp01((filmT - EXIT_AT) / (1 - EXIT_AT));
       const introT = (performance.now() - introFrom) / 1000;
       const presenting = !introDone && progress <= 0 && introT < WORD_DONE_S;
       const nextStart = GLYPH_DELAY_S + FIRST_WORD_LETTERS * GLYPH_STAGGER_S;
@@ -315,19 +307,9 @@ export function Hero() {
       for (let i = COMPANY_AT; i <= COMPANY_END && i < chars.length; i++) companySpan += chars[i]?.offsetWidth ?? 0;
       const trustedWidth = beats.querySelector<HTMLElement>("[data-word='trusted']")?.offsetWidth ?? 0;
       const restLeft = originX + TITLE_REST * stage;
-      /* The line stops a gutter short of the centered card. It does not keep
-         traveling after the card has arrived, which is what opened the gap.
-         Once the helix turns, the leftover line slips off the left. */
-      const exitT = clamp01((filmT - SUBTEXT_AT) / (EXIT_AT - SUBTEXT_AT));
-      const exitEase = sampleEase(mediaEase, exitT);
       const gutter = phone ? 24 : 96;
       const cardW = HELIX_CARD * vw;
       const centerLeft = (vw - cardW) / 2;
-      const restRight = Math.max(lockX + trustedWidth, restLeft + companySpan);
-      const dockRight = centerLeft - gutter;
-      const slip = sampleEase(mediaEase, clamp01(cardT / 0.18));
-      const exitShift =
-        Math.max(0, restRight - dockRight) * exitEase + Math.max(0, dockRight + gutter) * slip;
       let x = held ? fitX : fitX - (travelPx(elapsed, speed) - travelPx(nextStart, speed));
       let companyOffset = 0;
       for (let i = 0; i < COMPANY_AT; i++) companyOffset += chars[i].offsetWidth;
@@ -341,7 +323,7 @@ export function Hero() {
       const pxPerProgress = (speed * lockSpan) / LINE_PORTION;
       const companyLeft = lockX - pxPerProgress * Math.max(0, progress - lockProgress);
       if (!held && progress > lockProgress) {
-        x = companyLeft - companyOffset - exitShift;
+        x = companyLeft - companyOffset;
       } else if (!held && unclampedLeft < lockX) {
         x = lockX - companyOffset;
       }
@@ -485,26 +467,24 @@ export function Hero() {
 
       companies.style.opacity = "1";
       companies.style.transform = "";
-      companies.style.visibility = filmT >= SUBTEXT_AT ? "visible" : "hidden";
-      /* The first card comes in from just off the right and closes on the line.
-         Once it has caught the gutter, the two move together until the card is
-         in front. After the last card, the row travels off the left as the
-         studio rises into the space the scene leaves. */
-      const besideLeft = restRight - exitShift + gutter;
-      const offLeft = vw + 32;
-      const caught = sampleEase(mediaEase, Math.min(1, exitT / 0.42));
-      const cardLeft = Math.max(centerLeft, offLeft + (besideLeft - offLeft) * caught);
+      /* The first card sits a gutter to the right of companies and comes in
+         with the word. Once it reaches center, the rest of the scroll turns
+         the row. There is no empty hold between the word and the carousel. */
+      const companyVisualRight = x + companyOffset + companySpan;
+      const cardLeft = Math.max(centerLeft, companyVisualRight + gutter);
+      const arriveDistance = Math.max(0, lockX + companySpan + gutter - centerLeft);
+      const arriveProgress = lockProgress + arriveDistance / Math.max(1, pxPerProgress);
+      const cardTravel = clamp01((progress - arriveProgress) / Math.max(0.0001, 1 - arriveProgress));
       let lead = helixLead(cardLeft, vw);
-      if (cardT > 0) {
-        const rect = track.getBoundingClientRect();
-        const past = Math.max(0, -rect.top - (rect.height - vh));
-        const departing = clamp01(past / (vh * 0.9));
-        lead = -departing * 2.8;
-      }
-      placeFilm(companies, cardT, vw, vh, lead);
+      const rect = track.getBoundingClientRect();
+      const past = Math.max(0, -rect.top - (rect.height - vh));
+      const departing = clamp01(past / (vh * 0.9));
+      if (departing > 0) lead = -departing * 2.8;
+      companies.style.visibility = cardLeft < vw - 4 ? "visible" : "hidden";
+      placeFilm(companies, cardTravel, vw, vh, lead);
 
       if (index) {
-        const indexFade = 1 - sampleEase(mediaEase, clamp01((exitT - 0.15) / 0.4));
+        const indexFade = 1 - sampleEase(mediaEase, clamp01(cardTravel / 0.12));
         index.style.opacity = String(clamp01(elapsed / 0.4) * indexFade);
         index.style.color = handoff > 0.45 ? INK : "";
         const label = index.querySelector("span");
