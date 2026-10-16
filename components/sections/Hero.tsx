@@ -294,7 +294,6 @@ export function Hero() {
       const stage = Math.min(vw / FRAME_W, vh / FRAME_H);
       const originX = (vw - FRAME_W * stage) / 2;
       const originY = (vh - FRAME_H * stage) / 2;
-      const textT = clamp01((filmT - WORD_AT) / (SUBTEXT_AT - WORD_AT));
       const cardT = clamp01((filmT - EXIT_AT) / (1 - EXIT_AT));
       const introT = (performance.now() - introFrom) / 1000;
       const presenting = !introDone && progress <= 0 && introT < WORD_DONE_S;
@@ -447,18 +446,25 @@ export function Hero() {
       }
       const companyPlace = places.find((place) => place.beat.dataset.word === "companies");
       const trustedPlace = places.find((place) => place.beat.dataset.word === "trusted");
-      let trustedX = lockX;
-      if (companyPlace && trustedPlace && progress >= LINE_PORTION) {
-        const rowX = vw + (lockX - vw) * textT;
-        const investSlot = lockX + companyPlace.width + gap;
-        const investTravel = Math.max(0, investSlot - rowX);
-        const investLeave = easeOut(clamp01(investTravel / Math.max(1, investSlot - lockX)));
-        const investingX = lockX - investTravel - exitShift;
+      let trustedX = vw + 32;
+      /* Trusted enters while companies is still on screen and lands just short
+         of the word's right edge. After that it keeps the word's speed. */
+      const trustedEnterSpan = 0.045;
+      const trustedEnter = clamp01((progress - (lockProgress - trustedEnterSpan)) / trustedEnterSpan);
+      if (companyPlace && trustedPlace && trustedEnter > 0) {
+        const enterEase = sampleEase(mediaEase, trustedEnter);
+        let companyLetters = 0;
+        for (let i = COMPANY_AT; i < COMPANY_END && i < chars.length; i++) companyLetters += chars[i].offsetWidth;
+        const companyVisualRight = x + companyOffset + companyLetters;
+        const alignGap = phone ? 8 : 12;
+        const alignedX = companyVisualRight - trustedWidth - alignGap;
+        trustedX = vw + 32 + (alignedX - (vw + 32)) * enterEase;
+        const investLeave = easeOut(trustedEnter);
+        const investingX = companyPlace.x - investLeave * (companyPlace.width + gap);
         companyPlace.beat.style.zIndex = "1";
-        companyPlace.beat.style.opacity = String(1 - investLeave);
+        companyPlace.beat.style.opacity = String((1 - investLeave) * companyPlace.reveal);
         companyPlace.beat.style.transform = `translate3d(${investingX}px, 0, 0)`;
         companyPlace.beat.style.color = videoShift > 0 && investingX + companyPlace.width * 0.5 > paperEdge ? INK : "";
-        trustedX = rowX - exitShift;
         trustedPlace.beat.style.zIndex = "2";
         trustedPlace.beat.style.opacity = "1";
         trustedPlace.beat.style.transform = `translate3d(${trustedX}px, 0, 0)`;
