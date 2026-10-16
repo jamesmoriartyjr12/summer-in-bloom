@@ -467,20 +467,26 @@ export function Hero() {
 
       companies.style.opacity = "1";
       companies.style.transform = "";
-      /* The first card sits a gutter to the right of companies and comes in
-         with the word. Once it reaches center, the rest of the scroll turns
-         the row. There is no empty hold between the word and the carousel. */
-      const companyVisualRight = x + companyOffset + companySpan;
+      /* On a desktop the focused card stays in the center of the browser.
+         The row moves with the word companies. It does not sit off to the side. */
+      const companyVisualLeft = x + companyOffset;
+      const companyVisualRight = companyVisualLeft + companySpan;
       const cardLeft = Math.max(centerLeft, companyVisualRight + gutter);
       const arriveDistance = Math.max(0, lockX + companySpan + gutter - centerLeft);
       const arriveProgress = lockProgress + arriveDistance / Math.max(1, pxPerProgress);
-      const cardTravel = clamp01((progress - arriveProgress) / Math.max(0.0001, 1 - arriveProgress));
-      let lead = helixLead(cardLeft, vw);
+      const besideCenter = lockX + companySpan / 2 - vw / 2;
+      const centerProgress = lockProgress + Math.max(0, besideCenter) / Math.max(1, pxPerProgress);
+      const cardTravel = phone
+        ? clamp01((progress - arriveProgress) / Math.max(0.0001, 1 - arriveProgress))
+        : clamp01((progress - centerProgress) / Math.max(0.0001, 1 - centerProgress));
+      let lead = phone ? helixLead(cardLeft, vw) : 0;
       const rect = track.getBoundingClientRect();
       const past = Math.max(0, -rect.top - (rect.height - vh));
       const departing = clamp01(past / (vh * 0.9));
       if (departing > 0) lead = -departing * 2.8;
-      companies.style.visibility = cardLeft < vw - 4 ? "visible" : "hidden";
+      const wordIn = companyVisualLeft < vw * 0.92;
+      companies.style.visibility = phone ? (cardLeft < vw - 4 ? "visible" : "hidden") : wordIn ? "visible" : "hidden";
+      companies.style.zIndex = !phone && companyVisualRight > lockX ? "20" : "40";
       placeFilm(companies, cardTravel, vw, vh, lead);
 
       if (index) {
