@@ -465,12 +465,12 @@ export function Hero() {
         chars[i].style.clipPath = `inset(${top}px 0 ${bottomInset}px 0)`;
       }
 
-      /* The word leaves first. The first card follows a short gap behind it,
+      /* The word leaves first. The first card follows 128px behind it,
          scrolling in from the right, and holds the center once it arrives.
          Opacity stays up. There is no fade. */
       const companyVisualLeft = x + companyOffset;
       const companyVisualRight = companyVisualLeft + companySpan;
-      const followGap = phone ? gutter : 28;
+      const followGap = phone ? gutter : 128;
       const cardLeft = Math.max(centerLeft, companyVisualRight + followGap);
       const arriveDistance = Math.max(0, lockX + companySpan + followGap - centerLeft);
       const arriveProgress = lockProgress + arriveDistance / Math.max(1, pxPerProgress);
