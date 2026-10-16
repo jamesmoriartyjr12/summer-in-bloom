@@ -465,10 +465,8 @@ export function Hero() {
         chars[i].style.clipPath = `inset(${top}px 0 ${bottomInset}px 0)`;
       }
 
-      companies.style.opacity = "1";
-      companies.style.transform = "";
-      /* The word leaves first. On a desktop the carousel stays hidden until
-         companies has cleared the center, then the focused card sits there. */
+      /* The word leaves first. The carousel then eases into the center.
+         It does not cut on. */
       const companyVisualLeft = x + companyOffset;
       const companyVisualRight = companyVisualLeft + companySpan;
       const cardLeft = Math.max(centerLeft, companyVisualRight + gutter);
@@ -476,16 +474,22 @@ export function Hero() {
       const arriveProgress = lockProgress + arriveDistance / Math.max(1, pxPerProgress);
       const clearDistance = Math.max(0, lockX + companySpan + gutter - centerLeft);
       const clearProgress = lockProgress + clearDistance / Math.max(1, pxPerProgress);
+      const enterSpan = 0.08;
+      const enterT = clamp01((progress - clearProgress) / enterSpan);
+      const enter = easeOut(enterT);
       const cardTravel = phone
         ? clamp01((progress - arriveProgress) / Math.max(0.0001, 1 - arriveProgress))
-        : clamp01((progress - clearProgress) / Math.max(0.0001, 1 - clearProgress));
+        : clamp01((progress - (clearProgress + enterSpan)) / Math.max(0.0001, 1 - (clearProgress + enterSpan)));
       let lead = phone ? helixLead(cardLeft, vw) : 0;
       const rect = track.getBoundingClientRect();
       const past = Math.max(0, -rect.top - (rect.height - vh));
       const departing = clamp01(past / (vh * 0.9));
       if (departing > 0) lead = -departing * 2.8;
-      const cleared = companyVisualRight <= centerLeft - gutter;
-      companies.style.visibility = phone ? (cardLeft < vw - 4 ? "visible" : "hidden") : cleared ? "visible" : "hidden";
+      const show = phone ? cardLeft < vw - 4 : enterT > 0;
+      companies.style.visibility = show ? "visible" : "hidden";
+      companies.style.opacity = phone ? "1" : String(enter);
+      companies.style.transformOrigin = "center center";
+      companies.style.transform = !phone && enter < 1 ? `scale(${(0.94 + 0.06 * enter).toFixed(4)})` : "";
       companies.style.zIndex = "40";
       placeFilm(companies, cardTravel, vw, vh, lead);
 
