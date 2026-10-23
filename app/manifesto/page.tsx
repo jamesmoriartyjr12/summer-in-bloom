@@ -30,6 +30,7 @@ export default function ManifestoPage() {
   return (
     <PageGround>
       <div className={styles.topbar}>
+        <div className={styles.track}>
         <img className={styles.logo} src="/manifesto/midwestern-logo.svg" alt="Midwestern" />
         <div className={styles.identity}>
           <Image
@@ -40,6 +41,7 @@ export default function ManifestoPage() {
             className={styles.topAvatar}
           />
           <p className={styles.topName}>Matt Johnson</p>
+        </div>
         </div>
       </div>
       <main>

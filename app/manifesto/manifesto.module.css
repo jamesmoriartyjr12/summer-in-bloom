@@ -13,6 +13,7 @@
   -webkit-font-smoothing: antialiased;
   --inset: calc(max(100vw, 100dvh) / 25);
   --edge: var(--inset);
+  --measure: 38rem;
 }
 
 .hero {
@@ -60,6 +61,13 @@
   border-bottom: 1px solid rgba(7, 15, 24, 0.12);
 }
 
+.track {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: min(100%, var(--measure));
+}
+
 .identity {
   display: flex;
   align-items: center;
@@ -97,7 +105,7 @@
 }
 
 .prose {
-  max-width: 38rem;
+  max-width: var(--measure);
 }
 
 .header {
@@ -304,29 +312,20 @@
   .page {
     --inset: 200px;
     --edge: 24px;
-  }
-
-  .prose {
-    max-width: 36rem;
+    --measure: 36rem;
   }
 }
 
 @media (min-width: 1100px) {
   .page {
     --inset: 248px;
-  }
-
-  .prose {
-    max-width: 40rem;
+    --measure: 40rem;
   }
 }
 
 @media (min-width: 1280px) {
   .page {
     --inset: 320px;
-  }
-
-  .prose {
-    max-width: 44rem;
+    --measure: 44rem;
   }
 }

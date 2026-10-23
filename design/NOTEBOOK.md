@@ -36,6 +36,10 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-23 — Matt meets the column
+
+The portrait was on the browser’s right gutter. James wanted it on the letter’s right edge. The bar’s row is now the same measure as the prose. On a phone that measure is the column, so it still meets the text.
+
 ### 2026-10-23 — Logo left, Matt right
 
 James put the logo on the left and the portrait with the name on the right. The bar is still Paper, still fixed, still the letter’s inset.
