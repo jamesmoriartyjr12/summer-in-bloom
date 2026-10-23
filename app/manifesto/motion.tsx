@@ -215,10 +215,16 @@ export function Essay() {
       <p>
         <strong>The market is already paying for it.</strong>
       </p>
-      <p className={styles.figure}>+25%</p>
-      <p className={styles.figureNote}>Revenue, year to date (Jan–Sep), up from +21% last year</p>
-      <p className={styles.figure}>+48%</p>
-      <p className={styles.figureNote}>Net income, year to date (Jan–Sep), after +45% last year</p>
+      <div className={styles.figures}>
+        <div>
+          <p className={styles.figure}>+25%</p>
+          <p className={styles.figureNote}>Revenue, year to date (Jan–Sep), up from +21% last year</p>
+        </div>
+        <div>
+          <p className={styles.figure}>+48%</p>
+          <p className={styles.figureNote}>Net income, year to date (Jan–Sep), after +45% last year</p>
+        </div>
+      </div>
       <p>
         <strong>Proven model, not a pivot.</strong> Embedded delivery is how we already work, so the
         positioning describes the business we run.
@@ -258,18 +264,16 @@ export function Essay() {
       <motion.p variants={line}>
         <strong>The market is already paying for it.</strong>
       </motion.p>
-      <motion.p className={styles.figure} variants={figureLine}>
-        +25%
-      </motion.p>
-      <motion.p className={styles.figureNote} variants={line}>
-        Revenue, year to date (Jan–Sep), up from +21% last year
-      </motion.p>
-      <motion.p className={styles.figure} variants={figureLine}>
-        +48%
-      </motion.p>
-      <motion.p className={styles.figureNote} variants={line}>
-        Net income, year to date (Jan–Sep), after +45% last year
-      </motion.p>
+      <motion.div className={styles.figures} variants={figureLine}>
+        <div>
+          <p className={styles.figure}>+25%</p>
+          <p className={styles.figureNote}>Revenue, year to date (Jan–Sep), up from +21% last year</p>
+        </div>
+        <div>
+          <p className={styles.figure}>+48%</p>
+          <p className={styles.figureNote}>Net income, year to date (Jan–Sep), after +45% last year</p>
+        </div>
+      </motion.div>
       <motion.p variants={line}>
         <strong>Proven model, not a pivot.</strong> Embedded delivery is how we already work, so the
         positioning describes the business we run.

@@ -36,6 +36,10 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-23 — The two figures sit side by side
+
+James asked for the two figures as data boxes, side by side, with one line between them. No card chrome. The hairline is the same as the bar. The words are unchanged. The pair still punches 8px, and reduced motion leaves it in place.
+
 ### 2026-10-23 — The film shrinks, then the letter arrives
 
 James wanted the film full screen and larger, then a small shrink on scroll, then the bar and the letter together. The film opens at 1.22 and plays once. Scroll brings it back to the frame before anything else appears. That scale is the exception on this page. It is tied to the scroll, and reduced motion drops it. The portrait still does not move.
