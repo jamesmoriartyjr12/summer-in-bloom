@@ -36,6 +36,10 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-23 — Logo left, Matt right
+
+James put the logo on the left and the portrait with the name on the right. The bar is still Paper, still fixed, still the letter’s inset.
+
 ### 2026-10-23 — The bar is one row
 
 James wanted the logo and the portrait beside each other, then the name. I took the prepared-for block out of the letter. The footer still says it was prepared for him. The bar stays fixed, Paper, Ink.

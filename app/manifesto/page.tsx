@@ -30,8 +30,8 @@ export default function ManifestoPage() {
   return (
     <PageGround>
       <div className={styles.topbar}>
+        <img className={styles.logo} src="/manifesto/midwestern-logo.svg" alt="Midwestern" />
         <div className={styles.identity}>
-          <img className={styles.logo} src="/manifesto/midwestern-logo.svg" alt="Midwestern" />
           <Image
             src="/manifesto/matt-johnson.jpg"
             alt=""
