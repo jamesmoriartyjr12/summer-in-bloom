@@ -98,9 +98,9 @@ export default function ManifestoPage() {
               engineer form the new partnership of the future.
             </p>
             <p>
-              We believe a builder carries three genes. Entrepreneurial thinks like an owner, spots the
-              growth signal, and acts on it. Technical ships production software, using AI-native tools
-              to move faster. Tasteful is the most important: judgment in the craft is what makes people
+              We believe a builder carries three genes. Entrepreneurial: thinks like an owner, spots the
+              growth signal, and acts on it. Technical: ships production software, using AI-native tools
+              to move faster. Tasteful, the most important: judgment in the craft is what makes people
               want to use what ships.
             </p>
             </div>

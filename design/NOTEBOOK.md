@@ -36,6 +36,10 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-23 — A line under the mark
+
+The letter’s top edge is now the same hairline as the bar, full width, under the mark. The gene sentence was running the names into the verbs. Each name now takes a colon. Taste is still the most important.
+
 ### 2026-10-23 — The letter sits under the mark
 
 James pulled the reading up into the bottom of the film. The mark stays. The empty ground under it goes. Chapter padding was 64px. It is 28px. The close is his full name and james@bloomventures.com. The film still plays once.
