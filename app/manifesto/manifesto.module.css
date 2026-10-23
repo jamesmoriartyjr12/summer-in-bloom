@@ -71,23 +71,42 @@
   padding: 12px 0 72px;
 }
 
-.eyebrow,
-.meta,
 .footer,
-.cue {
+.cue,
+.leader,
+.bylineRole {
   font-family: var(--font-jetbrains), ui-monospace, monospace;
 }
 
-.eyebrow {
-  width: max(16.6%, fit-content);
-  max-width: 33%;
-  margin: 0 0 28px;
-  font-size: 13px;
+.byline {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0;
+}
+
+.avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex: none;
+}
+
+.bylineName {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.bylineRole {
+  margin: 2px 0 0;
+  font-size: 12px;
   font-weight: 500;
-  letter-spacing: 0.08em;
-  line-height: 1.4;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--orange);
+  line-height: 1.4;
 }
 
 .title,
@@ -106,18 +125,14 @@
   font-size: 24px;
 }
 
-.dek {
-  margin: 0;
-  font-size: 20px;
-  line-height: 1.4;
-}
-
-.meta {
-  margin: 36px 0 0;
-  font-size: 13px;
+.leader {
+  margin: 0 0 8px;
+  font-size: 12px;
   font-weight: 500;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.12em;
+  line-height: 1.4;
   text-transform: uppercase;
+  color: var(--orange);
 }
 
 .chapter {
@@ -129,8 +144,7 @@
   font-size: 24px;
 }
 
-.chapter p,
-.turns p {
+.chapter p {
   margin: 0 0 18px;
 }
 
@@ -143,22 +157,28 @@
   font-weight: 600;
 }
 
-.turns {
+.compare {
+  width: 100%;
   margin: 28px 0 8px;
+  border-collapse: collapse;
 }
 
-.turns p {
-  margin: 0 0 22px;
+.compare td {
+  width: 50%;
+  padding: 14px 20px 14px 0;
+  border-bottom: 1px solid var(--ink);
+  vertical-align: top;
 }
 
-.before {
-  display: block;
-}
-
-.after {
-  display: block;
-  margin-top: 2px;
+.compare td:last-child {
+  padding-right: 0;
   font-weight: 600;
+}
+
+.callout {
+  margin: 28px 0 0;
+  padding: 20px 24px;
+  background: var(--lime);
 }
 
 .momentum {
@@ -168,12 +188,24 @@
 .figure {
   margin: 0;
   font-family: var(--font-manifold), sans-serif;
-  font-size: 20px;
+  font-size: 48px;
   font-weight: 800;
   font-synthesis: none;
   letter-spacing: -0.02em;
   line-height: 1.1;
   color: var(--orange);
+}
+
+.blocks {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.block {
+  margin: 0;
+  padding: 20px;
+  border: 1px solid var(--ink);
 }
 
 .figureNote {
@@ -229,6 +261,10 @@
 
   .prose {
     max-width: 36rem;
+  }
+
+  .blocks {
+    grid-template-columns: 1fr 1fr;
   }
 }
 

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { GlyphIntro } from "./GlyphIntro";
 import { LetterBlock } from "./LetterBlock";
 import { PageGround } from "./PageGround";
@@ -30,13 +31,22 @@ export default function ManifestoPage() {
         <GlyphIntro />
         <article className={styles.wrap}>
           <LetterBlock as="header" className={styles.header}>
-            <p className={styles.eyebrow}>Bloom Growth Agency · Private</p>
-            <h1 className={styles.title}>The State of the Studio</h1>
-            <div className={styles.prose}>
-              <p className={styles.dek}>
-                Where product services are going, and why Bloom is built for what comes next.
-              </p>
-              <p className={styles.meta}>October 2026 · James, Bloom Growth Agency</p>
+            <h1 className={styles.title}>
+              Where product services are going, and why Bloom is built for what comes next.
+            </h1>
+            <div className={styles.byline}>
+              <Image
+                src="/Portraits/James_Portrait.png"
+                alt=""
+                width={96}
+                height={96}
+                className={styles.avatar}
+                unoptimized
+              />
+              <div>
+                <p className={styles.bylineName}>James</p>
+                <p className={styles.bylineRole}>CEO - Bloom Ventures</p>
+              </div>
             </div>
           </LetterBlock>
 
@@ -57,24 +67,25 @@ export default function ManifestoPage() {
           </LetterBlock>
 
           <LetterBlock as="section" className={styles.chapter}>
-            <h2 className={styles.chapterMark}>
-              What wins next: the forward deployed design engineer
-            </h2>
+            <p className={styles.leader}>What wins next</p>
+            <h2 className={styles.chapterMark}>The forward deployed design engineer</h2>
             <div className={styles.prose}>
             <p>
               The model that wins is one person who designs and ships, embedded in the client&apos;s
               team. Palantir proved the forward deployed engineer for data. The AI era needs the same
               role for the interface.
             </p>
-            <div className={styles.turns}>
-              {TURNS.map(([before, after]) => (
-                <p key={before}>
-                  <span className={styles.before}>{before}</span>{" "}
-                  <span className={styles.after}>{after}</span>
-                </p>
-              ))}
-            </div>
-            <p>
+            <table className={styles.compare}>
+              <tbody>
+                {TURNS.map(([before, after]) => (
+                  <tr key={before}>
+                    <td>{before}</td>
+                    <td>{after}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p className={styles.callout}>
               No major firm has claimed this category yet. The window to own it is open now, and it
               closes once larger players formalize it.
             </p>
@@ -108,22 +119,24 @@ export default function ManifestoPage() {
 
           <LetterBlock as="section" className={styles.chapter}>
             <div className={styles.prose}>
-            <p>
-              <strong>Proven model, not a pivot.</strong> Embedded delivery is how we already work, so
-              the positioning describes the business we run.
-            </p>
-            <p>
-              <strong>Built for the AI moment.</strong> Our people use AI to ship faster, so each
-              person delivers more as the tools improve.
-            </p>
-            <p>
-              <strong>Category ownership.</strong> We are putting a name on the forward deployed
-              design engineer, in public, before anyone else does.
-            </p>
-            <p>
-              <strong>Compounding relationships.</strong> Embedded teams become trusted, which turns
-              projects into long-running engagements.
-            </p>
+            <div className={styles.blocks}>
+              <p className={styles.block}>
+                <strong>Proven model, not a pivot.</strong> Embedded delivery is how we already work, so
+                the positioning describes the business we run.
+              </p>
+              <p className={styles.block}>
+                <strong>Built for the AI moment.</strong> Our people use AI to ship faster, so each
+                person delivers more as the tools improve.
+              </p>
+              <p className={styles.block}>
+                <strong>Category ownership.</strong> We are putting a name on the forward deployed
+                design engineer, in public, before anyone else does.
+              </p>
+              <p className={styles.block}>
+                <strong>Compounding relationships.</strong> Embedded teams become trusted, which turns
+                projects into long-running engagements.
+              </p>
+            </div>
             </div>
           </LetterBlock>
 

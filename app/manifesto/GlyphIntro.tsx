@@ -11,19 +11,24 @@ const FILM_MS = 10040;
 
 export function GlyphIntro() {
   const reduce = useReducedMotion();
+  const [ready, setReady] = useState(false);
   const [cue, setCue] = useState(false);
+
+  useEffect(() => {
+    setReady(true);
+  }, []);
 
   useEffect(() => {
     if (reduce) setCue(true);
   }, [reduce]);
 
   useEffect(() => {
-    if (reduce !== false) return;
+    if (!ready || reduce !== false) return;
     const timer = window.setTimeout(() => setCue(true), FILM_MS);
     return () => window.clearTimeout(timer);
-  }, [reduce]);
+  }, [ready, reduce]);
 
-  const showStill = reduce !== false;
+  const showStill = !ready || reduce !== false;
 
   return (
     <div className={styles.hero}>
