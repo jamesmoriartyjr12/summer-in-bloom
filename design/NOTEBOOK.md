@@ -36,6 +36,10 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-23 — The list rules lighten
+
+James asked for less stroke on the five lines. They were 1px Ink. They are 1px at 35 percent, still a rule, no longer a black bar.
+
 ### 2026-10-23 — The signature reads
 
 James said the thinned signature was illegible. The stroke is his, traced clean from the file he sent, not eaten down. It is wide enough to read, above the typed name.
