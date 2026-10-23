@@ -150,6 +150,7 @@ export default function ManifestoPage() {
             </div>
             </LetterBlock>
             <Settle>
+              <img className={styles.signature} src="/manifesto/james-signature.png" alt="" />
               <p className={styles.signoff}>James Moriarty</p>
               <p className={styles.signMail}>
                 <a href="mailto:james@bloomventures.com">james@bloomventures.com</a>

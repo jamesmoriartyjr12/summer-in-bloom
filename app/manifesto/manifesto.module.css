@@ -345,6 +345,13 @@
   margin-top: 8px;
 }
 
+.signature {
+  display: block;
+  width: 200px;
+  height: auto;
+  margin: 28px 0 6px;
+}
+
 .signoff {
   margin: 28px 0 0;
   font-size: 18px;
@@ -367,6 +374,10 @@
 .chapter .signoff,
 .chapter .essay .signoff {
   margin: 28px 0 0;
+}
+
+.chapter .signature + .signoff {
+  margin-top: 0;
 }
 
 .chapter .signMail {

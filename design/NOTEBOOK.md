@@ -36,6 +36,10 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-23 — The signature
+
+James sent his signature for the close. It sits above the typed name. The stroke is thinner than the file he sent, and the ground is clear. It fades with the sign-off. It does not travel.
+
 ### 2026-10-23 — James’s portrait
 
 James sent a new headshot for the letter. It is 64px, up from 48. The circle sits on his face. The team portrait on the scrolling page is unchanged.
