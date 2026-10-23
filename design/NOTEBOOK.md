@@ -36,6 +36,10 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-23 — The line drops below the mark
+
+James said the divider was too high. On this frame the film is fully in view top to bottom, so shifting the picture does not lift the mark. I moved the letter down. The line now clears the flowers.
+
 ### 2026-10-23 — A line under the mark
 
 The letter’s top edge is now the same hairline as the bar, full width, under the mark. The gene sentence was running the names into the verbs. Each name now takes a colon. Taste is still the most important.
