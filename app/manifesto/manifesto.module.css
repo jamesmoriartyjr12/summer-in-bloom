@@ -65,8 +65,19 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  margin: 0 0 28px;
+  margin: 0 0 20px;
   text-align: left;
+}
+
+.prepared {
+  margin: 0 0 28px;
+}
+
+.preparedLabel {
+  margin: 0 0 2px;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.4;
 }
 
 .avatar {

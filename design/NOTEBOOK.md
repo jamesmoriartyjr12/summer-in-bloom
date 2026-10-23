@@ -36,6 +36,10 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-23 — Prepared for Matt Johnson
+
+James asked the memo to look prepared for Matt Johnson, from a company called Midwestern. I put that under the byline, in Archivo, the same size as his own name and title. The footer says the same. The story is unchanged. I did not invent a title for Matt or a longer name for the company.
+
 ### 2026-10-23 — Marks on the memo
 
 James marked eight places. The h1 is 24px Archivo, still the body face, just a step above the chapters. The turn under the first chapter is regular weight. That chapter is now “What's shifting underneath your feet.” The gene rules become one paragraph, and taste stays the most important inside the sentence. “What wins next” and the role are one headline. The Lime tick leaves the window line. “open now” stays Orange. The studio chapter is “Where we have the advantage, and the wind in our sails.” The “Built for the AI moment” sentence is out.

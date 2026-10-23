@@ -9,7 +9,7 @@ import styles from "./manifesto.module.css";
 
 export const metadata: Metadata = {
   title: "Where Product Services Are Going — Bloom",
-  description: "A private letter on the state of the studio.",
+  description: "A private letter prepared for Matt Johnson at Midwestern.",
   robots: {
     index: false,
     follow: false,
@@ -46,6 +46,11 @@ export default function ManifestoPage() {
                 <p className={styles.bylineName}>James</p>
                 <p className={styles.bylineRole}>CEO - Bloom Ventures</p>
               </div>
+            </Settle>
+            <Settle className={styles.prepared}>
+              <p className={styles.preparedLabel}>Prepared for</p>
+              <p className={styles.bylineName}>Matt Johnson</p>
+              <p className={styles.bylineRole}>Midwestern</p>
             </Settle>
             <Rise as="h2" className={styles.studio} text="The State of the Studio" />
             <Rise
@@ -139,7 +144,7 @@ export default function ManifestoPage() {
           </section>
 
           <footer className={`${styles.footer} ${styles.prose}`}>
-            Confidential. Prepared for a private conversation. Please do not distribute.
+            Confidential. Prepared for Matt Johnson, Midwestern. Please do not distribute.
           </footer>
         </article>
       </main>
