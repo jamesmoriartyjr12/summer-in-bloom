@@ -1,7 +1,7 @@
 "use client";
 
-import { motion, useInView, useReducedMotion } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import { useEffect, useState } from "react";
 import { chromeSnap, enter, punch, stagger } from "@/lib/motion";
 import styles from "./manifesto.module.css";
 
@@ -144,46 +144,6 @@ const figureLine = {
   },
 };
 
-export function GeneList({
-  genes,
-}: {
-  genes: readonly { name: string; body: string; tag?: string }[];
-}) {
-  const play = usePlay();
-  const items = genes.map((gene) => (
-    <li key={gene.name}>
-      {gene.tag ? <p className={styles.geneTag}>{gene.tag}</p> : null}
-      <p className={styles.geneName}>{gene.name}</p>
-      <p>{gene.body}</p>
-    </li>
-  ));
-
-  if (!play) {
-    return <ul className={styles.genes}>{items}</ul>;
-  }
-
-  return (
-    <motion.ul
-      className={styles.genes}
-      initial="hidden"
-      whileInView="show"
-      viewport={viewport}
-      variants={{
-        hidden: {},
-        show: { transition: { staggerChildren: stagger.tiles } },
-      }}
-    >
-      {genes.map((gene) => (
-        <motion.li key={gene.name} variants={line}>
-          {gene.tag ? <p className={styles.geneTag}>{gene.tag}</p> : null}
-          <p className={styles.geneName}>{gene.name}</p>
-          <p>{gene.body}</p>
-        </motion.li>
-      ))}
-    </motion.ul>
-  );
-}
-
 export function PointList({ lines }: { lines: readonly string[] }) {
   const play = usePlay();
 
@@ -219,8 +179,6 @@ export function PointList({ lines }: { lines: readonly string[] }) {
 
 export function Callout() {
   const play = usePlay();
-  const tickRef = useRef<HTMLSpanElement>(null);
-  const tickInView = useInView(tickRef, { once: true, margin: viewport.margin });
   const rest = (
     <span className={styles.calloutRest}>
       The window to own it is <em>open now</em>, and it closes once larger players formalize it.
@@ -231,7 +189,6 @@ export function Callout() {
     return (
       <p className={styles.callout}>
         <span className={styles.calloutLead}>No major firm has claimed this category yet.</span>
-        <span className={styles.tick} />
         {rest}
       </p>
     );
@@ -240,14 +197,6 @@ export function Callout() {
   return (
     <p className={styles.callout}>
       <Rise as="span" className={styles.calloutLead} text="No major firm has claimed this category yet." />
-      <span className={styles.tick} ref={tickRef}>
-        <motion.span
-          className={styles.tickBar}
-          initial={false}
-          animate={{ scaleX: tickInView ? 1 : 0 }}
-          transition={riseEase}
-        />
-      </span>
       {rest}
     </p>
   );
@@ -273,10 +222,6 @@ export function Essay() {
       <p>
         <strong>Proven model, not a pivot.</strong> Embedded delivery is how we already work, so the
         positioning describes the business we run.
-      </p>
-      <p>
-        <strong>Built for the AI moment.</strong> Our people use AI to ship faster, so each person
-        delivers more as the tools improve.
       </p>
       <p>
         <strong>Category ownership.</strong> We are putting a name on the forward deployed design
@@ -328,10 +273,6 @@ export function Essay() {
       <motion.p variants={line}>
         <strong>Proven model, not a pivot.</strong> Embedded delivery is how we already work, so the
         positioning describes the business we run.
-      </motion.p>
-      <motion.p variants={line}>
-        <strong>Built for the AI moment.</strong> Our people use AI to ship faster, so each person
-        delivers more as the tools improve.
       </motion.p>
       <motion.p variants={line}>
         <strong>Category ownership.</strong> We are putting a name on the forward deployed design

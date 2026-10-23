@@ -36,6 +36,10 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-23 — Marks on the memo
+
+James marked eight places. The h1 is 24px Archivo, still the body face, just a step above the chapters. The turn under the first chapter is regular weight. That chapter is now “What's shifting underneath your feet.” The gene rules become one paragraph, and taste stays the most important inside the sentence. “What wins next” and the role are one headline. The Lime tick leaves the window line. “open now” stays Orange. The studio chapter is “Where we have the advantage, and the wind in our sails.” The “Built for the AI moment” sentence is out.
+
 ### 2026-10-23 — The genome, in the memo
 
 James sent a newer draft and asked to take its text into the story. I kept the memo: Archivo, body size, left in the column. The new passage is the genome. Entrepreneurial, technical, tasteful. Taste carries “Most important,” in Orange, because the draft marked it and the forest green on that file is not a Bloom color. The five positive lines stay. The old-agency column does not come back. “Where Bloom sits” now names both markets. “The opportunity” is the close. The love-letter essay leaves, because this draft replaced it.

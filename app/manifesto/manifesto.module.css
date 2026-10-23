@@ -109,7 +109,7 @@
 .title {
   margin: 0;
   max-width: 36em;
-  font-size: 18px;
+  font-size: 24px;
 }
 
 .leader {
@@ -142,33 +142,8 @@
   font-weight: 600;
 }
 
-.genes {
-  margin: 8px 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.genes li {
-  padding: 18px 0;
-  border-bottom: 1px solid var(--ink);
-}
-
-.chapter .genes p {
-  margin: 0;
-}
-
-.geneTag,
-.chapter .genes .geneTag {
-  margin: 0 0 4px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--orange);
-}
-
-.geneName,
-.chapter .genes .geneName {
-  margin: 0 0 4px;
-  font-weight: 600;
+.plain {
+  font-weight: 400;
 }
 
 .points {
@@ -192,23 +167,6 @@
   font-size: 18px;
 }
 
-.tick {
-  display: block;
-  width: 56px;
-  height: 4px;
-  margin: 16px 0 14px;
-  background: var(--lime);
-  overflow: hidden;
-}
-
-.tickBar {
-  display: block;
-  width: 100%;
-  height: 100%;
-  background: var(--lime);
-  transform-origin: left center;
-}
-
 .clip {
   display: inline-block;
   overflow: hidden;
@@ -230,6 +188,7 @@
 .calloutRest {
   display: block;
   max-width: 28em;
+  margin-top: 14px;
   font-size: 18px;
   line-height: 1.4;
 }

@@ -3,7 +3,7 @@ import Image from "next/image";
 import { stagger } from "@/lib/motion";
 import { GlyphIntro } from "./GlyphIntro";
 import { LetterBlock } from "./LetterBlock";
-import { Callout, Essay, GeneList, Label, PointList, Rise, Settle } from "./motion";
+import { Callout, Essay, PointList, Rise, Settle } from "./motion";
 import { PageGround } from "./PageGround";
 import styles from "./manifesto.module.css";
 
@@ -24,22 +24,6 @@ const POINTS = [
   "Embedded in the client's team and workflow.",
   "Judgment and trust get more valuable.",
   "Relationship compounds into long-term roles.",
-] as const;
-
-const GENES = [
-  {
-    name: "Entrepreneurial",
-    body: "Thinks like an owner, spots the growth signal, and acts on it.",
-  },
-  {
-    name: "Technical",
-    body: "Ships production software, using AI-native tools to move faster.",
-  },
-  {
-    name: "Tasteful",
-    body: "Judgment in the craft is what makes people want to use what ships.",
-    tag: "Most important",
-  },
 ] as const;
 
 export default function ManifestoPage() {
@@ -73,7 +57,7 @@ export default function ManifestoPage() {
           </header>
 
           <section className={styles.chapter}>
-            <Rise as="h2" className={styles.chapterMark} text="The shift" />
+            <Rise as="h2" className={styles.chapterMark} text="What's shifting underneath your feet" />
             <LetterBlock>
             <div className={styles.prose}>
             <p>
@@ -87,7 +71,7 @@ export default function ManifestoPage() {
             </p>
             </div>
             </LetterBlock>
-            <Rise as="p" className={`${styles.pull} ${styles.prose}`} text="Value is moving from making things to making things land." />
+            <Rise as="p" className={`${styles.pull} ${styles.plain} ${styles.prose}`} text="Value is moving from making things to making things land." />
           </section>
 
           <section className={styles.chapter}>
@@ -98,10 +82,14 @@ export default function ManifestoPage() {
               The genetic makeup of software teams is being rebuilt. The builder and the full-stack
               engineer form the new partnership of the future.
             </p>
-            <p>We believe a builder carries three genes:</p>
+            <p>
+              We believe a builder carries three genes. Entrepreneurial thinks like an owner, spots the
+              growth signal, and acts on it. Technical ships production software, using AI-native tools
+              to move faster. Tasteful is the most important: judgment in the craft is what makes people
+              want to use what ships.
+            </p>
             </div>
             </LetterBlock>
-            <GeneList genes={GENES} />
             <Rise
               as="p"
               className={`${styles.pull} ${styles.prose}`}
@@ -110,8 +98,7 @@ export default function ManifestoPage() {
           </section>
 
           <section className={styles.chapter}>
-            <Label className={styles.leader}>What wins next</Label>
-            <Rise as="h2" className={styles.chapterMark} text="The forward deployed design engineer" />
+            <Rise as="h2" className={styles.chapterMark} text="What wins next: the forward deployed design engineer" />
             <div className={styles.prose}>
             <LetterBlock>
             <p>
@@ -127,7 +114,7 @@ export default function ManifestoPage() {
           </section>
 
           <section className={styles.chapter}>
-            <Rise as="h2" className={styles.chapterMark} text="Where Bloom sits" />
+            <Rise as="h2" className={styles.chapterMark} text="Where we have the advantage, and the wind in our sails" />
             <Essay />
           </section>
 
