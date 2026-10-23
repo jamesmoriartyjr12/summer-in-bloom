@@ -56,24 +56,14 @@
 .header {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  box-sizing: border-box;
-  width: calc(100% + var(--inset) + var(--edge));
-  margin-left: calc(var(--inset) * -1);
-  padding: 48px 24px 80px;
-  text-align: center;
-}
-
-.footer,
-.leader,
-.bylineRole {
-  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  align-items: flex-start;
+  padding: 40px 0 48px;
+  text-align: left;
 }
 
 .byline {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 14px;
   margin: 0 0 28px;
   text-align: left;
@@ -96,45 +86,37 @@
 
 .bylineRole {
   margin: 2px 0 0;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-size: 16px;
+  font-weight: 400;
   line-height: 1.4;
 }
 
 .title,
 .studio,
-.chapterMark {
-  font-family: var(--font-manifold), sans-serif;
-  font-weight: 800;
-  font-synthesis: none;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
-  text-transform: uppercase;
+.chapterMark,
+.calloutLead,
+.figure {
+  font-weight: 600;
+  line-height: 1.4;
   color: var(--ink);
 }
 
 .studio {
-  margin: 0 0 16px;
-  font-size: 24px;
-  text-align: center;
+  margin: 0 0 8px;
+  font-size: 18px;
 }
 
 .title {
   margin: 0;
-  max-width: 12em;
-  font-size: 48px;
-  text-align: center;
+  max-width: 36em;
+  font-size: 18px;
 }
 
 .leader {
   margin: 0 0 8px;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.12em;
+  font-size: 18px;
+  font-weight: 600;
   line-height: 1.4;
-  text-transform: uppercase;
   color: var(--orange);
 }
 
@@ -143,8 +125,8 @@
 }
 
 .chapterMark {
-  margin: 0 0 24px;
-  font-size: 24px;
+  margin: 0 0 16px;
+  font-size: 18px;
 }
 
 .chapter p {
@@ -178,13 +160,7 @@
 
 .calloutLead {
   display: block;
-  font-family: var(--font-manifold), sans-serif;
-  font-size: 28px;
-  font-weight: 800;
-  font-synthesis: none;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
-  text-transform: uppercase;
+  font-size: 18px;
 }
 
 .tick {
@@ -208,12 +184,7 @@
   display: inline-block;
   overflow: hidden;
   vertical-align: bottom;
-  margin-right: 0.24em;
-  padding-bottom: 0.06em;
-  line-height: 0.92;
-}
-
-.pull .clip {
+  margin-right: 0.28em;
   padding-bottom: 0.16em;
   line-height: 1.15;
 }
@@ -250,12 +221,7 @@
 
 .figure {
   margin: 0;
-  font-family: var(--font-manifold), sans-serif;
-  font-size: 48px;
-  font-weight: 800;
-  font-synthesis: none;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
+  font-size: 18px;
   color: var(--orange);
 }
 
@@ -281,11 +247,9 @@
 
 .signoff {
   margin: 36px 0 0;
-  font-family: var(--font-jetbrains), ui-monospace, monospace;
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.4;
 }
 
 .chapter .essay .signoff {
@@ -294,11 +258,9 @@
 
 .footer {
   padding: 8px 0 72px;
-  font-family: var(--font-jetbrains), ui-monospace, monospace;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.4;
 }
 
 /* The same insets as SectionContent. The phone column stays as it is. */
@@ -306,15 +268,6 @@
   .wrap {
     --inset: 200px;
     --edge: 24px;
-  }
-
-  .title {
-    max-width: 850px;
-    font-size: 80px;
-  }
-
-  .chapterMark {
-    max-width: 850px;
   }
 
   .prose {

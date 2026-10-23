@@ -36,6 +36,10 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-23 — One face, like a memo
+
+James said not to change the words. He wants the page to read as a memo, close to an email. I took Manifold off the titles, the window line, and the figures, and JetBrains off the labels, the sign-off, and the footer. Archivo carries the whole letter. The sizes come down to the body size, the caps come off, and the masthead sits in the story column with the reading. The copy is unchanged.
+
 ### 2026-10-23 — Motion on the letter
 
 James asked for animation. I kept the package on `framer-motion`. A switch to `motion/react` is still a reviewed change, and Motion+ stays off this page. The numbers do not spin. The film still plays once and is the first beat. The portrait fades on the chrome snap, with no travel, because it is a photograph. Display lines rise through the line box, one word at a time, 50ms apart, on the 360ms enter. That is the masthead, the chapter names, the pull, and the window claim. The body keeps a single 12px fade. The list uses the 60ms tile stagger. The essay uses the 80ms section stagger. `+25%` and `+48%` use the 8px display travel. The lime tick scales from its left edge on the same enter. Reduced motion renders the type in place and drops the transforms.
