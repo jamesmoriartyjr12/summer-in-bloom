@@ -36,6 +36,10 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-23 — The path is /midwestern
+
+James wants the letter at bloomgrowthagency.com/midwestern. The route is `/midwestern`. The live domain is still the Netlify site. This project does not take that domain.
+
 ### 2026-10-23 — The list rules lighten
 
 James asked for less stroke on the five lines. They were 1px Ink. They are 1px at 35 percent, still a rule, no longer a black bar.
