@@ -217,12 +217,14 @@ export function Essay() {
       </p>
       <div className={styles.figures}>
         <div>
+          <p className={styles.figureLabel}>Revenue, year to date (Jan–Sep)</p>
           <p className={styles.figure}>+25%</p>
-          <p className={styles.figureNote}>Revenue, year to date (Jan–Sep), up from +21% last year</p>
+          <p className={styles.figureNote}>up from +21% last year</p>
         </div>
         <div>
+          <p className={styles.figureLabel}>Net income, year to date (Jan–Sep)</p>
           <p className={styles.figure}>+48%</p>
-          <p className={styles.figureNote}>Net income, year to date (Jan–Sep), after +45% last year</p>
+          <p className={styles.figureNote}>after +45% last year</p>
         </div>
       </div>
       <p>
@@ -266,12 +268,14 @@ export function Essay() {
       </motion.p>
       <motion.div className={styles.figures} variants={figureLine}>
         <div>
+          <p className={styles.figureLabel}>Revenue, year to date (Jan–Sep)</p>
           <p className={styles.figure}>+25%</p>
-          <p className={styles.figureNote}>Revenue, year to date (Jan–Sep), up from +21% last year</p>
+          <p className={styles.figureNote}>up from +21% last year</p>
         </div>
         <div>
+          <p className={styles.figureLabel}>Net income, year to date (Jan–Sep)</p>
           <p className={styles.figure}>+48%</p>
-          <p className={styles.figureNote}>Net income, year to date (Jan–Sep), after +45% last year</p>
+          <p className={styles.figureNote}>after +45% last year</p>
         </div>
       </motion.div>
       <motion.p variants={line}>

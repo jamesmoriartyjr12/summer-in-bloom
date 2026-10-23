@@ -36,6 +36,10 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-23 — Each figure names itself
+
+James asked for a bigger number, what it is above, and last year below, on both sides. The number is 32px Archivo, orange. The name and last year stay in the words already written. No new sentence.
+
 ### 2026-10-23 — The two figures sit side by side
 
 James asked for the two figures as data boxes, side by side, with one line between them. No card chrome. The hairline is the same as the bar. The words are unchanged. The pair still punches 8px, and reduced motion leaves it in place.
