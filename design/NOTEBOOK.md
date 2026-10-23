@@ -36,6 +36,10 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-23 — James’s portrait
+
+James sent a new headshot for the letter. It is 64px, up from 48. The circle sits on his face. The team portrait on the scrolling page is unchanged.
+
 ### 2026-10-23 — Each figure names itself
 
 James asked for a bigger number, what it is above, and last year below, on both sides. The number is 32px Archivo, orange. The name and last year stay in the words already written. No new sentence.

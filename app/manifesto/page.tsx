@@ -51,10 +51,10 @@ export default function ManifestoPage() {
           <header className={styles.header}>
             <Settle className={styles.byline}>
               <Image
-                src="/Portraits/James_Portrait.png"
+                src="/manifesto/james-moriarty.png"
                 alt=""
-                width={96}
-                height={96}
+                width={128}
+                height={128}
                 className={styles.avatar}
                 unoptimized
               />

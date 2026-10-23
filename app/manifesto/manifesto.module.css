@@ -162,10 +162,11 @@
 }
 
 .avatar {
-  width: 48px;
-  height: 48px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   object-fit: cover;
+  object-position: center 22%;
   flex: none;
 }
 
