@@ -7,7 +7,7 @@
   background: var(--paper);
   color: var(--ink);
   font-family: var(--font-archivo), "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 400;
   line-height: 1.4;
   -webkit-font-smoothing: antialiased;
@@ -60,30 +60,28 @@
 }
 
 .wrap {
-  max-width: 40rem;
+  max-width: 38rem;
   margin: 0 auto;
   padding-inline: calc(max(100vw, 100dvh) / 25);
 }
 
 .header {
-  padding: 8px 0 40px;
-  border-bottom: 1px solid var(--ink);
+  padding: 12px 0 72px;
 }
 
 .eyebrow,
-.num,
+.chapterMark,
 .meta,
 .footer,
 .cue,
-.compare th,
-.statLabel {
+.figureNote {
   font-family: var(--font-jetbrains), ui-monospace, monospace;
 }
 
 .eyebrow {
   width: max(16.6%, fit-content);
   max-width: 33%;
-  margin: 0 0 20px;
+  margin: 0 0 28px;
   font-size: 13px;
   font-weight: 500;
   letter-spacing: 0.08em;
@@ -93,164 +91,122 @@
 }
 
 .title,
-.sectionTitle,
 .pull,
 .close,
-.statValue {
+.figure {
   font-family: var(--font-manifold), sans-serif;
   font-weight: 800;
   font-synthesis: none;
   letter-spacing: -0.02em;
-  line-height: 1.15;
+  line-height: 1.12;
   text-transform: uppercase;
 }
 
 .title {
-  margin: 0 0 20px;
-  font-size: clamp(32px, 6vw, 52px);
+  margin: 0 0 28px;
+  font-size: clamp(36px, 7vw, 64px);
 }
 
 .dek {
   margin: 0;
-  max-width: 36em;
-  font-size: 18px;
+  max-width: 28em;
+  font-size: 20px;
   line-height: 1.4;
 }
 
 .meta {
-  margin: 28px 0 0;
+  margin: 36px 0 0;
   font-size: 13px;
   font-weight: 500;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
-.section {
-  padding: 48px 0;
-  border-bottom: 1px solid var(--ink);
+.chapter {
+  padding: 0 0 64px;
 }
 
-.section:last-of-type {
-  border-bottom: 0;
-}
-
-.num {
-  margin: 0 0 8px;
+.chapterMark {
+  margin: 0 0 20px;
   font-size: 13px;
   font-weight: 500;
   letter-spacing: 0.08em;
+  line-height: 1.4;
+  text-transform: uppercase;
   color: var(--orange);
 }
 
-.sectionTitle {
-  margin: 0 0 20px;
-  font-size: clamp(22px, 3.4vw, 32px);
-}
-
-.section p {
+.chapter p,
+.turns p {
   margin: 0 0 18px;
 }
 
-.section strong {
+.chapter strong {
   font-weight: 600;
 }
 
 .pull {
-  margin: 28px 0 0;
-  padding-left: 16px;
-  border-left: 3px solid var(--orange);
-  font-size: clamp(18px, 2.4vw, 22px);
+  margin: 36px 0 0;
+  max-width: 16em;
+  font-size: clamp(22px, 3vw, 28px);
 }
 
-.compare {
-  width: 100%;
-  margin: 8px 0 24px;
-  border-collapse: collapse;
-  font-size: 16px;
-  line-height: 1.4;
+.turns {
+  margin: 28px 0 8px;
 }
 
-.compare th,
-.compare td {
-  padding: 14px 12px 14px 0;
-  border-bottom: 1px solid var(--ink);
-  text-align: left;
-  vertical-align: top;
+.turns p {
+  margin: 0 0 22px;
 }
 
-.compare th {
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.before {
+  display: block;
 }
 
-.compare th:last-child {
+.after {
+  display: block;
+  margin-top: 2px;
+  font-weight: 600;
+}
+
+.momentum {
+  padding: 8px 0 72px;
+}
+
+.figure {
+  margin: 0;
+  font-size: clamp(56px, 12vw, 88px);
+  line-height: 0.95;
   color: var(--orange);
 }
 
-.compare td:last-child {
-  font-weight: 500;
-}
-
-.stats {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 24px;
-  margin: 8px 0 28px;
-}
-
-.statValue {
-  font-size: clamp(36px, 6vw, 48px);
-  line-height: 1;
-  color: var(--orange);
-}
-
-.statLabel {
-  margin-top: 8px;
-  font-size: 12px;
+.figureNote {
+  margin: 12px 0 40px;
+  max-width: 22em;
+  font-size: 13px;
   font-weight: 500;
   line-height: 1.4;
   letter-spacing: 0.02em;
 }
 
-.points {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.points li {
-  padding: 16px 0;
-  border-top: 1px solid var(--ink);
-}
-
-.points li:first-child {
-  padding-top: 0;
-  border-top: 0;
+.momentum .figureNote:last-child {
+  margin-bottom: 0;
 }
 
 .close {
-  margin-top: 8px;
+  margin: 36px 0 0;
   padding: 28px;
   background: var(--lime);
   color: var(--ink);
-  font-size: clamp(18px, 2.6vw, 24px);
+  font-size: clamp(20px, 2.8vw, 26px);
 }
 
 .footer {
-  padding: 40px 0 64px;
+  padding: 8px 0 72px;
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-}
-
-@media (max-width: 560px) {
-  .compare th,
-  .compare td {
-    padding-right: 8px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

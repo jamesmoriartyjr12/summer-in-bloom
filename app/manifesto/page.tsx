@@ -15,6 +15,14 @@ export const metadata: Metadata = {
   },
 };
 
+const TURNS = [
+  ["Sells hours and deliverables.", "Sells adoption and outcomes."],
+  ["Designers hand off to engineers.", "One person designs and ships."],
+  ["Works from a brief, outside the client.", "Embedded in the client's team and workflow."],
+  ["Output gets cheaper every year with AI.", "Judgment and trust get more valuable."],
+  ["Project ends, relationship resets.", "Relationship compounds into long-term roles."],
+] as const;
+
 export default function ManifestoPage() {
   return (
     <PageGround>
@@ -30,9 +38,8 @@ export default function ManifestoPage() {
             <p className={styles.meta}>October 2026 · James, Bloom Growth Agency</p>
           </LetterBlock>
 
-          <LetterBlock as="section" className={styles.section}>
-            <p className={styles.num}>01</p>
-            <h2 className={styles.sectionTitle}>The shift</h2>
+          <LetterBlock as="section" className={styles.chapter}>
+            <h2 className={styles.chapterMark}>The shift</h2>
             <p>
               The agency model built on billing hours to produce screens is ending. AI now writes the
               code and drafts the designs, so output is cheap and abundant.
@@ -45,9 +52,8 @@ export default function ManifestoPage() {
             <p className={styles.pull}>Value is moving from making things to making things land.</p>
           </LetterBlock>
 
-          <LetterBlock as="section" className={styles.section}>
-            <p className={styles.num}>02</p>
-            <h2 className={styles.sectionTitle}>
+          <LetterBlock as="section" className={styles.chapter}>
+            <h2 className={styles.chapterMark}>
               What wins next: the forward deployed design engineer
             </h2>
             <p>
@@ -55,99 +61,71 @@ export default function ManifestoPage() {
               team. Palantir proved the forward deployed engineer for data. The AI era needs the same
               role for the interface.
             </p>
-            <table className={styles.compare}>
-              <thead>
-                <tr>
-                  <th>Old agency</th>
-                  <th>Forward deployed studio</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Sells hours and deliverables</td>
-                  <td>Sells adoption and outcomes</td>
-                </tr>
-                <tr>
-                  <td>Designers hand off to engineers</td>
-                  <td>One person designs and ships</td>
-                </tr>
-                <tr>
-                  <td>Works from a brief, outside the client</td>
-                  <td>Embedded in the client&apos;s team and workflow</td>
-                </tr>
-                <tr>
-                  <td>Output gets cheaper every year with AI</td>
-                  <td>Judgment and trust get more valuable</td>
-                </tr>
-                <tr>
-                  <td>Project ends, relationship resets</td>
-                  <td>Relationship compounds into long-term roles</td>
-                </tr>
-              </tbody>
-            </table>
+            <div className={styles.turns}>
+              {TURNS.map(([before, after]) => (
+                <p key={before}>
+                  <span className={styles.before}>{before}</span>{" "}
+                  <span className={styles.after}>{after}</span>
+                </p>
+              ))}
+            </div>
             <p>
               No major firm has claimed this category yet. The window to own it is open now, and it
               closes once larger players formalize it.
             </p>
           </LetterBlock>
 
-          <LetterBlock as="section" className={styles.section}>
-            <p className={styles.num}>03</p>
-            <h2 className={styles.sectionTitle}>Where Bloom sits</h2>
+          <LetterBlock as="section" className={styles.chapter}>
+            <h2 className={styles.chapterMark}>Where Bloom sits</h2>
             <p>
               Bloom has run this model for six years, before it had a name. Our team of about 12 works
               embedded at the line between design and engineering, which is exactly where AI products
               succeed or fail.
             </p>
-            <p>
-              <strong>The market is already paying for it.</strong>
-            </p>
-            <div className={styles.stats}>
-              <div className={styles.stat}>
-                <div className={styles.statValue}>+25%</div>
-                <div className={styles.statLabel}>
-                  Revenue, year to date (Jan–Sep), up from +21% last year
-                </div>
-              </div>
-              <div className={styles.stat}>
-                <div className={styles.statValue}>+48%</div>
-                <div className={styles.statLabel}>
-                  Net income, year to date (Jan–Sep), after +45% last year
-                </div>
-              </div>
-            </div>
-            <ul className={styles.points}>
-              <li>
-                <strong>Proven model, not a pivot.</strong> Embedded delivery is how we already work,
-                so the positioning describes the business we run.
-              </li>
-              <li>
-                <strong>Built for the AI moment.</strong> Our people use AI to ship faster, so each
-                person delivers more as the tools improve.
-              </li>
-              <li>
-                <strong>Category ownership.</strong> We are putting a name on the forward deployed
-                design engineer, in public, before anyone else does.
-              </li>
-              <li>
-                <strong>Compounding relationships.</strong> Embedded teams become trusted, which turns
-                projects into long-running engagements.
-              </li>
-            </ul>
+            <p>The market is already paying for it.</p>
           </LetterBlock>
 
-          <LetterBlock as="section" className={styles.section}>
-            <p className={styles.num}>04</p>
-            <h2 className={styles.sectionTitle}>The opportunity</h2>
+          <LetterBlock className={styles.momentum}>
+            <p className={styles.figure}>+25%</p>
+            <p className={styles.figureNote}>
+              Revenue, year to date (Jan–Sep), up from +21% last year
+            </p>
+            <p className={styles.figure}>+48%</p>
+            <p className={styles.figureNote}>
+              Net income, year to date (Jan–Sep), after +45% last year
+            </p>
+          </LetterBlock>
+
+          <LetterBlock as="section" className={styles.chapter}>
+            <p>
+              <strong>Proven model, not a pivot.</strong> Embedded delivery is how we already work, so
+              the positioning describes the business we run.
+            </p>
+            <p>
+              <strong>Built for the AI moment.</strong> Our people use AI to ship faster, so each
+              person delivers more as the tools improve.
+            </p>
+            <p>
+              <strong>Category ownership.</strong> We are putting a name on the forward deployed
+              design engineer, in public, before anyone else does.
+            </p>
+            <p>
+              <strong>Compounding relationships.</strong> Embedded teams become trusted, which turns
+              projects into long-running engagements.
+            </p>
+          </LetterBlock>
+
+          <LetterBlock as="section" className={styles.chapter}>
+            <h2 className={styles.chapterMark}>The opportunity</h2>
             <p>
               An owner of Bloom gets an operating studio and a head start on a new category. The next
               step is to scale the model: more forward deployed teams, placed in more enterprises that
               are trying to make AI work.
             </p>
-            <div className={styles.close}>
+            <p className={styles.close}>
               The agencies that keep selling hours will shrink. The studios that sell adoption will set
               the price. Bloom is built to be one of them.
-            </div>
+            </p>
           </LetterBlock>
 
           <footer className={styles.footer}>

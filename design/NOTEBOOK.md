@@ -36,6 +36,10 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-23 — The letter is a story
+
+James asked the letter to read as a story, and for the momentum to be the point. The numbered sections, the table, and the two-up figures were a webpage sitting on top of a letter. I took them off. One column. Chapter names stay labels. Manifold is the title, the line the argument turns on, `+25%` then `+48%`, and the close on Lime. The second figure follows the first down the page, so the rise is the reading. The words are still his. The homepage does not move.
+
 ### 2026-10-23 — The letter joins the system
 
 Looked at `/manifesto`. The draft used a forest green and a cream that are not in the palette, and Mincho, which would have spread the homepage’s drift onto a new route. James asked for the brand system and the motion system here. The field is Paper `#FAF6EC`. Type is Ink `#070F18`. The hub still says `#070E18`. That conflict stays with James. Accent is Orange. The close is Lime with Ink type, the pairing the system already uses. Headlines are Manifold Extended Heavy, all caps. Body is Archivo. Labels are JetBrains Mono. The glyph film stays. It is a delivery, and it plays once. Its ground is warmer than Paper. The bottom of the frame fades to Paper. The film is not recolored. The scroll cue is opacity only, on the 200ms chrome snap. Each block enters once, 12px, 360ms, ease `0.2, 0.8, 0.2, 1`. Reduced motion drops the travel. The homepage stays on Mincho and chalk.
