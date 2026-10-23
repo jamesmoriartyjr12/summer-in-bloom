@@ -36,6 +36,10 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-23 — Headlines, not callouts
+
+James said the headlines should pop, and the callouts should not. The chapters were JetBrains at 13px while the figures were 88px. That is backwards. The title is Manifold up to 80px. The chapters are Manifold up to 56px. The pull line, `+25%` and `+48%`, and the close sit back in the prose. The rise is still there. It is no longer the loudest type on the page.
+
 ### 2026-10-23 — The letter is a story
 
 James asked the letter to read as a story, and for the momentum to be the point. The numbered sections, the table, and the two-up figures were a webpage sitting on top of a letter. I took them off. One column. Chapter names stay labels. Manifold is the title, the line the argument turns on, `+25%` then `+48%`, and the close on Lime. The second figure follows the first down the page, so the rise is the reading. The words are still his. The homepage does not move.
