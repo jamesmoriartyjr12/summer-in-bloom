@@ -43,7 +43,10 @@
 }
 
 .wrap {
-  padding-inline: calc(max(100vw, 100dvh) / 25);
+  --inset: calc(max(100vw, 100dvh) / 25);
+  --edge: var(--inset);
+  padding-left: var(--inset);
+  padding-right: var(--edge);
 }
 
 .prose {
@@ -54,7 +57,10 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 48px 0 80px;
+  box-sizing: border-box;
+  width: calc(100% + var(--inset) + var(--edge));
+  margin-left: calc(var(--inset) * -1);
+  padding: 48px 24px 80px;
   text-align: center;
 }
 
@@ -98,6 +104,7 @@
 }
 
 .title,
+.studio,
 .chapterMark {
   font-family: var(--font-manifold), sans-serif;
   font-weight: 800;
@@ -106,6 +113,12 @@
   line-height: 1.1;
   text-transform: uppercase;
   color: var(--ink);
+}
+
+.studio {
+  margin: 0 0 16px;
+  font-size: 24px;
+  text-align: center;
 }
 
 .title {
@@ -260,8 +273,8 @@
 /* The same insets as SectionContent. The phone column stays as it is. */
 @media (min-width: 600px) {
   .wrap {
-    padding-left: 200px;
-    padding-right: 24px;
+    --inset: 200px;
+    --edge: 24px;
   }
 
   .title {
@@ -280,7 +293,7 @@
 
 @media (min-width: 1100px) {
   .wrap {
-    padding-left: 248px;
+    --inset: 248px;
   }
 
   .prose {
@@ -290,7 +303,7 @@
 
 @media (min-width: 1280px) {
   .wrap {
-    padding-left: 320px;
+    --inset: 320px;
   }
 
   .prose {

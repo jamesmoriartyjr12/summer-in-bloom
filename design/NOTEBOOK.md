@@ -36,6 +36,10 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-23 — Center the masthead
+
+James said the header was not centered. It was centered in the story column. The left inset is 320px and the right gutter is 24px, so that column’s middle is not the page’s middle. The header now pulls back across the inset and centers on the viewport. The byline stays above. “The State of the Studio” is the h2, at the chapter size. The h1, at 48px on the phone and 80px from 600, is “Where product services are going.”
+
 ### 2026-10-23 — A letter under the argument
 
 James wanted the bottom to read like a blog, and almost like a love letter to the industry. The case above stays: the shift, the role, the five lines, the window. Below that, “Where Bloom sits,” the 2×2, and “The opportunity” were a deck. They are now one essay, “To the people who make it land.” The facts are the same: six years, about twelve people, +25% revenue, +48% net income, a model that is not a pivot, AI in the work, the category named in public, relationships that compound, an owner who gets the studio. The voice turns to the people who still sit with a team until the thing is used. The figures stay 48px inside the column, not a separate scoreboard. No boxes. No Lime slab. It signs James.

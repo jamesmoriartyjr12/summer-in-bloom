@@ -6,7 +6,7 @@ import { PageGround } from "./PageGround";
 import styles from "./manifesto.module.css";
 
 export const metadata: Metadata = {
-  title: "The State of the Studio — Bloom",
+  title: "Where Product Services Are Going — Bloom",
   description: "A private letter on the state of the studio.",
   robots: {
     index: false,
@@ -45,7 +45,8 @@ export default function ManifestoPage() {
                 <p className={styles.bylineRole}>CEO - Bloom Ventures</p>
               </div>
             </div>
-            <h1 className={styles.title}>The State of the Studio</h1>
+            <h2 className={styles.studio}>The State of the Studio</h2>
+            <h1 className={styles.title}>Where product services are going</h1>
           </LetterBlock>
 
           <LetterBlock as="section" className={styles.chapter}>
