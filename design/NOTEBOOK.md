@@ -36,6 +36,10 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-23 — The bar is one row
+
+James wanted the logo and the portrait beside each other, then the name. I took the prepared-for block out of the letter. The footer still says it was prepared for him. The bar stays fixed, Paper, Ink.
+
 ### 2026-10-23 — Matt’s bar
 
 James asked for a top bar with Matt’s avatar and the Midwestern logo. I took the mark and the wordmark from midwestern.com and set them in Ink on Paper, because the site draws them white and then inverts them. The portrait is the square he linked. The bar stays fixed. It does not leave with scroll, and the portrait does not travel. Their blue and their pale field stay on their site.

@@ -30,14 +30,17 @@ export default function ManifestoPage() {
   return (
     <PageGround>
       <div className={styles.topbar}>
-        <img className={styles.logo} src="/manifesto/midwestern-logo.svg" alt="Midwestern" />
-        <Image
-          src="/manifesto/matt-johnson.jpg"
-          alt="Matt Johnson"
-          width={72}
-          height={72}
-          className={styles.topAvatar}
-        />
+        <div className={styles.identity}>
+          <img className={styles.logo} src="/manifesto/midwestern-logo.svg" alt="Midwestern" />
+          <Image
+            src="/manifesto/matt-johnson.jpg"
+            alt=""
+            width={72}
+            height={72}
+            className={styles.topAvatar}
+          />
+          <p className={styles.topName}>Matt Johnson</p>
+        </div>
       </div>
       <main>
         <GlyphIntro />
@@ -56,11 +59,6 @@ export default function ManifestoPage() {
                 <p className={styles.bylineName}>James</p>
                 <p className={styles.bylineRole}>CEO - Bloom Ventures</p>
               </div>
-            </Settle>
-            <Settle className={styles.prepared}>
-              <p className={styles.preparedLabel}>Prepared for</p>
-              <p className={styles.bylineName}>Matt Johnson</p>
-              <p className={styles.bylineRole}>Midwestern</p>
             </Settle>
             <Rise as="h2" className={styles.studio} text="The State of the Studio" />
             <Rise
