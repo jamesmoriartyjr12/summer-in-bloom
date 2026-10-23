@@ -89,65 +89,52 @@ export default function ManifestoPage() {
           </LetterBlock>
 
           <LetterBlock as="section" className={styles.chapter}>
-            <h2 className={styles.chapterMark}>Where Bloom sits</h2>
-            <div className={styles.prose}>
-            <p>
-              Bloom has run this model for six years, before it had a name. Our team of about 12 works
-              embedded at the line between design and engineering, which is exactly where AI products
-              succeed or fail.
-            </p>
-            <p>The market is already paying for it.</p>
-            </div>
-          </LetterBlock>
-
-          <LetterBlock className={styles.momentum}>
-            <div className={styles.prose}>
-            <p className={styles.figure}>+25%</p>
-            <p className={styles.figureNote}>
-              Revenue, year to date (Jan–Sep), up from +21% last year
-            </p>
-            <p className={styles.figure}>+48%</p>
-            <p className={styles.figureNote}>
-              Net income, year to date (Jan–Sep), after +45% last year
-            </p>
-            </div>
-          </LetterBlock>
-
-          <LetterBlock as="section" className={styles.chapter}>
-            <div className={styles.prose}>
-            <div className={styles.blocks}>
-              <p className={styles.block}>
-                <strong>Proven model, not a pivot.</strong> Embedded delivery is how we already work, so
-                the positioning describes the business we run.
+            <p className={styles.leader}>A letter</p>
+            <h2 className={styles.chapterMark}>To the people who make it land</h2>
+            <div className={`${styles.prose} ${styles.essay}`}>
+              <p>
+                Bloom has run this model for six years, before it had a name. There are about twelve of
+                us. We sit inside the client&apos;s team, on the line between design and engineering.
+                That is the line where an AI product either gets used or becomes another pilot that
+                never ships.
               </p>
-              <p className={styles.block}>
-                <strong>Built for the AI moment.</strong> Our people use AI to ship faster, so each
-                person delivers more as the tools improve.
+              <p>
+                I am writing to the people who taught me that line. The designer who will not call a
+                flow done until someone has actually walked it. The engineer who stays in the critique
+                because the interface is their work too. The operator who knows the Tuesday morning the
+                software has to survive. AI can draft the screens. It cannot care whether they land.
+                That care is still the craft, and I want the next decade of this industry to belong to
+                the people who still practice it.
               </p>
-              <p className={styles.block}>
-                <strong>Category ownership.</strong> We are putting a name on the forward deployed
-                design engineer, in public, before anyone else does.
+              <p>The market is already paying for that care.</p>
+              <p className={styles.figure}>+25%</p>
+              <p className={styles.figureNote}>
+                Revenue, year to date (Jan–Sep), up from +21% last year
               </p>
-              <p className={styles.block}>
-                <strong>Compounding relationships.</strong> Embedded teams become trusted, which turns
-                projects into long-running engagements.
+              <p className={styles.figure}>+48%</p>
+              <p className={styles.figureNote}>
+                Net income, year to date (Jan–Sep), after +45% last year
               </p>
-            </div>
-            </div>
-          </LetterBlock>
-
-          <LetterBlock as="section" className={styles.chapter}>
-            <h2 className={styles.chapterMark}>The opportunity</h2>
-            <div className={styles.prose}>
-            <p>
-              An owner of Bloom gets an operating studio and a head start on a new category. The next
-              step is to scale the model: more forward deployed teams, placed in more enterprises that
-              are trying to make AI work.
-            </p>
-            <p className={styles.close}>
-              The agencies that keep selling hours will shrink. The studios that sell adoption will set
-              the price. Bloom is built to be one of them.
-            </p>
+              <p>
+                This is a proven model, not a pivot. Embedded delivery is how we already work, so the
+                name describes the business we run. Our people use AI to ship faster, and each person
+                delivers more as the tools improve. We are putting a name on the forward deployed
+                design engineer, in public, before anyone else does. And the relationship does not
+                reset when the project ends. It compounds. Trust turns a brief into a long role, and a
+                long role into the team they call when the next hard thing shows up.
+              </p>
+              <p>
+                An owner of Bloom gets an operating studio and a head start on a category that is still
+                open. The next step is the one I most want: more forward deployed teams, placed with
+                more enterprises that are trying to make AI work, staffed by people who love the
+                making.
+              </p>
+              <p>
+                The agencies that keep selling hours will shrink. The studios that sell adoption will
+                set the price. Bloom is built to be one of them. I hope the industry I love is the one
+                that gets there first.
+              </p>
+              <p className={styles.signoff}>James</p>
             </div>
           </LetterBlock>
 

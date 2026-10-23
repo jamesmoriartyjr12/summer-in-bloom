@@ -196,8 +196,12 @@
   color: var(--orange);
 }
 
-.momentum {
-  padding: 8px 0 72px;
+.essay {
+  line-height: 1.55;
+}
+
+.chapter .essay p {
+  margin: 0 0 22px;
 }
 
 .figure {
@@ -211,44 +215,37 @@
   color: var(--orange);
 }
 
-.blocks {
-  display: grid;
-  grid-template-columns: 1fr;
-}
-
-.chapter .block {
-  margin: 0;
-  padding: 22px 0;
-  border-bottom: 1px solid var(--ink);
-}
-
-.block:last-child {
-  border-bottom: none;
+.chapter .essay .figure {
+  margin: 28px 0 0;
 }
 
 .figureNote {
-  margin: 8px 0 28px;
+  margin: 8px 0 8px;
   max-width: 36em;
   font-size: 18px;
   font-weight: 400;
   line-height: 1.4;
 }
 
-.momentum .figureNote:last-child {
-  margin-bottom: 0;
+.chapter .essay .figureNote {
+  margin: 8px 0 22px;
 }
 
-.close {
-  margin: 28px 0 0;
-  padding: 28px;
-  background: var(--lime);
-  color: var(--ink);
-  font-family: inherit;
-  font-size: 18px;
-  font-weight: 400;
-  letter-spacing: 0;
-  line-height: 1.4;
-  text-transform: none;
+.chapter .essay .figure + .figureNote + .figure {
+  margin-top: 10px;
+}
+
+.signoff {
+  margin: 36px 0 0;
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.chapter .essay .signoff {
+  margin: 36px 0 0;
 }
 
 .footer {
@@ -278,25 +275,6 @@
 
   .prose {
     max-width: 36rem;
-  }
-
-  .blocks {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .block {
-    padding: 28px 32px 28px 0;
-    border-bottom: 1px solid var(--ink);
-    border-right: 1px solid var(--ink);
-  }
-
-  .block:nth-child(2n) {
-    padding: 28px 0 28px 32px;
-    border-right: none;
-  }
-
-  .block:nth-child(n + 3) {
-    border-bottom: none;
   }
 }
 
