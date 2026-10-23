@@ -36,6 +36,118 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-23 — The path is /midwestern
+
+James wants the letter at bloomgrowthagency.com/midwestern. The route is `/midwestern`. The live domain is still the Netlify site. This project does not take that domain.
+
+### 2026-10-23 — The list rules lighten
+
+James asked for less stroke on the five lines. They were 1px Ink. They are 1px at 35 percent, still a rule, no longer a black bar.
+
+### 2026-10-23 — The signature as sent
+
+James asked to use the signature he sent. The thinner trials are off the page. Only the white is gone, so the stroke is the one in the file.
+
+### 2026-10-23 — James’s portrait
+
+James sent a new headshot for the letter. It is 64px, up from 48. The circle sits on his face. The team portrait on the scrolling page is unchanged.
+
+### 2026-10-23 — Each figure names itself
+
+James asked for a bigger number, what it is above, and last year below, on both sides. The number is 32px Archivo, orange. The name and last year stay in the words already written. No new sentence.
+
+### 2026-10-23 — The two figures sit side by side
+
+James asked for the two figures as data boxes, side by side, with one line between them. No card chrome. The hairline is the same as the bar. The words are unchanged. The pair still punches 8px, and reduced motion leaves it in place.
+
+### 2026-10-23 — The film shrinks, then the letter arrives
+
+James wanted the film full screen and larger, then a small shrink on scroll, then the bar and the letter together. The film opens at 1.22 and plays once. Scroll brings it back to the frame before anything else appears. That scale is the exception on this page. It is tied to the scroll, and reduced motion drops it. The portrait still does not move.
+
+### 2026-10-23 — The line drops below the mark
+
+James said the divider was too high. On this frame the film is fully in view top to bottom, so shifting the picture does not lift the mark. I moved the letter down. The line now clears the flowers.
+
+### 2026-10-23 — A line under the mark
+
+The letter’s top edge is now the same hairline as the bar, full width, under the mark. The gene sentence was running the names into the verbs. Each name now takes a colon. Taste is still the most important.
+
+### 2026-10-23 — The letter sits under the mark
+
+James pulled the reading up into the bottom of the film. The mark stays. The empty ground under it goes. Chapter padding was 64px. It is 28px. The close is his full name and james@bloomventures.com. The film still plays once.
+
+### 2026-10-23 — Matt meets the column
+
+The portrait was on the browser’s right gutter. James wanted it on the letter’s right edge. The bar’s row is now the same measure as the prose. On a phone that measure is the column, so it still meets the text.
+
+### 2026-10-23 — Logo left, Matt right
+
+James put the logo on the left and the portrait with the name on the right. The bar is still Paper, still fixed, still the letter’s inset.
+
+### 2026-10-23 — The bar is one row
+
+James wanted the logo and the portrait beside each other, then the name. I took the prepared-for block out of the letter. The footer still says it was prepared for him. The bar stays fixed, Paper, Ink.
+
+### 2026-10-23 — Matt’s bar
+
+James asked for a top bar with Matt’s avatar and the Midwestern logo. I took the mark and the wordmark from midwestern.com and set them in Ink on Paper, because the site draws them white and then inverts them. The portrait is the square he linked. The bar stays fixed. It does not leave with scroll, and the portrait does not travel. Their blue and their pale field stay on their site.
+
+### 2026-10-23 — Prepared for Matt Johnson
+
+James asked the memo to look prepared for Matt Johnson, from a company called Midwestern. I put that under the byline, in Archivo, the same size as his own name and title. The footer says the same. The story is unchanged. I did not invent a title for Matt or a longer name for the company.
+
+### 2026-10-23 — Marks on the memo
+
+James marked eight places. The h1 is 24px Archivo, still the body face, just a step above the chapters. The turn under the first chapter is regular weight. That chapter is now “What's shifting underneath your feet.” The gene rules become one paragraph, and taste stays the most important inside the sentence. “What wins next” and the role are one headline. The Lime tick leaves the window line. “open now” stays Orange. The studio chapter is “Where we have the advantage, and the wind in our sails.” The “Built for the AI moment” sentence is out.
+
+### 2026-10-23 — The genome, in the memo
+
+James sent a newer draft and asked to take its text into the story. I kept the memo: Archivo, body size, left in the column. The new passage is the genome. Entrepreneurial, technical, tasteful. Taste carries “Most important,” in Orange, because the draft marked it and the forest green on that file is not a Bloom color. The five positive lines stay. The old-agency column does not come back. “Where Bloom sits” now names both markets. “The opportunity” is the close. The love-letter essay leaves, because this draft replaced it.
+
+### 2026-10-23 — One face, like a memo
+
+James said not to change the words. He wants the page to read as a memo, close to an email. I took Manifold off the titles, the window line, and the figures, and JetBrains off the labels, the sign-off, and the footer. Archivo carries the whole letter. The sizes come down to the body size, the caps come off, and the masthead sits in the story column with the reading. The copy is unchanged.
+
+### 2026-10-23 — Motion on the letter
+
+James asked for animation. I kept the package on `framer-motion`. A switch to `motion/react` is still a reviewed change, and Motion+ stays off this page. The numbers do not spin. The film still plays once and is the first beat. The portrait fades on the chrome snap, with no travel, because it is a photograph. Display lines rise through the line box, one word at a time, 50ms apart, on the 360ms enter. That is the masthead, the chapter names, the pull, and the window claim. The body keeps a single 12px fade. The list uses the 60ms tile stagger. The essay uses the 80ms section stagger. `+25%` and `+48%` use the 8px display travel. The lime tick scales from its left edge on the same enter. Reduced motion renders the type in place and drops the transforms.
+
+### 2026-10-23 — Center the masthead
+
+James said the header was not centered. It was centered in the story column. The left inset is 320px and the right gutter is 24px, so that column’s middle is not the page’s middle. The header now pulls back across the inset and centers on the viewport. The byline stays above. “The State of the Studio” is the h2, at the chapter size. The h1, at 48px on the phone and 80px from 600, is “Where product services are going.”
+
+### 2026-10-23 — A letter under the argument
+
+James wanted the bottom to read like a blog, and almost like a love letter to the industry. The case above stays: the shift, the role, the five lines, the window. Below that, “Where Bloom sits,” the 2×2, and “The opportunity” were a deck. They are now one essay, “To the people who make it land.” The facts are the same: six years, about twelve people, +25% revenue, +48% net income, a model that is not a pivot, AI in the work, the category named in public, relationships that compound, an owner who gets the studio. The voice turns to the people who still sit with a team until the thing is used. The figures stay 48px inside the column, not a separate scoreboard. No boxes. No Lime slab. It signs James.
+
+### 2026-10-23 — Title, rules, and the positive line
+
+James did not want the dek as the title. “The State of the Studio” is back, centered, and larger than the 24px chapters: 48px on the phone, 80px from 600. The byline moves above it and centers with it. The scroll cue leaves the film. The left-hand turns go. What remains is the five positive lines, ruled. The window sentence leaves the Lime slab. The claim is Manifold, a short Lime tick sits under it, and “open now” is Orange. The four reasons keep the two-by-two from 600px, with rules instead of boxes. One column on the phone.
+
+### 2026-10-23 — Marks on the letter
+
+James marked ten places. I took the private eyebrow off. The dek is now the title, still 24px Manifold. The byline is his portrait in a circle, then James, then CEO - Bloom Ventures. “What wins next” stays a label. The chapter is the role. The turns go back into a quiet two-column table, ink rules, no cards. The window sentence sits on Lime, at body size. He asked for the figures bigger, so `+25%` and `+48%` are 48px even though the headlines stay at 24. The four reasons are two blocks across and two down from 600px, and one column on the phone. The words are still his.
+
+### 2026-10-23 — 24px headlines
+
+James said the headlines should be 24. The title and the chapters are 24px on the phone and on the desktop. The size does not step up with the breakpoint. The figures stay at 20px so they do not pass the headlines.
+
+### 2026-10-23 — Same grid, every width
+
+James said the phone column is right, and that every width has to use the page grid. I kept the phone measure. From 600 the letter takes the same left inset as the sections, and the same 24px right gutter. The inset steps at 1100 and 1280. Headlines are allowed out to 850px, which is the headline width already on the page. The story column grows with the breakpoint instead of staying a centered phone column. I did not reserve the 336px companion column. Nothing on this letter belongs in it. The side list is still not on this route. The inset is the grid, not a second nav.
+
+### 2026-10-23 — Headlines, not callouts
+
+James said the headlines should pop, and the callouts should not. The chapters were JetBrains at 13px while the figures were 88px. That is backwards. The title is Manifold up to 80px. The chapters are Manifold up to 56px. The pull line, `+25%` and `+48%`, and the close sit back in the prose. The rise is still there. It is no longer the loudest type on the page.
+
+### 2026-10-23 — The letter is a story
+
+James asked the letter to read as a story, and for the momentum to be the point. The numbered sections, the table, and the two-up figures were a webpage sitting on top of a letter. I took them off. One column. Chapter names stay labels. Manifold is the title, the line the argument turns on, `+25%` then `+48%`, and the close on Lime. The second figure follows the first down the page, so the rise is the reading. The words are still his. The homepage does not move.
+
+### 2026-10-23 — The letter joins the system
+
+Looked at `/manifesto`. The draft used a forest green and a cream that are not in the palette, and Mincho, which would have spread the homepage’s drift onto a new route. James asked for the brand system and the motion system here. The field is Paper `#FAF6EC`. Type is Ink `#070F18`. The hub still says `#070E18`. That conflict stays with James. Accent is Orange. The close is Lime with Ink type, the pairing the system already uses. Headlines are Manifold Extended Heavy, all caps. Body is Archivo. Labels are JetBrains Mono. The glyph film stays. It is a delivery, and it plays once. Its ground is warmer than Paper. The bottom of the frame fades to Paper. The film is not recolored. The scroll cue is opacity only, on the 200ms chrome snap. Each block enters once, 12px, 360ms, ease `0.2, 0.8, 0.2, 1`. Reduced motion drops the travel. The homepage stays on Mincho and chalk.
+
 ### 2026-10-15 — The line is a block
 
 James wanted the sample’s wrapped block, and type that stays readable. The line now wraps beside the square. It is white on a dark ground and black on a light one.
