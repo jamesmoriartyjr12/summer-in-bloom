@@ -42,9 +42,9 @@ Reviews use `design/MOTION.md`. That file is the Motion install from Double Dutc
 
 ## Log
 
-### 2026-10-23 — The signature
+### 2026-10-23 — The signature reads
 
-James’s signature sits above his name. The stroke is thinned, and the white is gone so it sits on the paper. The typed name and the email stay under it.
+The thinned file broke the letters. The signature is traced from the original stroke, in Ink, and set wide enough to read. It still sits above the typed name.
 
 ### 2026-10-23 — James’s portrait
 

@@ -36,9 +36,9 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
-### 2026-10-23 — The signature
+### 2026-10-23 — The signature reads
 
-James sent his signature for the close. It sits above the typed name. The stroke is thinner than the file he sent, and the ground is clear. It fades with the sign-off. It does not travel.
+James said the thinned signature was illegible. The stroke is his, traced clean from the file he sent, not eaten down. It is wide enough to read, above the typed name.
 
 ### 2026-10-23 — James’s portrait
 
