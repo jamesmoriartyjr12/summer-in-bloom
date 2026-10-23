@@ -29,6 +29,16 @@ const POINTS = [
 export default function ManifestoPage() {
   return (
     <PageGround>
+      <div className={styles.topbar}>
+        <img className={styles.logo} src="/manifesto/midwestern-logo.svg" alt="Midwestern" />
+        <Image
+          src="/manifesto/matt-johnson.jpg"
+          alt="Matt Johnson"
+          width={72}
+          height={72}
+          className={styles.topAvatar}
+        />
+      </div>
       <main>
         <GlyphIntro />
         <article className={styles.wrap}>

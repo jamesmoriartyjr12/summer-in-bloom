@@ -11,6 +11,8 @@
   font-weight: 400;
   line-height: 1.4;
   -webkit-font-smoothing: antialiased;
+  --inset: calc(max(100vw, 100dvh) / 25);
+  --edge: var(--inset);
 }
 
 .hero {
@@ -42,9 +44,37 @@
   pointer-events: none;
 }
 
+.topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  padding-left: var(--inset);
+  padding-right: var(--edge);
+  background: var(--paper);
+  border-bottom: 1px solid rgba(7, 15, 24, 0.12);
+}
+
+.logo {
+  display: block;
+  height: 18px;
+  width: auto;
+}
+
+.topAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center 18%;
+}
+
 .wrap {
-  --inset: calc(max(100vw, 100dvh) / 25);
-  --edge: var(--inset);
   padding-left: var(--inset);
   padding-right: var(--edge);
 }
@@ -57,7 +87,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  padding: 40px 0 48px;
+  padding: 88px 0 48px;
   text-align: left;
 }
 
@@ -265,7 +295,7 @@
 
 /* The same insets as SectionContent. The phone column stays as it is. */
 @media (min-width: 600px) {
-  .wrap {
+  .page {
     --inset: 200px;
     --edge: 24px;
   }
@@ -276,7 +306,7 @@
 }
 
 @media (min-width: 1100px) {
-  .wrap {
+  .page {
     --inset: 248px;
   }
 
@@ -286,7 +316,7 @@
 }
 
 @media (min-width: 1280px) {
-  .wrap {
+  .page {
     --inset: 320px;
   }
 

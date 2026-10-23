@@ -36,6 +36,10 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-23 — Matt’s bar
+
+James asked for a top bar with Matt’s avatar and the Midwestern logo. I took the mark and the wordmark from midwestern.com and set them in Ink on Paper, because the site draws them white and then inverts them. The portrait is the square he linked. The bar stays fixed. It does not leave with scroll, and the portrait does not travel. Their blue and their pale field stay on their site.
+
 ### 2026-10-23 — Prepared for Matt Johnson
 
 James asked the memo to look prepared for Matt Johnson, from a company called Midwestern. I put that under the byline, in Archivo, the same size as his own name and title. The footer says the same. The story is unchanged. I did not invent a title for Matt or a longer name for the company.
