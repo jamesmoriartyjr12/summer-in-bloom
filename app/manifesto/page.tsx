@@ -149,7 +149,10 @@ export default function ManifestoPage() {
             </div>
             </LetterBlock>
             <Settle>
-              <p className={styles.signoff}>James</p>
+              <p className={styles.signoff}>James Moriarty</p>
+              <p className={styles.signMail}>
+                <a href="mailto:james@bloomventures.com">james@bloomventures.com</a>
+              </p>
             </Settle>
           </section>
 
