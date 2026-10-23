@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { GlyphIntro } from "./GlyphIntro";
+import { LetterBlock } from "./LetterBlock";
 import { PageGround } from "./PageGround";
 import styles from "./manifesto.module.css";
 
@@ -20,16 +21,16 @@ export default function ManifestoPage() {
       <main>
         <GlyphIntro />
         <article className={styles.wrap}>
-          <header className={styles.header}>
+          <LetterBlock as="header" className={styles.header}>
             <p className={styles.eyebrow}>Bloom Growth Agency · Private</p>
             <h1 className={styles.title}>The State of the Studio</h1>
             <p className={styles.dek}>
               Where product services are going, and why Bloom is built for what comes next.
             </p>
             <p className={styles.meta}>October 2026 · James, Bloom Growth Agency</p>
-          </header>
+          </LetterBlock>
 
-          <section className={styles.section}>
+          <LetterBlock as="section" className={styles.section}>
             <p className={styles.num}>01</p>
             <h2 className={styles.sectionTitle}>The shift</h2>
             <p>
@@ -42,9 +43,9 @@ export default function ManifestoPage() {
               on the interface, the workflow, and the people who have to use it every day.
             </p>
             <p className={styles.pull}>Value is moving from making things to making things land.</p>
-          </section>
+          </LetterBlock>
 
-          <section className={styles.section}>
+          <LetterBlock as="section" className={styles.section}>
             <p className={styles.num}>02</p>
             <h2 className={styles.sectionTitle}>
               What wins next: the forward deployed design engineer
@@ -88,9 +89,9 @@ export default function ManifestoPage() {
               No major firm has claimed this category yet. The window to own it is open now, and it
               closes once larger players formalize it.
             </p>
-          </section>
+          </LetterBlock>
 
-          <section className={styles.section}>
+          <LetterBlock as="section" className={styles.section}>
             <p className={styles.num}>03</p>
             <h2 className={styles.sectionTitle}>Where Bloom sits</h2>
             <p>
@@ -133,9 +134,9 @@ export default function ManifestoPage() {
                 projects into long-running engagements.
               </li>
             </ul>
-          </section>
+          </LetterBlock>
 
-          <section className={styles.section}>
+          <LetterBlock as="section" className={styles.section}>
             <p className={styles.num}>04</p>
             <h2 className={styles.sectionTitle}>The opportunity</h2>
             <p>
@@ -147,7 +148,7 @@ export default function ManifestoPage() {
               The agencies that keep selling hours will shrink. The studios that sell adoption will set
               the price. Bloom is built to be one of them.
             </div>
-          </section>
+          </LetterBlock>
 
           <footer className={styles.footer}>
             Confidential. Prepared for a private conversation. Please do not distribute.

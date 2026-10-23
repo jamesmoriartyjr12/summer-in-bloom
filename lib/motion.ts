@@ -14,3 +14,10 @@ export const headerTravel = {
   duration: 0.65,
   ease: [0.22, 1, 0.36, 1] as const,
 };
+
+/** Below-fold enter. design/MOTION.md duration.enter, ease.ui, distance.enterY. */
+export const enter = {
+  duration: 0.36,
+  ease: chromeSnap.ease,
+  distance: 12,
+};

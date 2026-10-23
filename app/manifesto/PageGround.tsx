@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import styles from "./manifesto.module.css";
 
-const GROUND = "#faf8f4";
+const GROUND = "#FAF6EC";
 
 export function PageGround({ children }: { children: React.ReactNode }) {
   useEffect(() => {
