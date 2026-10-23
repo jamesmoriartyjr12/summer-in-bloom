@@ -1,32 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { useReducedMotion } from "framer-motion";
 import Image from "next/image";
-import { chromeSnap } from "@/lib/motion";
 import styles from "./manifesto.module.css";
-
-/** The glyph film is 10.04s. That length is the film, not a UI token. */
-const FILM_MS = 10040;
 
 export function GlyphIntro() {
   const reduce = useReducedMotion();
   const [ready, setReady] = useState(false);
-  const [cue, setCue] = useState(false);
 
   useEffect(() => {
     setReady(true);
   }, []);
-
-  useEffect(() => {
-    if (reduce) setCue(true);
-  }, [reduce]);
-
-  useEffect(() => {
-    if (!ready || reduce !== false) return;
-    const timer = window.setTimeout(() => setCue(true), FILM_MS);
-    return () => window.clearTimeout(timer);
-  }, [ready, reduce]);
 
   const showStill = !ready || reduce !== false;
 
@@ -50,22 +35,10 @@ export function GlyphIntro() {
           preload="auto"
           poster="/manifesto/glyph-poster.jpg"
           aria-label="Bloom glyph animation"
-          onEnded={() => setCue(true)}
         >
           <source src="/manifesto/bloom-glyph.mp4" type="video/mp4" />
         </video>
       )}
-      <motion.p
-        className={styles.cue}
-        initial={false}
-        animate={{ opacity: cue ? 1 : 0 }}
-        transition={{
-          duration: reduce === false ? chromeSnap.duration : 0,
-          ease: chromeSnap.ease,
-        }}
-      >
-        Scroll
-      </motion.p>
     </div>
   );
 }

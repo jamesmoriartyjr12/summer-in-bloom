@@ -7,7 +7,7 @@ import styles from "./manifesto.module.css";
 
 export const metadata: Metadata = {
   title: "The State of the Studio — Bloom",
-  description: "Where product services are going, and why Bloom is built for what comes next.",
+  description: "A private letter on the state of the studio.",
   robots: {
     index: false,
     follow: false,
@@ -16,12 +16,12 @@ export const metadata: Metadata = {
   },
 };
 
-const TURNS = [
-  ["Sells hours and deliverables.", "Sells adoption and outcomes."],
-  ["Designers hand off to engineers.", "One person designs and ships."],
-  ["Works from a brief, outside the client.", "Embedded in the client's team and workflow."],
-  ["Output gets cheaper every year with AI.", "Judgment and trust get more valuable."],
-  ["Project ends, relationship resets.", "Relationship compounds into long-term roles."],
+const POINTS = [
+  "Sells adoption and outcomes.",
+  "One person designs and ships.",
+  "Embedded in the client's team and workflow.",
+  "Judgment and trust get more valuable.",
+  "Relationship compounds into long-term roles.",
 ] as const;
 
 export default function ManifestoPage() {
@@ -31,9 +31,6 @@ export default function ManifestoPage() {
         <GlyphIntro />
         <article className={styles.wrap}>
           <LetterBlock as="header" className={styles.header}>
-            <h1 className={styles.title}>
-              Where product services are going, and why Bloom is built for what comes next.
-            </h1>
             <div className={styles.byline}>
               <Image
                 src="/Portraits/James_Portrait.png"
@@ -48,6 +45,7 @@ export default function ManifestoPage() {
                 <p className={styles.bylineRole}>CEO - Bloom Ventures</p>
               </div>
             </div>
+            <h1 className={styles.title}>The State of the Studio</h1>
           </LetterBlock>
 
           <LetterBlock as="section" className={styles.chapter}>
@@ -75,19 +73,17 @@ export default function ManifestoPage() {
               team. Palantir proved the forward deployed engineer for data. The AI era needs the same
               role for the interface.
             </p>
-            <table className={styles.compare}>
-              <tbody>
-                {TURNS.map(([before, after]) => (
-                  <tr key={before}>
-                    <td>{before}</td>
-                    <td>{after}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <ul className={styles.points}>
+              {POINTS.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
             <p className={styles.callout}>
-              No major firm has claimed this category yet. The window to own it is open now, and it
-              closes once larger players formalize it.
+              <span className={styles.calloutLead}>No major firm has claimed this category yet.</span>
+              <span className={styles.calloutRest}>
+                The window to own it is <em>open now</em>, and it closes once larger players formalize
+                it.
+              </span>
             </p>
             </div>
           </LetterBlock>

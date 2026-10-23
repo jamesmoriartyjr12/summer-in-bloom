@@ -42,23 +42,6 @@
   pointer-events: none;
 }
 
-.cue {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 28px;
-  z-index: 2;
-  margin: 0;
-  font-family: var(--font-jetbrains), ui-monospace, monospace;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.12em;
-  text-align: center;
-  text-transform: uppercase;
-  color: var(--ink);
-  opacity: 0;
-}
-
 .wrap {
   padding-inline: calc(max(100vw, 100dvh) / 25);
 }
@@ -68,11 +51,14 @@
 }
 
 .header {
-  padding: 12px 0 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 0 80px;
+  text-align: center;
 }
 
 .footer,
-.cue,
 .leader,
 .bylineRole {
   font-family: var(--font-jetbrains), ui-monospace, monospace;
@@ -81,8 +67,10 @@
 .byline {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 14px;
-  margin: 0;
+  margin: 0 0 28px;
+  text-align: left;
 }
 
 .avatar {
@@ -121,8 +109,10 @@
 }
 
 .title {
-  margin: 0 0 28px;
-  font-size: 24px;
+  margin: 0;
+  max-width: 12em;
+  font-size: 48px;
+  text-align: center;
 }
 
 .leader {
@@ -157,28 +147,53 @@
   font-weight: 600;
 }
 
-.compare {
-  width: 100%;
+.points {
   margin: 28px 0 8px;
-  border-collapse: collapse;
+  padding: 0;
+  list-style: none;
 }
 
-.compare td {
-  width: 50%;
-  padding: 14px 20px 14px 0;
+.points li {
+  padding: 16px 0;
   border-bottom: 1px solid var(--ink);
-  vertical-align: top;
-}
-
-.compare td:last-child {
-  padding-right: 0;
   font-weight: 600;
 }
 
-.callout {
-  margin: 28px 0 0;
-  padding: 20px 24px;
+.chapter .callout {
+  margin: 40px 0 0;
+}
+
+.calloutLead {
+  display: block;
+  font-family: var(--font-manifold), sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  font-synthesis: none;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.calloutLead::after {
+  content: "";
+  display: block;
+  width: 56px;
+  height: 4px;
+  margin: 16px 0 14px;
   background: var(--lime);
+}
+
+.calloutRest {
+  display: block;
+  max-width: 28em;
+  font-size: 18px;
+  line-height: 1.4;
+}
+
+.calloutRest em {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--orange);
 }
 
 .momentum {
@@ -199,13 +214,16 @@
 .blocks {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 12px;
 }
 
-.block {
+.chapter .block {
   margin: 0;
-  padding: 20px;
-  border: 1px solid var(--ink);
+  padding: 22px 0;
+  border-bottom: 1px solid var(--ink);
+}
+
+.block:last-child {
+  border-bottom: none;
 }
 
 .figureNote {
@@ -235,16 +253,11 @@
 
 .footer {
   padding: 8px 0 72px;
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .cue {
-    transition: none;
-  }
 }
 
 /* The same insets as SectionContent. The phone column stays as it is. */
@@ -254,7 +267,11 @@
     padding-right: 24px;
   }
 
-  .title,
+  .title {
+    max-width: 850px;
+    font-size: 80px;
+  }
+
   .chapterMark {
     max-width: 850px;
   }
@@ -265,6 +282,21 @@
 
   .blocks {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .block {
+    padding: 28px 32px 28px 0;
+    border-bottom: 1px solid var(--ink);
+    border-right: 1px solid var(--ink);
+  }
+
+  .block:nth-child(2n) {
+    padding: 28px 0 28px 32px;
+    border-right: none;
+  }
+
+  .block:nth-child(n + 3) {
+    border-bottom: none;
   }
 }
 

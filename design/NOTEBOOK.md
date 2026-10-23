@@ -36,6 +36,10 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-23 — Title, rules, and the positive line
+
+James did not want the dek as the title. “The State of the Studio” is back, centered, and larger than the 24px chapters: 48px on the phone, 80px from 600. The byline moves above it and centers with it. The scroll cue leaves the film. The left-hand turns go. What remains is the five positive lines, ruled. The window sentence leaves the Lime slab. The claim is Manifold, a short Lime tick sits under it, and “open now” is Orange. The four reasons keep the two-by-two from 600px, with rules instead of boxes. One column on the phone.
+
 ### 2026-10-23 — Marks on the letter
 
 James marked ten places. I took the private eyebrow off. The dek is now the title, still 24px Manifold. The byline is his portrait in a circle, then James, then CEO - Bloom Ventures. “What wins next” stays a label. The chapter is the role. The turns go back into a quiet two-column table, ink rules, no cards. The window sentence sits on Lime, at body size. He asked for the figures bigger, so `+25%` and `+48%` are 48px even though the headlines stay at 24. The four reasons are two blocks across and two down from 600px, and one column on the phone. The words are still his.
