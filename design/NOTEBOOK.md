@@ -36,6 +36,10 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-23 — Same grid, every width
+
+James said the phone column is right, and that every width has to use the page grid. I kept the phone measure. From 600 the letter takes the same left inset as the sections, and the same 24px right gutter. The inset steps at 1100 and 1280. Headlines are allowed out to 850px, which is the headline width already on the page. The story column grows with the breakpoint instead of staying a centered phone column. I did not reserve the 336px companion column. Nothing on this letter belongs in it. The side list is still not on this route. The inset is the grid, not a second nav.
+
 ### 2026-10-23 — Headlines, not callouts
 
 James said the headlines should pop, and the callouts should not. The chapters were JetBrains at 13px while the figures were 88px. That is backwards. The title is Manifold up to 80px. The chapters are Manifold up to 56px. The pull line, `+25%` and `+48%`, and the close sit back in the prose. The rise is still there. It is no longer the loudest type on the page.
