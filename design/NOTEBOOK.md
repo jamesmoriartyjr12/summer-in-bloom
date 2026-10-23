@@ -36,6 +36,10 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-23 — Motion on the letter
+
+James asked for animation. I kept the package on `framer-motion`. A switch to `motion/react` is still a reviewed change, and Motion+ stays off this page. The numbers do not spin. The film still plays once and is the first beat. The portrait fades on the chrome snap, with no travel, because it is a photograph. Display lines rise through the line box, one word at a time, 50ms apart, on the 360ms enter. That is the masthead, the chapter names, the pull, and the window claim. The body keeps a single 12px fade. The list uses the 60ms tile stagger. The essay uses the 80ms section stagger. `+25%` and `+48%` use the 8px display travel. The lime tick scales from its left edge on the same enter. Reduced motion renders the type in place and drops the transforms.
+
 ### 2026-10-23 — Center the masthead
 
 James said the header was not centered. It was centered in the story column. The left inset is 320px and the right gutter is 24px, so that column’s middle is not the page’s middle. The header now pulls back across the inset and centers on the viewport. The byline stays above. “The State of the Studio” is the h2, at the chapter size. The h1, at 48px on the phone and 80px from 600, is “Where product services are going.”

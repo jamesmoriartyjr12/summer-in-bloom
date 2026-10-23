@@ -21,3 +21,14 @@ export const enter = {
   ease: chromeSnap.ease,
   distance: 12,
 };
+
+/** design/MOTION.md stagger and display-type travel. */
+export const stagger = {
+  labels: 0.05,
+  tiles: 0.06,
+  section: 0.08,
+} as const;
+
+export const punch = {
+  distance: 8,
+};

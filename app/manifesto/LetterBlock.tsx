@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
+import { useEffect, useState } from "react";
 import { enter } from "@/lib/motion";
 
 type Tag = "div" | "header" | "section";
@@ -15,8 +16,15 @@ export function LetterBlock({
   children: React.ReactNode;
 }) {
   const reduce = useReducedMotion();
+  const [ready, setReady] = useState(false);
 
-  if (reduce !== false) {
+  useEffect(() => {
+    setReady(true);
+  }, []);
+
+  const play = ready && reduce === false;
+
+  if (!play) {
     const Static = as;
     return <Static className={className}>{children}</Static>;
   }
