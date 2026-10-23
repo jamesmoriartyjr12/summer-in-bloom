@@ -40,9 +40,9 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 James asked for less stroke on the five lines. They were 1px Ink. They are 1px at 35 percent, still a rule, no longer a black bar.
 
-### 2026-10-23 — The signature stroke
+### 2026-10-23 — The signature as sent
 
-James said the stroke was way too thick. One pixel comes off each edge of his mark. Further than that, the letters break. It stays solid, and it still reads.
+James asked to use the signature he sent. The thinner trials are off the page. Only the white is gone, so the stroke is the one in the file.
 
 ### 2026-10-23 — James’s portrait
 

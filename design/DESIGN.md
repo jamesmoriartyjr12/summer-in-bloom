@@ -46,9 +46,9 @@ Reviews use `design/MOTION.md`. That file is the Motion install from Double Dutc
 
 The five lines keep their rules. The stroke is lighter than full Ink, at 35 percent.
 
-### 2026-10-23 — The signature stroke
+### 2026-10-23 — The signature as sent
 
-The full stroke was too heavy. A pixel comes off each edge. The letters stay solid and still read. It sits above the typed name.
+The signature is the file James sent. The white is clear so it sits on the paper. The stroke is his.
 
 ### 2026-10-23 — James’s portrait
 
