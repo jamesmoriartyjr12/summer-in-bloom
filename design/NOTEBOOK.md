@@ -36,6 +36,10 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-23 — The film shrinks, then the letter arrives
+
+James wanted the film full screen and larger, then a small shrink on scroll, then the bar and the letter together. The film opens at 1.22 and plays once. Scroll brings it back to the frame before anything else appears. That scale is the exception on this page. It is tied to the scroll, and reduced motion drops it. The portrait still does not move.
+
 ### 2026-10-23 — The line drops below the mark
 
 James said the divider was too high. On this frame the film is fully in view top to bottom, so shifting the picture does not lift the mark. I moved the letter down. The line now clears the flowers.

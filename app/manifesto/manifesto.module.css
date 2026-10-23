@@ -3,6 +3,7 @@
   --ink: #070f18;
   --orange: #fa4c1f;
   --lime: #d8ff34;
+  position: relative;
   min-height: 100dvh;
   background: var(--paper);
   color: var(--ink);
@@ -16,13 +17,41 @@
   --measure: 38rem;
 }
 
-.hero {
-  position: relative;
+.hero,
+.heroPinned,
+.heroReleased {
   width: 100%;
   height: 100dvh;
   min-height: 420px;
   overflow: hidden;
   background: var(--paper);
+}
+
+.hero {
+  position: relative;
+}
+
+.heroPinned {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
+
+.heroReleased {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 0;
+}
+
+.heroSpacer {
+  height: 100dvh;
+}
+
+.mediaFrame {
+  position: absolute;
+  inset: 0;
+  transform-origin: center center;
 }
 
 .media {
@@ -31,18 +60,21 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center center;
   display: block;
 }
 
-.hero::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 28%;
-  background: linear-gradient(to bottom, rgba(250, 246, 236, 0), var(--paper));
-  pointer-events: none;
+/* The film opens larger than the frame. Scroll shrinks it, then the bar and the letter arrive.
+   Reduced motion keeps the still at frame size, with the bar and the letter already there. */
+@media (prefers-reduced-motion: no-preference) {
+  .topbar,
+  .wrap {
+    opacity: 0;
+  }
+
+  .mediaFrame {
+    transform: scale(1.22);
+  }
 }
 
 .topbar {

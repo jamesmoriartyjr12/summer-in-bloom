@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { stagger } from "@/lib/motion";
-import { GlyphIntro } from "./GlyphIntro";
+import { GlyphIntro, Opening, Reveal } from "./GlyphIntro";
 import { LetterBlock } from "./LetterBlock";
 import { Callout, Essay, PointList, Rise, Settle } from "./motion";
 import { PageGround } from "./PageGround";
@@ -29,7 +29,8 @@ const POINTS = [
 export default function ManifestoPage() {
   return (
     <PageGround>
-      <div className={styles.topbar}>
+      <Opening>
+      <Reveal className={styles.topbar}>
         <div className={styles.track}>
         <img className={styles.logo} src="/manifesto/midwestern-logo.svg" alt="Midwestern" />
         <div className={styles.identity}>
@@ -43,10 +44,10 @@ export default function ManifestoPage() {
           <p className={styles.topName}>Matt Johnson</p>
         </div>
         </div>
-      </div>
+      </Reveal>
       <main>
         <GlyphIntro />
-        <article className={styles.wrap}>
+        <Reveal className={styles.wrap} hold>
           <header className={styles.header}>
             <Settle className={styles.byline}>
               <Image
@@ -159,8 +160,9 @@ export default function ManifestoPage() {
           <footer className={`${styles.footer} ${styles.prose}`}>
             Confidential. Prepared for Matt Johnson, Midwestern. Please do not distribute.
           </footer>
-        </article>
+        </Reveal>
       </main>
+      </Opening>
     </PageGround>
   );
 }
