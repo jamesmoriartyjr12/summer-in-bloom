@@ -36,6 +36,10 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-23 — 24px headlines
+
+James said the headlines should be 24. The title and the chapters are 24px on the phone and on the desktop. The size does not step up with the breakpoint. The figures stay at 20px so they do not pass the headlines.
+
 ### 2026-10-23 — Same grid, every width
 
 James said the phone column is right, and that every width has to use the page grid. I kept the phone measure. From 600 the letter takes the same left inset as the sections, and the same 24px right gutter. The inset steps at 1100 and 1280. Headlines are allowed out to 850px, which is the headline width already on the page. The story column grows with the breakpoint instead of staying a centered phone column. I did not reserve the 336px companion column. Nothing on this letter belongs in it. The side list is still not on this route. The inset is the grid, not a second nav.

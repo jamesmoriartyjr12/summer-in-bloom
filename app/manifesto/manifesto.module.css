@@ -103,7 +103,7 @@
 
 .title {
   margin: 0 0 28px;
-  font-size: 48px;
+  font-size: 24px;
 }
 
 .dek {
@@ -126,7 +126,7 @@
 
 .chapterMark {
   margin: 0 0 24px;
-  font-size: 36px;
+  font-size: 24px;
 }
 
 .chapter p,
@@ -168,7 +168,7 @@
 .figure {
   margin: 0;
   font-family: var(--font-manifold), sans-serif;
-  font-size: 28px;
+  font-size: 20px;
   font-weight: 800;
   font-synthesis: none;
   letter-spacing: -0.02em;
@@ -227,20 +227,8 @@
     max-width: 850px;
   }
 
-  .title {
-    font-size: 64px;
-  }
-
-  .chapterMark {
-    font-size: 48px;
-  }
-
   .prose {
     max-width: 36rem;
-  }
-
-  .figure {
-    font-size: 32px;
   }
 }
 
@@ -249,20 +237,8 @@
     padding-left: 248px;
   }
 
-  .title {
-    font-size: 80px;
-  }
-
-  .chapterMark {
-    font-size: 56px;
-  }
-
   .prose {
     max-width: 40rem;
-  }
-
-  .figure {
-    font-size: 36px;
   }
 }
 
