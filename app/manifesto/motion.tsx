@@ -144,13 +144,45 @@ const figureLine = {
   },
 };
 
-const sign = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: { duration: chromeSnap.duration, ease: chromeSnap.ease },
-  },
-};
+export function GeneList({
+  genes,
+}: {
+  genes: readonly { name: string; body: string; tag?: string }[];
+}) {
+  const play = usePlay();
+  const items = genes.map((gene) => (
+    <li key={gene.name}>
+      {gene.tag ? <p className={styles.geneTag}>{gene.tag}</p> : null}
+      <p className={styles.geneName}>{gene.name}</p>
+      <p>{gene.body}</p>
+    </li>
+  ));
+
+  if (!play) {
+    return <ul className={styles.genes}>{items}</ul>;
+  }
+
+  return (
+    <motion.ul
+      className={styles.genes}
+      initial="hidden"
+      whileInView="show"
+      viewport={viewport}
+      variants={{
+        hidden: {},
+        show: { transition: { staggerChildren: stagger.tiles } },
+      }}
+    >
+      {genes.map((gene) => (
+        <motion.li key={gene.name} variants={line}>
+          {gene.tag ? <p className={styles.geneTag}>{gene.tag}</p> : null}
+          <p className={styles.geneName}>{gene.name}</p>
+          <p>{gene.body}</p>
+        </motion.li>
+      ))}
+    </motion.ul>
+  );
+}
 
 export function PointList({ lines }: { lines: readonly string[] }) {
   const play = usePlay();
@@ -226,42 +258,34 @@ export function Essay() {
   const copy = (
     <>
       <p>
-        Bloom has run this model for six years, before it had a name. There are about twelve of us. We
-        sit inside the client&apos;s team, on the line between design and engineering. That is the line
-        where an AI product either gets used or becomes another pilot that never ships.
+        Bloom has run this model for six years, before it had a name. Our team of about 12 works
+        embedded with enterprises and early-stage companies alike, at the line between design and
+        engineering where AI products succeed or fail. The momentum behind this positioning is building
+        in both markets.
       </p>
       <p>
-        I am writing to the people who taught me that line. The designer who will not call a flow done
-        until someone has actually walked it. The engineer who stays in the critique because the
-        interface is their work too. The operator who knows the Tuesday morning the software has to
-        survive. AI can draft the screens. It cannot care whether they land. That care is still the
-        craft, and I want the next decade of this industry to belong to the people who still practice
-        it.
+        <strong>The market is already paying for it.</strong>
       </p>
-      <p>The market is already paying for that care.</p>
       <p className={styles.figure}>+25%</p>
       <p className={styles.figureNote}>Revenue, year to date (Jan–Sep), up from +21% last year</p>
       <p className={styles.figure}>+48%</p>
       <p className={styles.figureNote}>Net income, year to date (Jan–Sep), after +45% last year</p>
       <p>
-        This is a proven model, not a pivot. Embedded delivery is how we already work, so the name
-        describes the business we run. Our people use AI to ship faster, and each person delivers more
-        as the tools improve. We are putting a name on the forward deployed design engineer, in public,
-        before anyone else does. And the relationship does not reset when the project ends. It
-        compounds. Trust turns a brief into a long role, and a long role into the team they call when
-        the next hard thing shows up.
+        <strong>Proven model, not a pivot.</strong> Embedded delivery is how we already work, so the
+        positioning describes the business we run.
       </p>
       <p>
-        An owner of Bloom gets an operating studio and a head start on a category that is still open.
-        The next step is the one I most want: more forward deployed teams, placed with more enterprises
-        that are trying to make AI work, staffed by people who love the making.
+        <strong>Built for the AI moment.</strong> Our people use AI to ship faster, so each person
+        delivers more as the tools improve.
       </p>
       <p>
-        The agencies that keep selling hours will shrink. The studios that sell adoption will set the
-        price. Bloom is built to be one of them. I hope the industry I love is the one that gets there
-        first.
+        <strong>Category ownership.</strong> We are putting a name on the forward deployed design
+        engineer, in public, before anyone else does.
       </p>
-      <p className={styles.signoff}>James</p>
+      <p>
+        <strong>The value is in the relationship.</strong> Embedded teams become trusted partners, which
+        turns projects into long-running engagements that compound.
+      </p>
     </>
   );
 
@@ -281,19 +305,14 @@ export function Essay() {
       }}
     >
       <motion.p variants={line}>
-        Bloom has run this model for six years, before it had a name. There are about twelve of us. We
-        sit inside the client&apos;s team, on the line between design and engineering. That is the line
-        where an AI product either gets used or becomes another pilot that never ships.
+        Bloom has run this model for six years, before it had a name. Our team of about 12 works
+        embedded with enterprises and early-stage companies alike, at the line between design and
+        engineering where AI products succeed or fail. The momentum behind this positioning is building
+        in both markets.
       </motion.p>
       <motion.p variants={line}>
-        I am writing to the people who taught me that line. The designer who will not call a flow done
-        until someone has actually walked it. The engineer who stays in the critique because the
-        interface is their work too. The operator who knows the Tuesday morning the software has to
-        survive. AI can draft the screens. It cannot care whether they land. That care is still the
-        craft, and I want the next decade of this industry to belong to the people who still practice
-        it.
+        <strong>The market is already paying for it.</strong>
       </motion.p>
-      <motion.p variants={line}>The market is already paying for that care.</motion.p>
       <motion.p className={styles.figure} variants={figureLine}>
         +25%
       </motion.p>
@@ -307,25 +326,20 @@ export function Essay() {
         Net income, year to date (Jan–Sep), after +45% last year
       </motion.p>
       <motion.p variants={line}>
-        This is a proven model, not a pivot. Embedded delivery is how we already work, so the name
-        describes the business we run. Our people use AI to ship faster, and each person delivers more
-        as the tools improve. We are putting a name on the forward deployed design engineer, in public,
-        before anyone else does. And the relationship does not reset when the project ends. It
-        compounds. Trust turns a brief into a long role, and a long role into the team they call when
-        the next hard thing shows up.
+        <strong>Proven model, not a pivot.</strong> Embedded delivery is how we already work, so the
+        positioning describes the business we run.
       </motion.p>
       <motion.p variants={line}>
-        An owner of Bloom gets an operating studio and a head start on a category that is still open.
-        The next step is the one I most want: more forward deployed teams, placed with more enterprises
-        that are trying to make AI work, staffed by people who love the making.
+        <strong>Built for the AI moment.</strong> Our people use AI to ship faster, so each person
+        delivers more as the tools improve.
       </motion.p>
       <motion.p variants={line}>
-        The agencies that keep selling hours will shrink. The studios that sell adoption will set the
-        price. Bloom is built to be one of them. I hope the industry I love is the one that gets there
-        first.
+        <strong>Category ownership.</strong> We are putting a name on the forward deployed design
+        engineer, in public, before anyone else does.
       </motion.p>
-      <motion.p className={styles.signoff} variants={sign}>
-        James
+      <motion.p variants={line}>
+        <strong>The value is in the relationship.</strong> Embedded teams become trusted partners, which
+        turns projects into long-running engagements that compound.
       </motion.p>
     </motion.div>
   );

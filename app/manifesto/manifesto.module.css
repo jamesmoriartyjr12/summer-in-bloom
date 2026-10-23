@@ -142,6 +142,35 @@
   font-weight: 600;
 }
 
+.genes {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.genes li {
+  padding: 18px 0;
+  border-bottom: 1px solid var(--ink);
+}
+
+.chapter .genes p {
+  margin: 0;
+}
+
+.geneTag,
+.chapter .genes .geneTag {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--orange);
+}
+
+.geneName,
+.chapter .genes .geneName {
+  margin: 0 0 4px;
+  font-weight: 600;
+}
+
 .points {
   margin: 28px 0 8px;
   padding: 0;
@@ -252,6 +281,7 @@
   line-height: 1.4;
 }
 
+.chapter .signoff,
 .chapter .essay .signoff {
   margin: 36px 0 0;
 }

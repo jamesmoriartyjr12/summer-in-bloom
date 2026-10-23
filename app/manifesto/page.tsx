@@ -3,7 +3,7 @@ import Image from "next/image";
 import { stagger } from "@/lib/motion";
 import { GlyphIntro } from "./GlyphIntro";
 import { LetterBlock } from "./LetterBlock";
-import { Callout, Essay, Label, PointList, Rise, Settle } from "./motion";
+import { Callout, Essay, GeneList, Label, PointList, Rise, Settle } from "./motion";
 import { PageGround } from "./PageGround";
 import styles from "./manifesto.module.css";
 
@@ -24,6 +24,22 @@ const POINTS = [
   "Embedded in the client's team and workflow.",
   "Judgment and trust get more valuable.",
   "Relationship compounds into long-term roles.",
+] as const;
+
+const GENES = [
+  {
+    name: "Entrepreneurial",
+    body: "Thinks like an owner, spots the growth signal, and acts on it.",
+  },
+  {
+    name: "Technical",
+    body: "Ships production software, using AI-native tools to move faster.",
+  },
+  {
+    name: "Tasteful",
+    body: "Judgment in the craft is what makes people want to use what ships.",
+    tag: "Most important",
+  },
 ] as const;
 
 export default function ManifestoPage() {
@@ -75,14 +91,34 @@ export default function ManifestoPage() {
           </section>
 
           <section className={styles.chapter}>
+            <Rise as="h2" className={styles.chapterMark} text="The new genome of a product team" />
+            <LetterBlock>
+            <div className={styles.prose}>
+            <p>
+              The genetic makeup of software teams is being rebuilt. The builder and the full-stack
+              engineer form the new partnership of the future.
+            </p>
+            <p>We believe a builder carries three genes:</p>
+            </div>
+            </LetterBlock>
+            <GeneList genes={GENES} />
+            <Rise
+              as="p"
+              className={`${styles.pull} ${styles.prose}`}
+              text="The people who carry all three are, predominantly, forward deployed design engineers."
+            />
+          </section>
+
+          <section className={styles.chapter}>
             <Label className={styles.leader}>What wins next</Label>
             <Rise as="h2" className={styles.chapterMark} text="The forward deployed design engineer" />
             <div className={styles.prose}>
             <LetterBlock>
             <p>
-              The model that wins is one person who designs and ships, embedded in the client&apos;s
-              team. Palantir proved the forward deployed engineer for data. The AI era needs the same
-              role for the interface.
+              The product teams that win will ship, set the pace, read the growth signals, and adapt,
+              using AI-native workflows and tools to get there faster. That team works embedded in the
+              client&apos;s business, and one person both designs and ships. Palantir proved the forward
+              deployed engineer for data. The AI era needs the same role for the product.
             </p>
             </LetterBlock>
             <PointList lines={POINTS} />
@@ -91,9 +127,28 @@ export default function ManifestoPage() {
           </section>
 
           <section className={styles.chapter}>
-            <Label className={styles.leader}>A letter</Label>
-            <Rise as="h2" className={styles.chapterMark} text="To the people who make it land" />
+            <Rise as="h2" className={styles.chapterMark} text="Where Bloom sits" />
             <Essay />
+          </section>
+
+          <section className={styles.chapter}>
+            <Rise as="h2" className={styles.chapterMark} text="The opportunity" />
+            <LetterBlock>
+            <div className={styles.prose}>
+            <p>
+              An owner of Bloom gets an operating studio and a head start on a new category. The next
+              step is to scale the model: more forward deployed teams, placed in more enterprises and
+              early-stage companies that are trying to make AI work.
+            </p>
+            <p className={styles.pull}>
+              The agencies that keep selling hours will shrink. The studios that sell adoption will set
+              the price. Bloom is built to be one of them.
+            </p>
+            </div>
+            </LetterBlock>
+            <Settle>
+              <p className={styles.signoff}>James</p>
+            </Settle>
           </section>
 
           <footer className={`${styles.footer} ${styles.prose}`}>

@@ -36,6 +36,10 @@ The automation's private memory is a scratch pad for this same habit. It does no
 
 ## Log
 
+### 2026-10-23 — The genome, in the memo
+
+James sent a newer draft and asked to take its text into the story. I kept the memo: Archivo, body size, left in the column. The new passage is the genome. Entrepreneurial, technical, tasteful. Taste carries “Most important,” in Orange, because the draft marked it and the forest green on that file is not a Bloom color. The five positive lines stay. The old-agency column does not come back. “Where Bloom sits” now names both markets. “The opportunity” is the close. The love-letter essay leaves, because this draft replaced it.
+
 ### 2026-10-23 — One face, like a memo
 
 James said not to change the words. He wants the page to read as a memo, close to an email. I took Manifold off the titles, the window line, and the figures, and JetBrains off the labels, the sign-off, and the footer. Archivo carries the whole letter. The sizes come down to the body size, the caps come off, and the masthead sits in the story column with the reading. The copy is unchanged.
