@@ -5,6 +5,8 @@
   --lime: #d8ff34;
   position: relative;
   min-height: 100dvh;
+  --intro-hold: 0px;
+  overflow-anchor: none;
   background: var(--paper);
   color: var(--ink);
   font-family: var(--font-archivo), "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -18,27 +20,22 @@
 }
 
 .hero,
-.heroPinned,
-.heroReleased {
+.heroFilm {
   width: 100%;
   height: 100dvh;
   min-height: 420px;
   overflow: hidden;
   background: var(--paper);
+  pointer-events: none;
 }
 
 .hero {
   position: relative;
 }
 
-.heroPinned {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-}
-
-.heroReleased {
+.heroFilm {
   position: absolute;
+  top: 0;
   left: 0;
   right: 0;
   z-index: 0;
@@ -134,7 +131,7 @@
 .wrap {
   position: relative;
   z-index: 1;
-  margin-top: -18vh;
+  margin-top: calc(-18vh + var(--intro-hold));
   padding-left: var(--inset);
   padding-right: var(--edge);
   background: linear-gradient(to bottom, rgba(250, 246, 236, 0), var(--paper) 140px);

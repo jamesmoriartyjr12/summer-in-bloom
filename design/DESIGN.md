@@ -42,6 +42,10 @@ Reviews use `design/MOTION.md`. That file is the Motion install from Double Dutc
 
 ## Log
 
+### 2026-10-26 — The letter stays reachable after the film
+
+Scrolling back up into the film was shrinking the page, so the bottom of the letter could not be reached again. The film now rides the scroll in the document, and the gap that holds the letter is part of the page height. The shrink, the arrival of the bar and the letter, and the hairline under the mark stay as they are.
+
 ### 2026-10-23 — The path is /midwestern
 
 The letter’s address is `/midwestern`. `/manifesto` redirects there. It stays off both navs. The pictures stay in `public/manifesto`.
