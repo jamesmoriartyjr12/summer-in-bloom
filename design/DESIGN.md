@@ -14,6 +14,8 @@ A pull request that changes layout, motion, type, color, imagery, or voice updat
 
 One scrolling page, in this order: Hero, Studio, Thesis, Fund Details, Team, Portfolio, Join us. There is no standalone News section. Press links sit on the portfolio rows, from `content/news.ts`.
 
+A private letter lives at `/midwestern` and stays off the header and the side list. It opens on the film, full screen and larger than the frame, and the film plays once. A short scroll shrinks it back to the frame. The bar and the letter then come in together, and the hairline still sits below the mark. Reduced motion keeps the still at frame size, with the bar and the letter already there. The letter rides up under the mark, and the hairline sits below the graphic, not through it. A full-width hairline, the same as the bar, marks where the letter starts. The three genes read as a name, then what it does. Chapters keep a short gap. It signs with his signature, then James Moriarty, james@bloomventures.com. There is no scroll cue. The phone column stays the one already set. From 600px the letter uses the page grid: left inset 200px, then 248px at 1100px, then 320px at 1280px, and a 24px right gutter. The letter is one column of Archivo. The header sits in the story column, left aligned, in Archivo with the rest of the letter. “The State of the Studio” is the h2. The h1 is “Where product services are going,” at 24px. James’s portrait, name, and CEO - Bloom Ventures sit above both. The portrait is the headshot at 64px. A fixed paper bar carries the Midwestern logo on the left. Matt’s portrait and name sit together on the right edge of the letter column. The prepared-for block is gone. The footer still names him. The first chapter is “What's shifting underneath your feet.” The line under it, “Value is moving from making things to making things land,” is body weight. The genome is one paragraph: entrepreneurial, technical, and tasteful, with taste the most important. One headline reads “What wins next: the forward deployed design engineer.” The positive turns are a single ruled list, on a lighter stroke. The open-window line is set in the body face, and “open now” is Orange. There is no tick. Below that, “Where we have the advantage, and the wind in our sails” carries the six years, both markets, the two figures side by side with one hairline between them, the name above each figure and last year below, and the reasons. The “Built for the AI moment” line is gone. “The opportunity” closes it. `+25%` and `+48%` stay in that column, in the body face. The letter signs off James Moriarty, with james@bloomventures.com under the name. The pull line stays in the story column. The letter uses Paper `#FAF6EC`, Ink `#070F18`, Orange `#FA4C1F`, and Lime `#D8FF34`. The memo is Archivo, including the lines that were Manifold and JetBrains. Headlines rise by the word through the line box, over 360ms, staggered 50ms. The portrait settles in opacity on the 200ms chrome snap. Body passages travel 12px over 360ms. The list staggers 60ms. The letter staggers 80ms. The figures travel 8px. Reduced motion drops the travel. Search engines are asked not to index it. The scrolling page stays on Mincho and chalk.
+
 The opening is one scene. A slit of the flower field opens on load. The display line is “Purposely designed to create great companies.” “Purposely” plays in on its own, the whole word on screen. Scroll plays the rest of the line: each letter opens upward from the baseline and the line travels left. Under the line, the invest note stays on “purposely,” the design list on “designed,” the build list on “create,” and investing on “companies.” As `companies` comes into view, the flower field travels left. It reaches 80.64% off, the shift measured on frame `187:34`, then keeps going until the field is fully out of view and Paper is the ground. The word is `companies.` It slides to the rest in frame `227:182`, left at `-1107` on the 1920 stage. Letters and notes turn Ink once they cross onto that Paper. “Trusted by ambitious…” is two lines. It slides in on the investing line after `companies.` has reached its rest. Then the word and that line travel off the left, and on that same scroll the first card comes in from the right and stays just beside them, so the two do not leave a span of empty ground between them. A card leans on the way in and faces the screen once it is in front. The companies beside it are there while it is in front. They do not wait for it to leave. The run is a carousel: it starts at the first company and ends at the last, and a company that has left the frame does not come back around. The cards do not fade. The ten cards wind on two strands. The focused card sits large and sharp at the front. Neighbours sit to either side until they leave the frame. The neighbours climb and fall against each other, stay at full color, and do not cover one another. When the scroll is still, the card under the cursor turns toward the pointer and comes forward. The name under the pointer goes to ink, on the 200ms chrome snap, and the company in front stays ink. The photograph drifts about 12px inside the frame while the pointer holds it, and that drift is quiet while the page is scrolling. While the row is scrolling, the still drags against the frame by at most 8px, and it settles back to center when the scroll stops. The name and the bubbles sit as one unit, centered on the company in front. The stage color follows the round, in the palette hex with nothing mixed in. Seed is Lime `#D8FF34`, and its category is Ink `#070F18`. Acquired, Series A, and Growth are Ink, and their category is Lime. Orange is not on the bubbles. In front, each swipes to a fill of that color. Lime keeps ink type. Ink takes paper type. They swipe back to the stroke when that company leaves. The other names stay a single word. The turn springs, and it holds as the pointer crosses the ground between cards. The others stay where the helix put them. Scrolling eases the turn back onto the helix. While the carousel is in view, a 16px ink square takes the place of the pointer, including while the page scrolls. Over a card, that company’s line is a block of a few lines, set beside the square. The type is white or black, whichever stays legible on the ground behind it. Between cards the block leaves and the square stays. A click scrolls to the nearest company in the portfolio, and that card presses to 0.98 for 120ms. When the carousel leaves, the system pointer returns. Scroll turns the helix. The first card is in front when the row arrives, and the last card is in front when the scroll through the companies finishes. At rest each card is the photograph. The name is not on the card. It sits in a row along the bottom, one line per company, with open space between the names. The names are locked to the bottom. The cards stay above that row, and they do not pass under the type. There is no ground behind the names. The company in front is ink, and the others are the light type. Scroll moves that row with the helix. The stage and the category are not on the card. The helix stays fully in view, and the cards sit just above the names. The order can change. The portfolio section later still reads from `content/portfolio.ts`. Studio through Join us stay after it. Manifold Extended Heavy is the display face for this scene, loaded from `fonts/manifold-extended/`. Archivo and JetBrains Mono for this scene load from `fonts/` as well. The rest of the page stays on Mincho and Helvetica.
 
 The header is the explorations bar. The Bloom wordmark sits on the left, and on a phone it transitions into the Bloom mark. On the right, in JetBrains Mono Medium at 16px, uppercase: Studio, Companies, Fund One, and the viewer's city and local time. It takes its color from the field underneath: Paper type and a Paper mark on a dark field, Ink type and an Orange mark on a light field. The bar stays through downscroll. It travels off, on the header travel in `design/MOTION.md` — 650ms, ease `0.22, 1, 0.36, 1` — when the word `company` comes within 40px of the bottom of the bar, on a phone and on a desktop. It returns on that same ease once the word drops back below the line. Color and the phone mark stay on the 200ms chrome ease. Studio, Companies, and Fund One are underlined. Studio scrolls to the studio, Companies to the portfolio, and Fund One to fund details. Contact stays on the join-us section at the bottom. The side list remains Studio, Thesis, Fund Details, Team, Portfolio, Join us.
@@ -39,6 +41,126 @@ Voice for any new line: "Create great company." Direct, confident, warm, sharp.
 Reviews use `design/MOTION.md`. That file is the Motion install from Double Dutch Auctions: `motion/react`, shared duration and spring tokens, and the primitives `FadeUp`, `Press`, `SectionReveal`, and `TextRise`. Bloom still runs `framer-motion` 11. Switching packages is a reviewed change. Double Dutch's auction character stays on that site.
 
 ## Log
+
+### 2026-10-26 — The letter stays reachable after the film
+
+Scrolling back up into the film was shrinking the page, so the bottom of the letter could not be reached again. The film now rides the scroll in the document, and the gap that holds the letter is part of the page height. The shrink, the arrival of the bar and the letter, and the hairline under the mark stay as they are.
+
+### 2026-10-23 — The path is /midwestern
+
+The letter’s address is `/midwestern`. `/manifesto` redirects there. It stays off both navs. The pictures stay in `public/manifesto`.
+
+### 2026-10-23 — The list rules lighten
+
+The five lines keep their rules. The stroke is lighter than full Ink, at 35 percent.
+
+### 2026-10-23 — The signature as sent
+
+The signature is the file James sent. The white is clear so it sits on the paper. The stroke is his.
+
+### 2026-10-23 — James’s portrait
+
+The letter uses the new headshot, at 64px. The team page keeps the portrait it already had.
+
+### 2026-10-23 — Each figure names itself
+
+The number is 32px. Above it is what it measures. Below it is last year. The hairline between the two stays. The words are the ones already in the letter.
+
+### 2026-10-23 — The two figures sit side by side
+
+`+25%` and `+48%` share one row. A single hairline, the same weight as the bar, sits between them. The words stay. The pair still travels 8px.
+
+### 2026-10-23 — The film shrinks, then the letter arrives
+
+The film opens full screen at 1.22, and plays once. The first part of the scroll brings it back to the frame. The bar and the letter then fade in together. The film is the one scale on this page. It is scroll-linked, and reduced motion drops it. The portrait still does not travel.
+
+### 2026-10-23 — The line drops below the mark
+
+The hairline was cutting the bottom of the graphic. The letter moves down so the line sits in the open ground under the mark.
+
+### 2026-10-23 — A line under the mark
+
+James wanted the bar’s hairline repeated under the graphic, full width, before the letter. The genes now read Entrepreneurial, Technical, and Tasteful, each followed by what it does. Taste stays the most important.
+
+### 2026-10-23 — The letter sits under the mark
+
+James said the film had too much empty ground, and the chapters had too much air under them. The letter now overlaps the bottom of the film and fades onto Paper. Chapter gaps come down. The sign-off is James Moriarty, and the line under it is james@bloomventures.com.
+
+### 2026-10-23 — Matt meets the column
+
+James wanted Matt on the right edge of the letter, not the browser. The portrait and the name end where the prose ends. The logo stays on the left inset.
+
+### 2026-10-23 — Logo left, Matt right
+
+James split the bar. The Midwestern logo stays on the left. The portrait and the name sit together on the right.
+
+### 2026-10-23 — The bar is one row
+
+James asked for the logo, the portrait, and the name together. They sit in that order, in the bar. The prepared-for block under James comes out.
+
+### 2026-10-23 — Matt’s bar
+
+James asked for a top bar with Matt Johnson’s portrait and the Midwestern logo. The bar is fixed, Paper, and uses the letter’s inset. The logo is their mark and wordmark, in Ink, taken from midwestern.com. The portrait is the photograph he sent. It settles as a circle. The bar does not travel.
+
+### 2026-10-23 — Prepared for Matt Johnson
+
+James asked the letter to read as prepared for Matt Johnson at Midwestern. The story stays. Under James’s byline, the memo says prepared for Matt Johnson, Midwestern. The confidential line names him too.
+
+### 2026-10-23 — Marks on the memo
+
+James marked the letter. The h1 steps up to 24px. “Value is moving from making things to making things land” is body weight. The first chapter is “What's shifting underneath your feet.” The three genes are one paragraph. “What wins next” and the role are one headline. The Lime tick comes off the window line, and “open now” stays Orange. “Where Bloom sits” becomes “Where we have the advantage, and the wind in our sails.” The “Built for the AI moment” line comes out.
+
+### 2026-10-23 — The genome enters the letter
+
+James sent a new draft of the story. The memo stays Archivo, left aligned, at body size. The new chapter is the genome of a product team: entrepreneurial, technical, and tasteful, with taste marked most important. The role now serves the product, and the studio sits with enterprises and early-stage companies. “Where Bloom sits” and “The opportunity” replace the letter to the industry. The five positive lines stay. The old-agency column stays off.
+
+### 2026-10-23 — A memo, one face
+
+James asked for a memo, almost an email, and for the words to stay. Manifold and JetBrains leave this page. The letter is Archivo, left aligned in the story column, at the body size. The caps and the display sizes come off. The words are the same.
+
+### 2026-10-23 — The letter moves
+
+James asked for animation on the manifesto. It stays on `framer-motion` and on the tokens in `design/MOTION.md`. The film is still the opening, played once. After it, the portrait settles in opacity. “The State of the Studio” and the h1 rise by the word through the line. Chapter names do the same. Body passages keep the 12px enter. The five lines stagger at 60ms. The lime tick draws on. The letter’s paragraphs stagger at 80ms, and the two figures travel 8px. Reduced motion keeps the words in place.
+
+### 2026-10-23 — The header centers on the page
+
+The title was centered in the grid column, and the column sits to the right of the inset, so the header missed the middle of the page. The header now spans the viewport and centers. “The State of the Studio” is the h2. The h1 is “Where product services are going.”
+
+### 2026-10-23 — The bottom is a letter
+
+James asked for the bottom to feel like a blog, almost a love letter to the industry. From “Where Bloom sits” down, the grid and the Lime close are gone. One essay, “To the people who make it land.” The figures stay in the column. The four reasons are sentences. It signs James.
+
+### 2026-10-23 — The title comes back
+
+James put the old title back. “The State of the Studio” is centered, 48px on the phone and 80px from 600px. His portrait and CEO - Bloom Ventures sit above it, centered. The scroll word comes off the film. The comparison keeps only the positive lines, as a ruled list. The open-window sentence is Manifold, with a Lime tick and “open now” in Orange. The four reasons lose their boxes and keep the rules between them.
+
+### 2026-10-23 — The letter, marked
+
+James marked the letter in the browser. The private eyebrow comes off. The line about where product services are going is the title. The date line becomes his portrait, his name, and CEO - Bloom Ventures. “What wins next” is the label. “The forward deployed design engineer” is the chapter. The turns are a two-column table again. The open-window sentence is a Lime callout. The two figures go to 48px, larger than the 24px headlines, because he asked for them bigger. The four reasons sit two across and two down, and one column on the phone.
+
+### 2026-10-23 — Headlines are 24
+
+James set the manifesto headlines at 24px. The title and the chapters hold that size at every width. The figures stay smaller, at 20px.
+
+### 2026-10-23 — The letter joins the grid
+
+The manifesto column was the phone measure at every width. James asked for the same responsive grid as the page. The phone column stays. From 600px the left edge is the page inset, 200px, then 248px at 1100, then 320px at 1280, with 24px on the right. Headlines widen to 850px. The story column steps out with those breakpoints. The side list stays off this route. The 336px companion column is for a picture or a partner, and this letter does not have one, so it is not left empty.
+
+### 2026-10-23 — The headlines are the headlines
+
+James looked at `/manifesto` and the callouts were louder than the headlines. The chapter names were 13px labels. They are now Manifold, up to 56px, under an 80px title. The pull line, the figures, and the close come back down into the reading.
+
+### 2026-10-23 — The letter is a story
+
+James wanted `/manifesto` to read as a story, and to show Bloom’s momentum. The section numbers, the comparison table, and the side-by-side figures were the webpage. They are gone. The reading is one column. Manifold appears at the title, the turn of the story, the two figures, and the close. `+25%` leads into `+48%`.
+
+### 2026-10-23 — The letter uses the brand system
+
+James asked Simon to direct `/manifesto` with the written system. The draft’s forest green and cream are off the palette, so they go. Paper, Ink `#070F18`, Orange, and Lime. Manifold, Archivo, JetBrains. The film plays once. The cue is the chrome snap. The blocks enter once, at the enter distance and duration in `design/MOTION.md`. The homepage does not move.
+
+### 2026-10-23 — A private letter at /manifesto
+
+James’s draft, The State of the Studio, is its own route. The glyph film fills the first screen. The letter keeps the cream field and forest accent from that draft, set in Mincho, Archivo, and JetBrains, the faces already on the site. It is not in either nav.
 
 ### 2026-10-15 — The line is a block
 

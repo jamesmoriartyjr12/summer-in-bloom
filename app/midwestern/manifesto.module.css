@@ -1,0 +1,412 @@
+.page {
+  --paper: #faf6ec;
+  --ink: #070f18;
+  --orange: #fa4c1f;
+  --lime: #d8ff34;
+  position: relative;
+  min-height: 100dvh;
+  --intro-hold: 0px;
+  overflow-anchor: none;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-archivo), "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  --inset: calc(max(100vw, 100dvh) / 25);
+  --edge: var(--inset);
+  --measure: 38rem;
+}
+
+.hero,
+.heroFilm {
+  width: 100%;
+  height: 100dvh;
+  min-height: 420px;
+  overflow: hidden;
+  background: var(--paper);
+  pointer-events: none;
+}
+
+.hero {
+  position: relative;
+}
+
+.heroFilm {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 0;
+}
+
+.heroSpacer {
+  height: 100dvh;
+}
+
+.mediaFrame {
+  position: absolute;
+  inset: 0;
+  transform-origin: center center;
+}
+
+.media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  display: block;
+}
+
+/* The film opens larger than the frame. Scroll shrinks it, then the bar and the letter arrive.
+   Reduced motion keeps the still at frame size, with the bar and the letter already there. */
+@media (prefers-reduced-motion: no-preference) {
+  .topbar,
+  .wrap {
+    opacity: 0;
+  }
+
+  .mediaFrame {
+    transform: scale(1.22);
+  }
+}
+
+.topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  padding-left: var(--inset);
+  padding-right: var(--edge);
+  background: var(--paper);
+  border-bottom: 1px solid rgba(7, 15, 24, 0.12);
+}
+
+.track {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: min(100%, var(--measure));
+}
+
+.identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.logo {
+  display: block;
+  height: 18px;
+  width: auto;
+  flex: none;
+}
+
+.topAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center 18%;
+  flex: none;
+}
+
+.topName {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.wrap {
+  position: relative;
+  z-index: 1;
+  margin-top: calc(-18vh + var(--intro-hold));
+  padding-left: var(--inset);
+  padding-right: var(--edge);
+  background: linear-gradient(to bottom, rgba(250, 246, 236, 0), var(--paper) 140px);
+  border-top: 1px solid rgba(7, 15, 24, 0.12);
+}
+
+.prose {
+  max-width: var(--measure);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 72px 0 32px;
+  text-align: left;
+}
+
+.byline {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 0 20px;
+  text-align: left;
+}
+
+.avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center 22%;
+  flex: none;
+}
+
+.bylineName {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.bylineRole {
+  margin: 2px 0 0;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.title,
+.studio,
+.chapterMark,
+.calloutLead,
+.figure {
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--ink);
+}
+
+.studio {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+
+.title {
+  margin: 0;
+  max-width: 36em;
+  font-size: 24px;
+}
+
+.leader {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--orange);
+}
+
+.chapter {
+  padding: 0 0 28px;
+}
+
+.chapterMark {
+  margin: 0 0 16px;
+  font-size: 18px;
+}
+
+.chapter p {
+  margin: 0 0 18px;
+}
+
+.chapter strong {
+  font-weight: 600;
+}
+
+.pull {
+  margin: 28px 0 0;
+  font-weight: 600;
+}
+
+.plain {
+  font-weight: 400;
+}
+
+.points {
+  margin: 28px 0 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.points li {
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(7, 15, 24, 0.35);
+  font-weight: 600;
+}
+
+.chapter .callout {
+  margin: 40px 0 0;
+}
+
+.calloutLead {
+  display: block;
+  font-size: 18px;
+}
+
+.clip {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  margin-right: 0.28em;
+  padding-bottom: 0.16em;
+  line-height: 1.15;
+}
+
+.clip:last-child {
+  margin-right: 0;
+}
+
+.clipWord {
+  display: block;
+  line-height: inherit;
+}
+
+.calloutRest {
+  display: block;
+  max-width: 28em;
+  margin-top: 14px;
+  font-size: 18px;
+  line-height: 1.4;
+}
+
+.calloutRest em {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--orange);
+}
+
+.essay {
+  line-height: 1.55;
+}
+
+.chapter .essay p {
+  margin: 0 0 22px;
+}
+
+.figures {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin: 28px 0 22px;
+}
+
+.figures > div:first-child {
+  padding-right: 24px;
+}
+
+.figures > div + div {
+  padding-left: 24px;
+  border-left: 1px solid rgba(7, 15, 24, 0.12);
+}
+
+.chapter .essay .figures p {
+  margin: 0;
+}
+
+.figureLabel {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.figure {
+  font-size: 32px;
+  line-height: 1.1;
+  color: var(--orange);
+}
+
+.chapter .essay .figures .figure {
+  margin-top: 6px;
+}
+
+.figureNote {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.chapter .essay .figures .figureNote {
+  margin-top: 8px;
+}
+
+.signature {
+  display: block;
+  width: min(212px, 100%);
+  height: auto;
+  margin: 28px 0 10px;
+}
+
+.signoff {
+  margin: 28px 0 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.signMail {
+  margin: 2px 0 0;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.signMail a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.chapter .signoff,
+.chapter .essay .signoff {
+  margin: 28px 0 0;
+}
+
+.chapter .signature + .signoff {
+  margin-top: 0;
+}
+
+.chapter .signMail {
+  margin: 2px 0 0;
+}
+
+.footer {
+  padding: 8px 0 72px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+/* The same insets as SectionContent. The phone column stays as it is. */
+@media (min-width: 600px) {
+  .page {
+    --inset: 200px;
+    --edge: 24px;
+    --measure: 36rem;
+  }
+}
+
+@media (min-width: 1100px) {
+  .page {
+    --inset: 248px;
+    --measure: 40rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .page {
+    --inset: 320px;
+    --measure: 44rem;
+  }
+}

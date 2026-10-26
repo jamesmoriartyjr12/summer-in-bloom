@@ -2,11 +2,13 @@
 
 One lead owns this map. James merges. Simon comments before a change to layout, motion timing, type, color, imagery, or voice. Mia keeps the schedule and the owners.
 
-The page is one route. Next.js 14, React 18, TypeScript, Tailwind. Scroll is Lenis. Motion on the page is `framer-motion` 11. The Motion install to match is written in `design/MOTION.md`. Switching packages is a reviewed change. There is no server and no database. Do not add one for its own sake.
+The marketing page is one route. A private letter lives at `/midwestern` and is not linked from either nav. Next.js 14, React 18, TypeScript, Tailwind. Scroll is Lenis. Motion on the page is `framer-motion` 11. The Motion install to match is written in `design/MOTION.md`. Switching packages is a reviewed change. There is no server and no database. Do not add one for its own sake.
 
 ## Where the page lives
 
 `app/page.tsx` renders the sections in this order: Hero, Studio, Thesis, Fund Details, Team, Portfolio, Join us. The section components are in `components/sections/`. Hero is the featured opening: a load-time slit, then scroll carries one display line into the companies list. Team is `AboutUs`. Portfolio is `CurrentPortfolio`. Join us is `Contact`.
+
+`/midwestern` is a second route James asked for on 2026-10-23. The glyph film is `public/manifesto/bloom-glyph.mp4`. The letter is not part of the scrolling page, and it stays out of `TopNav` and `SideNav`.
 
 Copy and portfolio data that can change without a layout decision live in `content/`. The night steward may edit those files. The lead does not hide a layout change in there.
 

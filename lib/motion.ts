@@ -14,3 +14,21 @@ export const headerTravel = {
   duration: 0.65,
   ease: [0.22, 1, 0.36, 1] as const,
 };
+
+/** Below-fold enter. design/MOTION.md duration.enter, ease.ui, distance.enterY. */
+export const enter = {
+  duration: 0.36,
+  ease: chromeSnap.ease,
+  distance: 12,
+};
+
+/** design/MOTION.md stagger and display-type travel. */
+export const stagger = {
+  labels: 0.05,
+  tiles: 0.06,
+  section: 0.08,
+} as const;
+
+export const punch = {
+  distance: 8,
+};
