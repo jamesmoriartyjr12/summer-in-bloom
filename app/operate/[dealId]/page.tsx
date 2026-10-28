@@ -1,11 +1,15 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { auth } from "@/auth";
 import { getDeal } from "@/lib/operate/deals";
 import { Editor, type EditorDeal } from "./editor";
 
 export const dynamic = "force-dynamic";
 
 export default async function DealEditorPage({ params }: { params: { dealId: string } }) {
+  const session = await auth();
+  if (!session) redirect("/operate/sign-in");
+
   if (!process.env.DATABASE_URL) {
     return (
       <main style={{ maxWidth: 720, margin: "0 auto", padding: "72px 24px" }}>

@@ -95,7 +95,9 @@ function parseDraft(formData: FormData): DealDraft | { error: string } {
 
 export async function createDealAction(formData: FormData): Promise<void> {
   await requireSession();
-  const deal = await createDeal({ companyName: text(formData, "companyName") });
+  const companyName = text(formData, "companyName").trim();
+  if (companyName === "") redirect("/operate?error=company");
+  const deal = await createDeal({ companyName });
   revalidatePath("/operate");
   redirect(`/operate/${deal.id}`);
 }

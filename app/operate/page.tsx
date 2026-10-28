@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { auth } from "@/auth";
 import { listDeals } from "@/lib/operate/deals";
 import { termLabel } from "@/lib/operate/pricing";
 import { createDealAction } from "./actions";
@@ -20,7 +22,14 @@ const inputStyle = {
   minWidth: 240,
 } as const;
 
-export default async function OperatePage() {
+export default async function OperatePage({
+  searchParams,
+}: {
+  searchParams: { error?: string | string[] };
+}) {
+  const session = await auth();
+  if (!session) redirect("/operate/sign-in");
+
   if (!process.env.DATABASE_URL) {
     return (
       <main style={pageStyle}>
@@ -34,6 +43,7 @@ export default async function OperatePage() {
   return (
     <main style={pageStyle}>
       <h1 style={{ margin: 0, fontSize: 32, fontWeight: 500 }}>Operate</h1>
+      {searchParams.error === "company" ? <p>Enter a company name.</p> : null}
 
       <form
         action={createDealAction}
