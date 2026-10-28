@@ -231,10 +231,10 @@ export async function createDeal(input: { companyName: string }): Promise<DealRe
   };
   const pkg = record.packages[0];
   if (!pkg) throw new Error("Could not create the package.");
-  await db.batch([
-    db.insert(deals).values({ id, token, companyName }),
-    db.insert(packages).values(pkg),
-  ]);
+  await db.transaction(async (tx) => {
+    await tx.insert(deals).values({ id, token, companyName });
+    await tx.insert(packages).values(pkg);
+  });
   return record;
 }
 
@@ -264,27 +264,21 @@ export async function saveDeal(
       : null;
 
   const db = getDb();
-  const removal = db.delete(packages).where(eq(packages.dealId, id));
-  const saved = db
-    .update(deals)
-    .set({
-      companyName: input.companyName.trim(),
-      contactName: input.contactName,
-      contactRole: input.contactRole,
-      equityEnabled: input.equityEnabled,
-      termLength: input.termLength,
-      round: blankToNull(input.round),
-      valuationDollars: input.valuationDollars,
-      hourlyCostCents: input.hourlyCostCents,
-      selectedPackageId,
-    })
-    .where(eq(deals.id, id));
-  if (input.packages.length === 0) {
-    await db.batch([removal, saved]);
-  } else {
-    await db.batch([
-      removal,
-      db.insert(packages).values(
+  const dealUpdate = {
+    companyName: input.companyName.trim(),
+    contactName: input.contactName,
+    contactRole: input.contactRole,
+    equityEnabled: input.equityEnabled,
+    termLength: input.termLength,
+    round: blankToNull(input.round),
+    valuationDollars: input.valuationDollars,
+    hourlyCostCents: input.hourlyCostCents,
+    selectedPackageId,
+  };
+  await db.transaction(async (tx) => {
+    await tx.delete(packages).where(eq(packages.dealId, id));
+    if (input.packages.length > 0) {
+      await tx.insert(packages).values(
         input.packages.map((pkg) => ({
           ...(pkg.id ? { id: pkg.id } : {}),
           dealId: id,
@@ -295,10 +289,10 @@ export async function saveDeal(
           cashRateCents: pkg.cashRateCents,
           sortOrder: pkg.sortOrder,
         })),
-      ),
-      saved,
-    ]);
-  }
+      );
+    }
+    await tx.update(deals).set(dealUpdate).where(eq(deals.id, id));
+  });
   return { ok: true };
 }
 

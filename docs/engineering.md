@@ -4,7 +4,7 @@ One lead owns this map. James merges. Simon comments before a change to layout, 
 
 The page is one route. Next.js 14, React 18, TypeScript, Tailwind. Scroll is Lenis. Motion on the page is `framer-motion` 11. The Motion install to match is written in `design/MOTION.md`. Switching packages is a reviewed change. There is no server and no database. Do not add one for its own sake.
 
-`/operate` is the exception James asked for on 28 October 2026. It has a Postgres database and Google sign-in for `@bloomventures.com`. The public page does not use that database. The customer letter lives at `/operate/d/[token]`.
+`/operate` is the exception James asked for on 28 October 2026. Its Postgres is the Supabase database Bloom already pays for. Staff sign in with Google for `@bloomgrowthagency.com`. The public page does not use that database. The customer letter lives at `/operate/d/[token]`.
 
 ## Where the page lives
 

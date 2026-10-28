@@ -1,12 +1,19 @@
-import { neon } from "@neondatabase/serverless";
-import { drizzle, type NeonHttpDatabase } from "drizzle-orm/neon-http";
+import { drizzle, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 import * as schema from "./schema";
 
-export type Db = NeonHttpDatabase<typeof schema>;
+export type Db = PostgresJsDatabase<typeof schema>;
+
+const globalForDb = globalThis as unknown as {
+  operateSql?: ReturnType<typeof postgres>;
+};
 
 export function getDb(): Db {
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error("DATABASE_URL is not set.");
-  const sql = neon(url);
-  return drizzle(sql, { schema });
+  if (!globalForDb.operateSql) {
+    // prepare: false is required by Supabase's transaction pooler.
+    globalForDb.operateSql = postgres(url, { prepare: false, max: 1 });
+  }
+  return drizzle(globalForDb.operateSql, { schema });
 }
