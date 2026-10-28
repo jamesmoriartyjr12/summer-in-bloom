@@ -3,11 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { createDeal, saveDeal, type DealDraft, type PackageDraft } from "@/lib/operate/deals";
+import { createDeal, getDeal, saveDeal, type DealDraft, type PackageDraft } from "@/lib/operate/deals";
 import { readLinkedInProfile } from "@/lib/operate/linkedin";
 import type { TermLength } from "@/lib/operate/pricing";
 
-type SaveResult = { ok: true } | { ok: false; error: string };
+type SaveResult = { ok: true; notice?: string } | { ok: false; error: string };
 
 async function requireSession(): Promise<void> {
   const session = await auth();
@@ -105,9 +105,10 @@ export async function createDealAction(formData: FormData): Promise<void> {
   redirect(`/operate/${deal.id}`);
 }
 
-export async function lookupLinkedInAction(
-  raw: string,
-): Promise<{ ok: true; name: string; headline: string; avatarUrl: string | null } | { ok: false; error: string }> {
+export async function lookupLinkedInAction(raw: string): Promise<
+  | { ok: true; name: string; headline: string; avatarUrl: string | null; limited: boolean }
+  | { ok: false; error: string }
+> {
   await requireSession();
   const result = await readLinkedInProfile(raw);
   if (!result.ok) return result;
@@ -116,6 +117,7 @@ export async function lookupLinkedInAction(
     name: result.profile.name,
     headline: result.profile.headline,
     avatarUrl: result.profile.avatarUrl,
+    limited: result.limited,
   };
 }
 
@@ -123,20 +125,29 @@ export async function saveDealAction(dealId: string, formData: FormData): Promis
   await requireSession();
   const draft = parseDraft(formData);
   if ("error" in draft) return { ok: false, error: draft.error };
+  let notice: string | undefined;
   if (draft.linkedinUrl) {
     const profile = await readLinkedInProfile(draft.linkedinUrl);
     if (!profile.ok) return profile;
     draft.linkedinUrl = profile.url;
-    draft.contactName = profile.profile.name;
-    draft.avatarUrl = profile.profile.avatarUrl;
-    if (draft.contactRole.trim() === "" && profile.profile.headline) {
-      draft.contactRole = profile.profile.headline;
+    if (profile.limited) {
+      if (draft.contactName.trim() === "") draft.contactName = profile.profile.name;
+      const existing = await getDeal(dealId);
+      draft.avatarUrl = existing?.linkedinUrl === profile.url ? existing.avatarUrl : null;
+      notice = "Saved. LinkedIn is not showing a public photo for that profile, so the letter uses initials.";
+    } else {
+      draft.contactName = profile.profile.name;
+      draft.avatarUrl = profile.profile.avatarUrl;
+      if (draft.contactRole.trim() === "" && profile.profile.headline) {
+        draft.contactRole = profile.profile.headline;
+      }
     }
   }
   const result = await saveDeal(dealId, draft);
   if (result.ok) {
     revalidatePath("/operate");
     revalidatePath(`/operate/${dealId}`);
+    if (notice) return { ok: true, notice };
   }
   return result;
 }

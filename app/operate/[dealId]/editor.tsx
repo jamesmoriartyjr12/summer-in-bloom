@@ -270,7 +270,11 @@ export function Editor({ deal }: { deal: EditorDeal }) {
     startTransition(async () => {
       try {
         const result = await saveDealAction(deal.id, formData);
-        setMessage(result.ok ? { ok: true, text: "Saved." } : { ok: false, text: result.error });
+        setMessage(
+          result.ok
+            ? { ok: true, text: result.notice ?? "Saved." }
+            : { ok: false, text: result.error },
+        );
       } catch {
         setMessage({ ok: false, text: "Could not save. Sign in again and retry." });
       }
@@ -288,11 +292,18 @@ export function Editor({ deal }: { deal: EditorDeal }) {
       setMessage({ ok: false, text: result.error });
       return;
     }
+    const keepTypedName = result.limited && fields.contactName.trim() !== "";
     patch({
-      contactName: result.name,
+      contactName: keepTypedName ? fields.contactName : result.name,
       avatarUrl: result.avatarUrl,
       ...(fields.contactRole.trim() === "" && result.headline ? { contactRole: result.headline } : {}),
     });
+    if (result.limited) {
+      setMessage({
+        ok: true,
+        text: "LinkedIn is not showing a public photo for that profile. The name comes from the link.",
+      });
+    }
   }
 
   async function copyLink() {
@@ -351,7 +362,9 @@ export function Editor({ deal }: { deal: EditorDeal }) {
               onChange={(event) => patch({ linkedinUrl: event.target.value })}
               onBlur={() => void onLinkedInBlur()}
             />
-            <small className="operate-editor__note">The name and photo come from this page.</small>
+            <small className="operate-editor__note">
+              The name and photo come from the public page. A private profile uses the name in the link.
+            </small>
           </label>
           <label>
             <span>Contact name</span>
