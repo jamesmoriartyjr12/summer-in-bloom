@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { signIn } from "@/auth";
 
 const messages: Record<string, string> = {
-  AccessDenied: "Use a verified @bloomventures.com Google account.",
+  AccessDenied: "Use a verified @bloomgrowthagency.com Google account.",
   Configuration: "Google did not accept this sign-in. Try again.",
   Missing: "Google sign-in is not connected on this preview yet.",
   OAuthSignin: "Google did not start. Try again.",
@@ -71,7 +71,7 @@ export default function SignInPage({
             Continue with Google
           </button>
         </form>
-        <p className="mt-4 text-xs leading-5 opacity-60">@bloomventures.com accounts only.</p>
+        <p className="mt-4 text-xs leading-5 opacity-60">@bloomgrowthagency.com accounts.</p>
       </div>
     </main>
   );
