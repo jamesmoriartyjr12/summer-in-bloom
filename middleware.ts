@@ -11,5 +11,6 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/operate/:path*"],
+  // Sign-in and /operate/d/ stay outside Auth.js. A missing AUTH_SECRET must not take down the customer link.
+  matcher: ["/operate", "/operate/((?!sign-in|d/).*)"],
 };

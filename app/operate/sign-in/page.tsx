@@ -5,7 +5,7 @@ export default function SignInPage() {
     <form
       action={async () => {
         "use server";
-        await signIn("google");
+        await signIn("google", { redirectTo: "/operate" });
       }}
       style={{
         minHeight: "100vh",

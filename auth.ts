@@ -7,7 +7,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     signIn({ profile }) {
       const email = profile?.email ?? "";
-      return email.toLowerCase().endsWith("@bloomventures.com");
+      return (
+        profile?.email_verified === true &&
+        email.toLowerCase().endsWith("@bloomventures.com")
+      );
     },
   },
 });
