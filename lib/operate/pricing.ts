@@ -87,6 +87,7 @@ export type LetterPackage = {
 
 export type LetterDeal = {
   companyName: string;
+  companyLogoUrl: string | null;
   contactName: string;
   avatarUrl: string | null;
   termLabel: string;

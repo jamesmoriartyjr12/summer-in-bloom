@@ -87,6 +87,7 @@ function parseDraft(formData: FormData): DealDraft | { error: string } {
     contactRole: text(formData, "contactRole"),
     linkedinUrl: text(formData, "linkedinUrl").trim() || null,
     avatarUrl: null,
+    companyLogoUrl: null,
     equityEnabled: formData.get("equityEnabled") === "on",
     termLength,
     round: text(formData, "round"),
@@ -106,7 +107,15 @@ export async function createDealAction(formData: FormData): Promise<void> {
 }
 
 export async function lookupLinkedInAction(raw: string): Promise<
-  | { ok: true; name: string; headline: string; avatarUrl: string | null; limited: boolean }
+  | {
+      ok: true;
+      name: string;
+      headline: string;
+      company: string;
+      avatarUrl: string | null;
+      companyLogoUrl: string | null;
+      limited: boolean;
+    }
   | { ok: false; error: string }
 > {
   await requireSession();
@@ -116,7 +125,9 @@ export async function lookupLinkedInAction(raw: string): Promise<
     ok: true,
     name: result.profile.name,
     headline: result.profile.headline,
+    company: result.profile.company,
     avatarUrl: result.profile.avatarUrl,
+    companyLogoUrl: result.profile.companyLogoUrl,
     limited: result.limited,
   };
 }
@@ -133,14 +144,16 @@ export async function saveDealAction(dealId: string, formData: FormData): Promis
     if (profile.limited) {
       if (draft.contactName.trim() === "") draft.contactName = profile.profile.name;
       const existing = await getDeal(dealId);
-      draft.avatarUrl = existing?.linkedinUrl === profile.url ? existing.avatarUrl : null;
-      notice = "Saved. LinkedIn is not showing a public photo for that profile, so the letter uses initials.";
+      const sameLink = existing?.linkedinUrl === profile.url;
+      draft.avatarUrl = sameLink ? (existing?.avatarUrl ?? null) : null;
+      draft.companyLogoUrl = sameLink ? (existing?.companyLogoUrl ?? null) : null;
+      notice = "Saved. LinkedIn is not showing a public profile, so the name comes from the link.";
     } else {
       draft.contactName = profile.profile.name;
       draft.avatarUrl = profile.profile.avatarUrl;
-      if (draft.contactRole.trim() === "" && profile.profile.headline) {
-        draft.contactRole = profile.profile.headline;
-      }
+      draft.companyLogoUrl = profile.profile.companyLogoUrl;
+      if (profile.profile.headline) draft.contactRole = profile.profile.headline;
+      if (profile.profile.company) draft.companyName = profile.profile.company;
     }
   }
   const result = await saveDeal(dealId, draft);

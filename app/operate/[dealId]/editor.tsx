@@ -19,6 +19,7 @@ export type EditorDeal = {
   contactRole: string;
   linkedinUrl: string;
   avatarUrl: string | null;
+  companyLogoUrl: string | null;
   equityEnabled: boolean;
   termLength: TermLength;
   round: string;
@@ -50,6 +51,7 @@ type Fields = {
   contactRole: string;
   linkedinUrl: string;
   avatarUrl: string | null;
+  companyLogoUrl: string | null;
   equityEnabled: boolean;
   termLength: TermLength;
   round: string;
@@ -90,6 +92,7 @@ function initialFields(deal: EditorDeal): Fields {
     contactRole: deal.contactRole,
     linkedinUrl: deal.linkedinUrl,
     avatarUrl: deal.avatarUrl,
+    companyLogoUrl: deal.companyLogoUrl,
     equityEnabled: deal.equityEnabled,
     termLength: deal.termLength,
     round: deal.round,
@@ -118,6 +121,7 @@ function previewLetter(fields: Fields, selectedPackageId: string | null): Letter
   };
   return {
     companyName: fields.companyName,
+    companyLogoUrl: fields.companyLogoUrl,
     contactName: fields.contactName,
     avatarUrl: fields.avatarUrl,
     termLabel: termLabel(fields.termLength),
@@ -149,7 +153,7 @@ const css = `
 .operate-editor label { display: block; margin-bottom: 12px; font-size: 14px; }
 .operate-editor label > span { display: block; margin-bottom: 4px; }
 .operate-editor .operate-editor__note { display: block; margin-top: 2px; font-size: 12px; opacity: 0.6; }
-.operate-editor input[type="text"], .operate-editor input[type="number"], .operate-editor select {
+.operate-editor input[type="text"], .operate-editor input[type="url"], .operate-editor input[type="number"], .operate-editor select {
   box-sizing: border-box; width: 100%; padding: 8px 10px; font: inherit; color: inherit;
   background: transparent; border: 1px solid rgba(7, 15, 24, 0.3);
 }
@@ -159,6 +163,9 @@ const css = `
 .operate-editor .operate-editor__staff { padding: 12px; border: 1px dashed rgba(7, 15, 24, 0.4); }
 .operate-editor button { font: inherit; padding: 8px 16px; cursor: pointer; color: #FAF6EC; background: #070F18; border: 0; }
 .operate-editor button[disabled] { opacity: 0.5; cursor: default; }
+.operate-editor .operate-editor__company { display: flex; gap: 8px; align-items: center; }
+.operate-editor .operate-editor__company input { flex: 1; min-width: 0; }
+.operate-editor .operate-editor__logo { width: 28px; height: 28px; object-fit: contain; flex: none; }
 .operate-editor .operate-editor__link { display: flex; gap: 8px; align-items: center; }
 .operate-editor .operate-editor__link input { flex: 1; }
 @media (max-width: 900px) {
@@ -284,7 +291,7 @@ export function Editor({ deal }: { deal: EditorDeal }) {
   async function onLinkedInBlur() {
     const raw = fields.linkedinUrl.trim();
     if (!raw) {
-      patch({ avatarUrl: null });
+      patch({ avatarUrl: null, companyLogoUrl: null });
       return;
     }
     const result = await lookupLinkedInAction(raw);
@@ -292,18 +299,23 @@ export function Editor({ deal }: { deal: EditorDeal }) {
       setMessage({ ok: false, text: result.error });
       return;
     }
-    const keepTypedName = result.limited && fields.contactName.trim() !== "";
-    patch({
-      contactName: keepTypedName ? fields.contactName : result.name,
-      avatarUrl: result.avatarUrl,
-      ...(fields.contactRole.trim() === "" && result.headline ? { contactRole: result.headline } : {}),
-    });
     if (result.limited) {
+      patch({
+        contactName: fields.contactName.trim() === "" ? result.name : fields.contactName,
+      });
       setMessage({
         ok: true,
-        text: "LinkedIn is not showing a public photo for that profile. The name comes from the link.",
+        text: "LinkedIn is not showing a public profile. The name comes from the link.",
       });
+      return;
     }
+    patch({
+      contactName: result.name,
+      contactRole: result.headline || fields.contactRole,
+      companyName: result.company || fields.companyName,
+      avatarUrl: result.avatarUrl,
+      companyLogoUrl: result.companyLogoUrl,
+    });
   }
 
   async function copyLink() {
@@ -326,32 +338,7 @@ export function Editor({ deal }: { deal: EditorDeal }) {
         <h1>{fields.companyName || "Deal"}</h1>
 
         <fieldset>
-          <legend>Private link</legend>
-          <div className="operate-editor__link">
-            <input type="text" readOnly value={origin ? link : ""} aria-label="Private link" />
-            <button type="button" onClick={copyLink} disabled={!origin}>
-              {copied ? "Copied" : "Copy"}
-            </button>
-          </div>
-          <p style={{ margin: "8px 0 0", fontSize: 14 }}>
-            <a href={`/operate/d/${deal.token}`} target="_blank" rel="noreferrer" style={{ color: "inherit" }}>
-              Open the client page
-            </a>
-          </p>
-        </fieldset>
-
-        <fieldset>
           <legend>Letter</legend>
-          <label>
-            <span>Company name</span>
-            <input
-              type="text"
-              name="companyName"
-              required
-              value={fields.companyName}
-              onChange={(event) => patch({ companyName: event.target.value })}
-            />
-          </label>
           <label>
             <span>LinkedIn</span>
             <input
@@ -363,7 +350,7 @@ export function Editor({ deal }: { deal: EditorDeal }) {
               onBlur={() => void onLinkedInBlur()}
             />
             <small className="operate-editor__note">
-              The name and photo come from the public page. A private profile uses the name in the link.
+              Name, role, company, and logos come from the public page.
             </small>
           </label>
           <label>
@@ -383,6 +370,21 @@ export function Editor({ deal }: { deal: EditorDeal }) {
               value={fields.contactRole}
               onChange={(event) => patch({ contactRole: event.target.value })}
             />
+          </label>
+          <label>
+            <span>Company</span>
+            <span className="operate-editor__company">
+              {fields.companyLogoUrl ? (
+                <img className="operate-editor__logo" src={fields.companyLogoUrl} alt="" />
+              ) : null}
+              <input
+                type="text"
+                name="companyName"
+                required
+                value={fields.companyName}
+                onChange={(event) => patch({ companyName: event.target.value })}
+              />
+            </span>
           </label>
           <label>
             <span>Term</span>
@@ -407,6 +409,21 @@ export function Editor({ deal }: { deal: EditorDeal }) {
             />
             <span>Equity arrangement</span>
           </label>
+        </fieldset>
+
+        <fieldset>
+          <legend>Private link</legend>
+          <div className="operate-editor__link">
+            <input type="text" readOnly value={origin ? link : ""} aria-label="Private link" />
+            <button type="button" onClick={copyLink} disabled={!origin}>
+              {copied ? "Copied" : "Copy"}
+            </button>
+          </div>
+          <p style={{ margin: "8px 0 0", fontSize: 14 }}>
+            <a href={`/operate/d/${deal.token}`} target="_blank" rel="noreferrer" style={{ color: "inherit" }}>
+              Open the client page
+            </a>
+          </p>
         </fieldset>
 
         <PackageRow index={0} row={fields.packages[0]} onChange={(next) => patchPackage(0, next)} />

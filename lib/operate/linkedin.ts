@@ -1,7 +1,9 @@
 export type LinkedInProfile = {
   name: string;
   headline: string;
+  company: string;
   avatarUrl: string | null;
+  companyLogoUrl: string | null;
 };
 
 const SLUG = /^\/in\/([A-Za-z0-9\-_%]+)\/?$/;
@@ -41,6 +43,49 @@ function decode(value: string): string {
     .replace(/&gt;/g, ">");
 }
 
+function plain(value: string): string {
+  return decode(value.replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim();
+}
+
+function licdnImage(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  try {
+    const url = new URL(decode(raw));
+    if (url.protocol === "https:" && url.hostname === "media.licdn.com") return url.toString();
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+function elementText(html: string, tag: string, classFragment: string): string | null {
+  const pattern = new RegExp(
+    `<${tag}[^>]*class=["'][^"']*${classFragment}[^"']*["'][^>]*>([\\s\\S]*?)</${tag}>`,
+    "i",
+  );
+  const found = html.match(pattern);
+  if (!found?.[1]) return null;
+  const text = plain(found[1]);
+  return text || null;
+}
+
+function currentCompany(html: string): { name: string; logoUrl: string | null } | null {
+  const start = html.indexOf('data-section="currentPositionsDetails"');
+  if (start < 0) return null;
+  const next = html.indexOf('data-section="', start + 20);
+  const block = html.slice(start, next > start ? next : start + 2500);
+  const name = plain(block.match(/top-card-link__description[^>]*>([\s\S]*?)<\/span>/i)?.[1] ?? "");
+  if (!name) return null;
+  const logo = block.match(/data-delayed-url=["']([^"']+)["']/i)?.[1] ?? null;
+  return { name, logoUrl: licdnImage(logo) };
+}
+
+function companyFromDescription(html: string): string {
+  const description = meta(html, "og:description") ?? "";
+  const found = description.match(/Experience:\s*([^·|]+)/i);
+  return found?.[1]?.trim() ?? "";
+}
+
 function meta(html: string, property: string): string | null {
   const patterns = [
     new RegExp(`property=["']${property}["'][^>]*content=["']([^"']*)["']`, "i"),
@@ -55,22 +100,20 @@ function meta(html: string, property: string): string | null {
 
 export function parseLinkedInHtml(html: string): LinkedInProfile | null {
   const title = meta(html, "og:title");
-  if (!title) return null;
-  const withoutSite = title.replace(/\s*\|\s*LinkedIn\s*$/i, "").trim();
+  const withoutSite = title?.replace(/\s*\|\s*LinkedIn\s*$/i, "").trim() ?? "";
   const [namePart, ...rest] = withoutSite.split(" - ");
-  const name = namePart?.trim() ?? "";
+  const name = elementText(html, "h1", "top-card-layout__title") ?? namePart?.trim() ?? "";
   if (!name) return null;
-  const image = meta(html, "og:image");
-  let avatarUrl: string | null = null;
-  if (image) {
-    try {
-      const url = new URL(image);
-      if (url.protocol === "https:" && url.hostname === "media.licdn.com") avatarUrl = url.toString();
-    } catch {
-      avatarUrl = null;
-    }
-  }
-  return { name, headline: rest.join(" - ").trim(), avatarUrl };
+  const headline =
+    elementText(html, "h2", "top-card-layout__headline") ?? rest.join(" - ").trim();
+  const position = currentCompany(html);
+  return {
+    name,
+    headline,
+    company: position?.name || companyFromDescription(html),
+    avatarUrl: licdnImage(meta(html, "og:image")),
+    companyLogoUrl: position?.logoUrl ?? null,
+  };
 }
 
 function slugFromProfileUrl(url: string): string {
@@ -109,7 +152,7 @@ export async function readLinkedInProfile(
   if (!name) return { ok: false, error: "That LinkedIn page did not include a name." };
   return {
     ok: true,
-    profile: { name, headline: "", avatarUrl: null },
+    profile: { name, headline: "", company: "", avatarUrl: null, companyLogoUrl: null },
     url,
     limited: true,
   };

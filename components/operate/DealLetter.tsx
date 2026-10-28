@@ -27,6 +27,13 @@ const letterStyles = `
   height: 22px;
   width: auto;
 }
+.operate-letter__logo {
+  display: block;
+  height: 32px;
+  width: auto;
+  max-width: 140px;
+  object-fit: contain;
+}
 .operate-letter__identity {
   display: flex;
   align-items: center;
@@ -319,7 +326,11 @@ export function DealLetter({
     <article className="operate-letter">
       <style>{letterStyles}</style>
       <header className="operate-letter__header">
-        <img className="operate-letter__brand" src="/bloom-mark.svg" alt="Bloom" />
+        {deal.companyLogoUrl ? (
+          <img className="operate-letter__logo" src={deal.companyLogoUrl} alt={deal.companyName} />
+        ) : (
+          <img className="operate-letter__brand" src="/bloom-mark.svg" alt="Bloom" />
+        )}
         {recipient ? (
           <div className="operate-letter__identity">
             {deal.avatarUrl ? (
