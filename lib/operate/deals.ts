@@ -30,6 +30,8 @@ export type DealRecord = {
   companyName: string;
   contactName: string;
   contactRole: string;
+  linkedinUrl: string | null;
+  avatarUrl: string | null;
   equityEnabled: boolean;
   termLength: TermLength;
   round: string | null;
@@ -55,6 +57,8 @@ export type DealDraft = {
   companyName: string;
   contactName: string;
   contactRole: string;
+  linkedinUrl: string | null;
+  avatarUrl: string | null;
   equityEnabled: boolean;
   termLength: TermLength;
   round: string | null;
@@ -114,6 +118,8 @@ function toDealRecord(deal: DealRow, rows: PackageRow[]): DealRecord {
     companyName: deal.companyName,
     contactName: deal.contactName,
     contactRole: deal.contactRole,
+    linkedinUrl: deal.linkedinUrl,
+    avatarUrl: deal.avatarUrl,
     equityEnabled: deal.equityEnabled,
     termLength: termFromColumn(deal.termLength),
     round: deal.round,
@@ -211,6 +217,8 @@ export async function createDeal(input: { companyName: string }): Promise<DealRe
     companyName,
     contactName: "",
     contactRole: "",
+    linkedinUrl: null,
+    avatarUrl: null,
     equityEnabled: false,
     termLength: "six-month",
     round: null,
@@ -271,6 +279,8 @@ export async function saveDeal(
     companyName: input.companyName.trim(),
     contactName: input.contactName,
     contactRole: input.contactRole,
+    linkedinUrl: blankToNull(input.linkedinUrl),
+    avatarUrl: input.avatarUrl,
     equityEnabled: input.equityEnabled,
     termLength: input.termLength,
     round: blankToNull(input.round),
@@ -319,6 +329,8 @@ export function dealToLetter(deal: DealRecord): LetterDeal {
     .sort((left, right) => left.sortOrder - right.sortOrder || left.id.localeCompare(right.id));
   return {
     companyName: deal.companyName,
+    contactName: deal.contactName,
+    avatarUrl: deal.avatarUrl,
     termLabel: termLabel(deal.termLength),
     equityEnabled: deal.equityEnabled,
     packages: visible.map((pkg) => toLetterPackage(pkg)),

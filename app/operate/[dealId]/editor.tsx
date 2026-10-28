@@ -9,7 +9,7 @@ import {
   type LetterDeal,
   type TermLength,
 } from "@/lib/operate/pricing";
-import { saveDealAction } from "../actions";
+import { lookupLinkedInAction, saveDealAction } from "../actions";
 
 export type EditorDeal = {
   id: string;
@@ -17,6 +17,8 @@ export type EditorDeal = {
   companyName: string;
   contactName: string;
   contactRole: string;
+  linkedinUrl: string;
+  avatarUrl: string | null;
   equityEnabled: boolean;
   termLength: TermLength;
   round: string;
@@ -46,6 +48,8 @@ type Fields = {
   companyName: string;
   contactName: string;
   contactRole: string;
+  linkedinUrl: string;
+  avatarUrl: string | null;
   equityEnabled: boolean;
   termLength: TermLength;
   round: string;
@@ -84,6 +88,8 @@ function initialFields(deal: EditorDeal): Fields {
     companyName: deal.companyName,
     contactName: deal.contactName,
     contactRole: deal.contactRole,
+    linkedinUrl: deal.linkedinUrl,
+    avatarUrl: deal.avatarUrl,
     equityEnabled: deal.equityEnabled,
     termLength: deal.termLength,
     round: deal.round,
@@ -112,6 +118,8 @@ function previewLetter(fields: Fields, selectedPackageId: string | null): Letter
   };
   return {
     companyName: fields.companyName,
+    contactName: fields.contactName,
+    avatarUrl: fields.avatarUrl,
     termLabel: termLabel(fields.termLength),
     equityEnabled: fields.equityEnabled,
     packages: rows.map(({ row, index }) =>
@@ -269,6 +277,24 @@ export function Editor({ deal }: { deal: EditorDeal }) {
     });
   }
 
+  async function onLinkedInBlur() {
+    const raw = fields.linkedinUrl.trim();
+    if (!raw) {
+      patch({ avatarUrl: null });
+      return;
+    }
+    const result = await lookupLinkedInAction(raw);
+    if (!result.ok) {
+      setMessage({ ok: false, text: result.error });
+      return;
+    }
+    patch({
+      contactName: result.name,
+      avatarUrl: result.avatarUrl,
+      ...(fields.contactRole.trim() === "" && result.headline ? { contactRole: result.headline } : {}),
+    });
+  }
+
   async function copyLink() {
     try {
       await navigator.clipboard.writeText(link);
@@ -314,6 +340,18 @@ export function Editor({ deal }: { deal: EditorDeal }) {
               value={fields.companyName}
               onChange={(event) => patch({ companyName: event.target.value })}
             />
+          </label>
+          <label>
+            <span>LinkedIn</span>
+            <input
+              type="url"
+              name="linkedinUrl"
+              placeholder="https://www.linkedin.com/in/…"
+              value={fields.linkedinUrl}
+              onChange={(event) => patch({ linkedinUrl: event.target.value })}
+              onBlur={() => void onLinkedInBlur()}
+            />
+            <small className="operate-editor__note">The name and photo come from this page.</small>
           </label>
           <label>
             <span>Contact name</span>

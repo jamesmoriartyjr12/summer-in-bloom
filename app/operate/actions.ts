@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { createDeal, saveDeal, type DealDraft, type PackageDraft } from "@/lib/operate/deals";
+import { readLinkedInProfile } from "@/lib/operate/linkedin";
 import type { TermLength } from "@/lib/operate/pricing";
 
 type SaveResult = { ok: true } | { ok: false; error: string };
@@ -84,6 +85,8 @@ function parseDraft(formData: FormData): DealDraft | { error: string } {
     companyName: text(formData, "companyName"),
     contactName: text(formData, "contactName"),
     contactRole: text(formData, "contactRole"),
+    linkedinUrl: text(formData, "linkedinUrl").trim() || null,
+    avatarUrl: null,
     equityEnabled: formData.get("equityEnabled") === "on",
     termLength,
     round: text(formData, "round"),
@@ -102,10 +105,34 @@ export async function createDealAction(formData: FormData): Promise<void> {
   redirect(`/operate/${deal.id}`);
 }
 
+export async function lookupLinkedInAction(
+  raw: string,
+): Promise<{ ok: true; name: string; headline: string; avatarUrl: string | null } | { ok: false; error: string }> {
+  await requireSession();
+  const result = await readLinkedInProfile(raw);
+  if (!result.ok) return result;
+  return {
+    ok: true,
+    name: result.profile.name,
+    headline: result.profile.headline,
+    avatarUrl: result.profile.avatarUrl,
+  };
+}
+
 export async function saveDealAction(dealId: string, formData: FormData): Promise<SaveResult> {
   await requireSession();
   const draft = parseDraft(formData);
   if ("error" in draft) return { ok: false, error: draft.error };
+  if (draft.linkedinUrl) {
+    const profile = await readLinkedInProfile(draft.linkedinUrl);
+    if (!profile.ok) return profile;
+    draft.linkedinUrl = profile.url;
+    draft.contactName = profile.profile.name;
+    draft.avatarUrl = profile.profile.avatarUrl;
+    if (draft.contactRole.trim() === "" && profile.profile.headline) {
+      draft.contactRole = profile.profile.headline;
+    }
+  }
   const result = await saveDeal(dealId, draft);
   if (result.ok) {
     revalidatePath("/operate");

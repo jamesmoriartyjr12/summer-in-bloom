@@ -6,6 +6,8 @@ export const deals = pgTable("deals", {
   companyName: text("company_name").notNull(),
   contactName: text("contact_name").notNull().default(""),
   contactRole: text("contact_role").notNull().default(""),
+  linkedinUrl: text("linkedin_url"),
+  avatarUrl: text("avatar_url"),
   equityEnabled: boolean("equity_enabled").notNull().default(false),
   termLength: text("term_length").notNull().default("six-month"),
   round: text("round"),

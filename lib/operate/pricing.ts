@@ -1,5 +1,11 @@
 export type TermLength = "six-month" | "one-year" | "multi-year";
 
+export type ClientTerm = "six-month" | "one-year";
+
+export function isClientTerm(value: string): value is ClientTerm {
+  return value === "six-month" || value === "one-year";
+}
+
 export function termLabel(term: TermLength): string {
   if (term === "six-month") return "Six months";
   if (term === "one-year") return "One year";
@@ -58,6 +64,15 @@ export function validatePackage(input: PackageInput): string | null {
   return null;
 }
 
+export type TermRates = {
+  listRateCents: number;
+  cashRateCents: number;
+  weeklyListCents: number;
+  weeklyCashCents: number;
+  equityPerHourCents: number;
+  equityPerWeekCents: number;
+};
+
 export type LetterPackage = {
   id: string;
   serviceName: string;
@@ -72,6 +87,8 @@ export type LetterPackage = {
 
 export type LetterDeal = {
   companyName: string;
+  contactName: string;
+  avatarUrl: string | null;
   termLabel: string;
   equityEnabled: boolean;
   packages: LetterPackage[];
@@ -95,5 +112,27 @@ export function toLetterPackage(pkg: {
     weeklyCashCents: weeklyAmountCents(pkg.hoursPerWeek, pkg.cashRateCents),
     equityPerHourCents: equityPerHourCents(pkg.listRateCents, pkg.cashRateCents),
     equityPerWeekCents: equityPerWeekCents(pkg.hoursPerWeek, pkg.listRateCents, pkg.cashRateCents),
+  };
+}
+
+export function packageRates(
+  pkg: {
+    hoursPerWeek: number;
+    sixMonthListRateCents: number;
+    sixMonthCashRateCents: number;
+    oneYearListRateCents: number;
+    oneYearCashRateCents: number;
+  },
+  term: ClientTerm,
+): TermRates {
+  const listRateCents = term === "one-year" ? pkg.oneYearListRateCents : pkg.sixMonthListRateCents;
+  const cashRateCents = term === "one-year" ? pkg.oneYearCashRateCents : pkg.sixMonthCashRateCents;
+  return {
+    listRateCents,
+    cashRateCents,
+    weeklyListCents: weeklyAmountCents(pkg.hoursPerWeek, listRateCents),
+    weeklyCashCents: weeklyAmountCents(pkg.hoursPerWeek, cashRateCents),
+    equityPerHourCents: equityPerHourCents(listRateCents, cashRateCents),
+    equityPerWeekCents: equityPerWeekCents(pkg.hoursPerWeek, listRateCents, cashRateCents),
   };
 }

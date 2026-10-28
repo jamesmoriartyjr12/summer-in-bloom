@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test lib/operate/pricing.test.ts"
+    "test": "tsx --test lib/operate/pricing.test.ts lib/operate/linkedin.test.ts"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.4",
