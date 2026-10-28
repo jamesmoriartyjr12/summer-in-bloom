@@ -77,23 +77,31 @@ export default async function OperatePage({
               key={deal.id}
               style={{ borderBottom: "1px solid rgba(7, 15, 24, 0.14)", padding: "16px 0" }}
             >
-              <Link
-                href={`/operate/${deal.id}`}
+              <div
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
                   gap: 24,
                   flexWrap: "wrap",
-                  color: "inherit",
-                  textDecoration: "none",
+                  alignItems: "baseline",
                 }}
               >
-                <span>
+                <Link href={`/operate/${deal.id}`} style={{ color: "inherit", textDecoration: "none" }}>
                   <strong style={{ fontWeight: 600 }}>{deal.companyName}</strong>
                   {deal.contactName ? <span> · {deal.contactName}</span> : null}
+                </Link>
+                <span style={{ display: "flex", gap: 16, alignItems: "baseline" }}>
+                  <a
+                    href={`/operate/d/${deal.token}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ color: "inherit" }}
+                  >
+                    Client page
+                  </a>
+                  <span style={{ opacity: 0.6 }}>{termLabel(deal.termLength)}</span>
                 </span>
-                <span style={{ opacity: 0.6 }}>{termLabel(deal.termLength)}</span>
-              </Link>
+              </div>
             </li>
           ))}
         </ul>

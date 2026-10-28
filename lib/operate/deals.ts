@@ -65,6 +65,7 @@ export type DealDraft = {
 
 export type DealListItem = {
   id: string;
+  token: string;
   companyName: string;
   contactName: string;
   contactRole: string;
@@ -170,6 +171,7 @@ export async function listDeals(): Promise<DealListItem[]> {
   const rows = await db
     .select({
       id: deals.id,
+      token: deals.token,
       companyName: deals.companyName,
       contactName: deals.contactName,
       contactRole: deals.contactRole,
@@ -179,6 +181,7 @@ export async function listDeals(): Promise<DealListItem[]> {
     .orderBy(asc(deals.companyName), asc(deals.id));
   return rows.map((row) => ({
     id: row.id,
+    token: row.token,
     companyName: row.companyName,
     contactName: row.contactName,
     contactRole: row.contactRole,

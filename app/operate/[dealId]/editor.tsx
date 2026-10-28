@@ -133,6 +133,8 @@ const css = `
 .operate-editor { display: grid; grid-template-columns: minmax(320px, 440px) minmax(0, 1fr); align-items: start; }
 .operate-editor__form { padding: 32px 24px 64px; }
 .operate-editor__preview { position: sticky; top: 0; height: 100vh; overflow: auto; border-left: 1px solid rgba(7, 15, 24, 0.14); }
+.operate-editor__preview-bar { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; padding: 16px 24px; border-bottom: 1px solid rgba(7, 15, 24, 0.14); font-size: 14px; }
+.operate-editor__preview-bar a { color: inherit; }
 .operate-editor h1 { margin: 12px 0 24px; font-size: 28px; font-weight: 500; }
 .operate-editor fieldset { margin: 0 0 24px; padding: 0; border: 0; min-width: 0; }
 .operate-editor legend { padding: 0; margin-bottom: 8px; font-weight: 600; }
@@ -294,6 +296,11 @@ export function Editor({ deal }: { deal: EditorDeal }) {
               {copied ? "Copied" : "Copy"}
             </button>
           </div>
+          <p style={{ margin: "8px 0 0", fontSize: 14 }}>
+            <a href={`/operate/d/${deal.token}`} target="_blank" rel="noreferrer" style={{ color: "inherit" }}>
+              Open the client page
+            </a>
+          </p>
         </fieldset>
 
         <fieldset>
@@ -403,6 +410,12 @@ export function Editor({ deal }: { deal: EditorDeal }) {
       </form>
 
       <div className="operate-editor__preview">
+        <div className="operate-editor__preview-bar">
+          <span>Client letter</span>
+          <a href={`/operate/d/${deal.token}`} target="_blank" rel="noreferrer">
+            Open the client page
+          </a>
+        </div>
         <DealLetter deal={letter} mode="preview" />
       </div>
     </div>
