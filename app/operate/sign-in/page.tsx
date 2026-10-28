@@ -4,7 +4,8 @@ import { signIn } from "@/auth";
 
 const messages: Record<string, string> = {
   AccessDenied: "Use a verified @bloomventures.com Google account.",
-  Configuration: "Google sign-in is not connected on this preview yet.",
+  Configuration: "Google did not accept this sign-in. Try again.",
+  Missing: "Google sign-in is not connected on this preview yet.",
   OAuthSignin: "Google did not start. Try again.",
   OAuthCallback: "Google did not finish. Try again.",
   Default: "Sign-in did not complete. Try again.",
@@ -22,7 +23,7 @@ function isNextRedirect(error: unknown) {
 async function startGoogleSignIn() {
   "use server";
   if (!process.env.AUTH_GOOGLE_ID || !process.env.AUTH_GOOGLE_SECRET) {
-    redirect("/operate/sign-in?error=Configuration");
+    redirect("/operate/sign-in?error=Missing");
   }
   try {
     await signIn("google", { redirectTo: "/operate" });
