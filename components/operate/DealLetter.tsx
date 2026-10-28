@@ -147,13 +147,17 @@ button.operate-letter__row:focus-visible {
 }
 @media (max-width: 700px) {
   .operate-letter__grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
   .operate-letter__service,
   .operate-letter__hours {
     grid-column: 1 / -1;
   }
   .operate-letter__figure {
+    align-items: flex-start;
+  }
+  .operate-letter__pair {
+    flex-direction: column;
     align-items: flex-start;
   }
 }
