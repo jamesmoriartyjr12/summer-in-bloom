@@ -10,6 +10,7 @@ export const deals = pgTable("deals", {
   avatarUrl: text("avatar_url"),
   companyLogoUrl: text("company_logo_url"),
   equityEnabled: boolean("equity_enabled").notNull().default(false),
+  ratesOverridden: boolean("rates_overridden").notNull().default(false),
   termLength: text("term_length").notNull().default("six-month"),
   round: text("round"),
   valuationDollars: bigint("valuation_dollars", { mode: "bigint" }),
@@ -17,6 +18,15 @@ export const deals = pgTable("deals", {
   selectedPackageId: uuid("selected_package_id"),
   hubspotContactId: text("hubspot_contact_id"),
   hubspotDealId: text("hubspot_deal_id"),
+});
+
+export const baseRates = pgTable("base_rates", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  serviceName: text("service_name").notNull(),
+  hoursPerWeek: integer("hours_per_week").notNull(),
+  listRateCents: integer("list_rate_cents").notNull(),
+  cashRateCents: integer("cash_rate_cents").notNull(),
+  sortOrder: integer("sort_order").notNull(),
 });
 
 export const packages = pgTable("packages", {

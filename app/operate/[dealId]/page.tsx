@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { getDeal } from "@/lib/operate/deals";
+import { getDeal, listBaseRates } from "@/lib/operate/deals";
 import { Editor, type EditorDeal } from "./editor";
 
 export const dynamic = "force-dynamic";
@@ -25,6 +25,7 @@ export default async function DealEditorPage({ params }: { params: { dealId: str
 
   const deal = await getDeal(params.dealId);
   if (!deal) notFound();
+  const baseRates = await listBaseRates();
 
   const editorDeal: EditorDeal = {
     id: deal.id,
@@ -36,6 +37,8 @@ export default async function DealEditorPage({ params }: { params: { dealId: str
     avatarUrl: deal.avatarUrl,
     companyLogoUrl: deal.companyLogoUrl,
     equityEnabled: deal.equityEnabled,
+    ratesOverridden: deal.ratesOverridden,
+    baseRates,
     termLength: deal.termLength,
     round: deal.round ?? "",
     valuationDollars: deal.valuationDollars === null ? "" : deal.valuationDollars.toString(),

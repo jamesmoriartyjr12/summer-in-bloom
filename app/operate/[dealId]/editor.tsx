@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState, useTransition, type FormEvent } from "react";
 import { DealLetter } from "@/components/operate/DealLetter";
 import {
+  formatDollars,
   termLabel,
   toLetterPackage,
   type LetterDeal,
@@ -21,6 +22,8 @@ export type EditorDeal = {
   avatarUrl: string | null;
   companyLogoUrl: string | null;
   equityEnabled: boolean;
+  ratesOverridden: boolean;
+  baseRates: { serviceName: string; hoursPerWeek: number; listRateCents: number; cashRateCents: number }[];
   termLength: TermLength;
   round: string;
   valuationDollars: string;
@@ -53,6 +56,7 @@ type Fields = {
   avatarUrl: string | null;
   companyLogoUrl: string | null;
   equityEnabled: boolean;
+  ratesOverridden: boolean;
   termLength: TermLength;
   round: string;
   valuationDollars: string;
@@ -94,6 +98,7 @@ function initialFields(deal: EditorDeal): Fields {
     avatarUrl: deal.avatarUrl,
     companyLogoUrl: deal.companyLogoUrl,
     equityEnabled: deal.equityEnabled,
+    ratesOverridden: deal.ratesOverridden,
     termLength: deal.termLength,
     round: deal.round,
     valuationDollars: deal.valuationDollars,
@@ -157,6 +162,7 @@ const css = `
   box-sizing: border-box; width: 100%; padding: 8px 10px; font: inherit; color: inherit;
   background: transparent; border: 1px solid rgba(7, 15, 24, 0.3);
 }
+.operate-editor input:disabled { opacity: 0.7; }
 .operate-editor .operate-editor__check { display: flex; gap: 8px; align-items: center; }
 .operate-editor .operate-editor__check > span { margin: 0; }
 .operate-editor .operate-editor__pair { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
@@ -177,47 +183,26 @@ const css = `
 function PackageRow({
   index,
   row,
+  overridden,
+  companyList,
+  companyCash,
   onChange,
 }: {
   index: number;
   row: PackageFields;
+  overridden: boolean;
+  companyList: number;
+  companyCash: number;
   onChange: (next: PackageFields) => void;
 }) {
   const key = `package${index}`;
   return (
     <fieldset>
-      <legend>{index === 0 ? "Package 1" : "Package 2 (leave empty to drop)"}</legend>
+      <legend>
+        {row.serviceName || "Offer"} · {row.hours} hours / week
+      </legend>
       <input type="hidden" name={`${key}Id`} value={row.id} />
-      <label className="operate-editor__check">
-        <input
-          type="checkbox"
-          name={`${key}Enabled`}
-          checked={row.enabled}
-          onChange={(event) => onChange({ ...row, enabled: event.target.checked })}
-        />
-        <span>Shown in the letter</span>
-      </label>
-      <label>
-        <span>Service name</span>
-        <input
-          type="text"
-          name={`${key}ServiceName`}
-          value={row.serviceName}
-          onChange={(event) => onChange({ ...row, serviceName: event.target.value })}
-        />
-      </label>
-      <div className="operate-editor__pair">
-        <label>
-          <span>Hours / week</span>
-          <input
-            type="number"
-            min={1}
-            step={1}
-            name={`${key}Hours`}
-            value={row.hours}
-            onChange={(event) => onChange({ ...row, hours: event.target.value })}
-          />
-        </label>
+      <div className="operate-editor__pair" style={{ gridTemplateColumns: "1fr 1fr" }}>
         <label>
           <span>List rate ($/hr)</span>
           <input
@@ -225,6 +210,7 @@ function PackageRow({
             inputMode="decimal"
             name={`${key}ListRate`}
             value={row.listRate}
+            disabled={!overridden}
             onChange={(event) => onChange({ ...row, listRate: event.target.value })}
           />
         </label>
@@ -235,10 +221,18 @@ function PackageRow({
             inputMode="decimal"
             name={`${key}CashRate`}
             value={row.cashRate}
+            disabled={!overridden}
             onChange={(event) => onChange({ ...row, cashRate: event.target.value })}
           />
         </label>
       </div>
+      {overridden ? (
+        <small className="operate-editor__note">
+          Company rates are {formatDollars(companyList)} list and {formatDollars(companyCash)} cash.
+        </small>
+      ) : (
+        <small className="operate-editor__note">Using the company rate.</small>
+      )}
     </fieldset>
   );
 }
@@ -426,8 +420,56 @@ export function Editor({ deal }: { deal: EditorDeal }) {
           </p>
         </fieldset>
 
-        <PackageRow index={0} row={fields.packages[0]} onChange={(next) => patchPackage(0, next)} />
-        <PackageRow index={1} row={fields.packages[1]} onChange={(next) => patchPackage(1, next)} />
+        <fieldset>
+          <legend>Offers</legend>
+          <label className="operate-editor__check">
+            <input
+              type="checkbox"
+              name="ratesOverridden"
+              checked={fields.ratesOverridden}
+              onChange={(event) => {
+                const overridden = event.target.checked;
+                if (!overridden) {
+                  const packages = fields.packages.map((row, index) => {
+                    const base = deal.baseRates[index];
+                    if (!base) return row;
+                    return {
+                      ...row,
+                      serviceName: base.serviceName,
+                      hours: String(base.hoursPerWeek),
+                      listRate: centsToDollars(base.listRateCents),
+                      cashRate: centsToDollars(base.cashRateCents),
+                    };
+                  }) as [PackageFields, PackageFields];
+                  patch({ ratesOverridden: false, packages });
+                  return;
+                }
+                patch({ ratesOverridden: true });
+              }}
+            />
+            <span>Custom rates for this customer</span>
+          </label>
+          <small className="operate-editor__note">
+            Every deal uses the same offers. Custom rates change the price on this deal only.
+          </small>
+        </fieldset>
+
+        <PackageRow
+          index={0}
+          row={fields.packages[0]}
+          overridden={fields.ratesOverridden}
+          companyList={deal.baseRates[0]?.listRateCents ?? 0}
+          companyCash={deal.baseRates[0]?.cashRateCents ?? 0}
+          onChange={(next) => patchPackage(0, next)}
+        />
+        <PackageRow
+          index={1}
+          row={fields.packages[1]}
+          overridden={fields.ratesOverridden}
+          companyList={deal.baseRates[1]?.listRateCents ?? 0}
+          companyCash={deal.baseRates[1]?.cashRateCents ?? 0}
+          onChange={(next) => patchPackage(1, next)}
+        />
 
         <fieldset className="operate-editor__staff">
           <legend>Staff only</legend>

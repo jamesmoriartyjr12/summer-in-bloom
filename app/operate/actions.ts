@@ -3,9 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { createDeal, getDeal, saveDeal, type DealDraft, type PackageDraft } from "@/lib/operate/deals";
+import { createDeal, getDeal, listBaseRates, saveBaseRates, saveDeal, type DealDraft, type PackageDraft } from "@/lib/operate/deals";
 import { readLinkedInProfile } from "@/lib/operate/linkedin";
-import type { TermLength } from "@/lib/operate/pricing";
+import { cascadeOffers, type TermLength } from "@/lib/operate/pricing";
 
 type SaveResult = { ok: true; notice?: string } | { ok: false; error: string };
 
@@ -35,23 +35,16 @@ function isTermLength(value: string): value is TermLength {
   return value === "six-month" || value === "one-year" || value === "multi-year";
 }
 
-function readPackage(formData: FormData, index: number): PackageDraft | "dropped" {
+function readPackage(formData: FormData, index: number): PackageDraft {
   const key = `package${index}`;
-  const serviceName = text(formData, `${key}ServiceName`);
-  const listRaw = text(formData, `${key}ListRate`);
-  const cashRaw = text(formData, `${key}CashRate`);
-  const isEmptyRow =
-    serviceName.trim() === "" && dollarsText(listRaw) === "" && dollarsText(cashRaw) === "";
-  if (index > 0 && isEmptyRow) return "dropped";
-
   const id = text(formData, `${key}Id`);
   return {
     ...(id ? { id } : {}),
-    serviceName,
-    hoursPerWeek: Number(text(formData, `${key}Hours`)),
-    enabled: formData.get(`${key}Enabled`) === "on",
-    listRateCents: dollarsToCents(listRaw) ?? 0,
-    cashRateCents: dollarsToCents(cashRaw) ?? 0,
+    serviceName: "",
+    hoursPerWeek: 0,
+    enabled: true,
+    listRateCents: dollarsToCents(text(formData, `${key}ListRate`)) ?? 0,
+    cashRateCents: dollarsToCents(text(formData, `${key}CashRate`)) ?? 0,
     sortOrder: index,
   };
 }
@@ -75,11 +68,7 @@ function parseDraft(formData: FormData): DealDraft | { error: string } {
     return { error: "Hourly cost must be zero or more." };
   }
 
-  const packages: PackageDraft[] = [];
-  for (const index of [0, 1]) {
-    const row = readPackage(formData, index);
-    if (row !== "dropped") packages.push(row);
-  }
+  const packages: PackageDraft[] = [0, 1].map((index) => readPackage(formData, index));
 
   return {
     companyName: text(formData, "companyName"),
@@ -89,12 +78,28 @@ function parseDraft(formData: FormData): DealDraft | { error: string } {
     avatarUrl: null,
     companyLogoUrl: null,
     equityEnabled: formData.get("equityEnabled") === "on",
+    ratesOverridden: formData.get("ratesOverridden") === "on",
     termLength,
     round: text(formData, "round"),
     valuationDollars,
     hourlyCostCents,
     packages,
   };
+}
+
+export async function saveBaseRatesAction(formData: FormData): Promise<void> {
+  await requireSession();
+  const offers = [0, 1].map((index) => ({
+    serviceName: text(formData, `offer${index}Service`),
+    hoursPerWeek: Number(text(formData, `offer${index}Hours`)),
+    listRateCents: dollarsToCents(text(formData, `offer${index}List`)) ?? -1,
+    cashRateCents: dollarsToCents(text(formData, `offer${index}Cash`)) ?? -1,
+    sortOrder: index,
+  }));
+  const result = await saveBaseRates(offers);
+  revalidatePath("/operate");
+  if (!result.ok) redirect(`/operate?error=rates&message=${encodeURIComponent(result.error)}`);
+  redirect("/operate?saved=rates");
 }
 
 export async function createDealAction(formData: FormData): Promise<void> {
@@ -156,6 +161,29 @@ export async function saveDealAction(dealId: string, formData: FormData): Promis
       if (profile.profile.company) draft.companyName = profile.profile.company;
     }
   }
+  const base = await listBaseRates();
+  const offers = cascadeOffers(
+    base,
+    draft.ratesOverridden
+      ? draft.packages.map((pkg) => ({
+          sortOrder: pkg.sortOrder,
+          listRateCents: pkg.listRateCents,
+          cashRateCents: pkg.cashRateCents,
+        }))
+      : null,
+  );
+  draft.packages = offers.map((offer) => {
+    const existing = draft.packages.find((pkg) => pkg.sortOrder === offer.sortOrder);
+    return {
+      ...(existing?.id ? { id: existing.id } : {}),
+      serviceName: offer.serviceName,
+      hoursPerWeek: offer.hoursPerWeek,
+      enabled: true,
+      listRateCents: offer.listRateCents,
+      cashRateCents: offer.cashRateCents,
+      sortOrder: offer.sortOrder,
+    };
+  });
   const result = await saveDeal(dealId, draft);
   if (result.ok) {
     revalidatePath("/operate");

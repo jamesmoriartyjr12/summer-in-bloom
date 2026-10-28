@@ -116,6 +116,35 @@ export function toLetterPackage(pkg: {
   };
 }
 
+export type OfferRate = {
+  serviceName: string;
+  hoursPerWeek: number;
+  listRateCents: number;
+  cashRateCents: number;
+  sortOrder: number;
+};
+
+export type RateOverride = {
+  sortOrder: number;
+  listRateCents: number;
+  cashRateCents: number;
+};
+
+// Every deal shows the same offers. An override replaces the price for one customer
+// and leaves the hours and service on the company card.
+export function cascadeOffers(base: OfferRate[], overrides: RateOverride[] | null): OfferRate[] {
+  return base.map((offer) => {
+    if (!overrides) return offer;
+    const custom = overrides.find((row) => row.sortOrder === offer.sortOrder);
+    if (!custom) return offer;
+    return {
+      ...offer,
+      listRateCents: custom.listRateCents,
+      cashRateCents: custom.cashRateCents,
+    };
+  });
+}
+
 export function packageRates(
   pkg: {
     hoursPerWeek: number;

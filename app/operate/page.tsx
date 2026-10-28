@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { listDeals } from "@/lib/operate/deals";
+import { listBaseRates, listDeals } from "@/lib/operate/deals";
 import { termLabel } from "@/lib/operate/pricing";
-import { createDealAction } from "./actions";
+import { createDealAction, saveBaseRatesAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -22,10 +22,25 @@ const inputStyle = {
   minWidth: 240,
 } as const;
 
+const fieldStyle = {
+  ...inputStyle,
+  width: "100%",
+  minWidth: 0,
+  boxSizing: "border-box",
+} as const;
+
+function one(value: string | string[] | undefined): string {
+  return Array.isArray(value) ? (value[0] ?? "") : (value ?? "");
+}
+
+function centsToInput(cents: number): string {
+  return cents % 100 === 0 ? String(cents / 100) : (cents / 100).toFixed(2);
+}
+
 export default async function OperatePage({
   searchParams,
 }: {
-  searchParams: { error?: string | string[] };
+  searchParams: { error?: string | string[]; message?: string | string[]; saved?: string | string[] };
 }) {
   const session = await auth();
   if (!session) redirect("/operate/sign-in");
@@ -38,12 +53,84 @@ export default async function OperatePage({
     );
   }
 
-  const deals = await listDeals();
+  const [deals, rates] = await Promise.all([listDeals(), listBaseRates()]);
+  const error = one(searchParams.error);
+  const notice = error === "rates" ? one(searchParams.message) : "";
 
   return (
     <main style={pageStyle}>
       <h1 style={{ margin: 0, fontSize: 32, fontWeight: 500 }}>Operate</h1>
-      {searchParams.error === "company" ? <p>Enter a company name.</p> : null}
+      {error === "company" ? <p>Enter a company name.</p> : null}
+      {notice ? <p>{notice}</p> : null}
+      {one(searchParams.saved) === "rates" ? <p>Company rates saved. Deals without a custom price use them.</p> : null}
+
+      <form action={saveBaseRatesAction} style={{ margin: "32px 0" }}>
+        <h2 style={{ margin: "0 0 8px", fontSize: 18, fontWeight: 600 }}>Company rates</h2>
+        <p style={{ margin: "0 0 16px", fontSize: 14 }}>
+          Every deal uses these offers. A customer can override the price.
+        </p>
+        {rates.map((rate) => (
+          <div
+            key={rate.sortOrder}
+            style={{ display: "grid", gap: 8, gridTemplateColumns: "1.4fr 0.7fr 0.8fr 0.8fr", marginBottom: 12 }}
+          >
+            <label style={{ display: "grid", gap: 4, fontSize: 14 }}>
+              <span>Service</span>
+              <input
+                name={`offer${rate.sortOrder}Service`}
+                defaultValue={rate.serviceName}
+                required
+                style={fieldStyle}
+              />
+            </label>
+            <label style={{ display: "grid", gap: 4, fontSize: 14 }}>
+              <span>Hours / week</span>
+              <input
+                name={`offer${rate.sortOrder}Hours`}
+                type="number"
+                min={1}
+                step={1}
+                defaultValue={rate.hoursPerWeek}
+                required
+                style={fieldStyle}
+              />
+            </label>
+            <label style={{ display: "grid", gap: 4, fontSize: 14 }}>
+              <span>List ($/hr)</span>
+              <input
+                name={`offer${rate.sortOrder}List`}
+                inputMode="decimal"
+                defaultValue={centsToInput(rate.listRateCents)}
+                required
+                style={fieldStyle}
+              />
+            </label>
+            <label style={{ display: "grid", gap: 4, fontSize: 14 }}>
+              <span>Cash ($/hr)</span>
+              <input
+                name={`offer${rate.sortOrder}Cash`}
+                inputMode="decimal"
+                defaultValue={centsToInput(rate.cashRateCents)}
+                required
+                style={fieldStyle}
+              />
+            </label>
+          </div>
+        ))}
+        <button
+          type="submit"
+          style={{
+            font: "inherit",
+            color: "#FAF6EC",
+            background: "#070F18",
+            border: 0,
+            padding: "8px 16px",
+            cursor: "pointer",
+          }}
+        >
+          Save rates
+        </button>
+      </form>
 
       <form
         action={createDealAction}
@@ -99,6 +186,9 @@ export default async function OperatePage({
                   >
                     Client page
                   </a>
+                  <span style={{ opacity: 0.6 }}>
+                    {deal.ratesOverridden ? "Custom rates" : "Company rates"}
+                  </span>
                   <span style={{ opacity: 0.6 }}>{termLabel(deal.termLength)}</span>
                 </span>
               </div>

@@ -1,14 +1,16 @@
 import crypto from "node:crypto";
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq, inArray } from "drizzle-orm";
 import { getDb } from "./db";
 import {
+  cascadeOffers,
   termLabel,
   toLetterPackage,
   validatePackage,
   type LetterDeal,
+  type OfferRate,
   type TermLength,
 } from "./pricing";
-import { deals, packages } from "./schema";
+import { baseRates, deals, packages } from "./schema";
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -34,6 +36,7 @@ export type DealRecord = {
   avatarUrl: string | null;
   companyLogoUrl: string | null;
   equityEnabled: boolean;
+  ratesOverridden: boolean;
   termLength: TermLength;
   round: string | null;
   valuationDollars: bigint | null;
@@ -62,6 +65,7 @@ export type DealDraft = {
   avatarUrl: string | null;
   companyLogoUrl: string | null;
   equityEnabled: boolean;
+  ratesOverridden: boolean;
   termLength: TermLength;
   round: string | null;
   valuationDollars: bigint | null;
@@ -76,6 +80,7 @@ export type DealListItem = {
   contactName: string;
   contactRole: string;
   termLength: TermLength;
+  ratesOverridden: boolean;
 };
 
 type DealRow = typeof deals.$inferSelect;
@@ -124,6 +129,7 @@ function toDealRecord(deal: DealRow, rows: PackageRow[]): DealRecord {
     avatarUrl: deal.avatarUrl,
     companyLogoUrl: deal.companyLogoUrl,
     equityEnabled: deal.equityEnabled,
+    ratesOverridden: deal.ratesOverridden,
     termLength: termFromColumn(deal.termLength),
     round: deal.round,
     valuationDollars: deal.valuationDollars,
@@ -135,16 +141,157 @@ function toDealRecord(deal: DealRow, rows: PackageRow[]): DealRecord {
   };
 }
 
+const DEFAULT_OFFERS: OfferRate[] = [
+  {
+    serviceName: "Design Engineering",
+    hoursPerWeek: 40,
+    listRateCents: 0,
+    cashRateCents: 0,
+    sortOrder: 0,
+  },
+  {
+    serviceName: "Design Engineering",
+    hoursPerWeek: 80,
+    listRateCents: 0,
+    cashRateCents: 0,
+    sortOrder: 1,
+  },
+];
+
+function toOffer(row: typeof baseRates.$inferSelect): OfferRate {
+  return {
+    serviceName: row.serviceName,
+    hoursPerWeek: row.hoursPerWeek,
+    listRateCents: row.listRateCents,
+    cashRateCents: row.cashRateCents,
+    sortOrder: row.sortOrder,
+  };
+}
+
+export async function listBaseRates(): Promise<OfferRate[]> {
+  const db = getDb();
+  const rows = await db.select().from(baseRates).orderBy(asc(baseRates.sortOrder), asc(baseRates.id));
+  if (rows.length > 0) return rows.map(toOffer);
+  await db.insert(baseRates).values(DEFAULT_OFFERS);
+  return DEFAULT_OFFERS;
+}
+
+export async function saveBaseRates(
+  offers: OfferRate[],
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (offers.length === 0) return { ok: false, error: "Add at least one offer." };
+  for (const offer of offers) {
+    if (offer.serviceName.trim() === "") return { ok: false, error: "Service name is required." };
+    if (!Number.isInteger(offer.hoursPerWeek) || offer.hoursPerWeek < 1) {
+      return { ok: false, error: "Hours per week must be a positive whole number." };
+    }
+    if (!Number.isInteger(offer.listRateCents) || offer.listRateCents < 0) {
+      return { ok: false, error: "List rate must be zero or more." };
+    }
+    if (!Number.isInteger(offer.cashRateCents) || offer.cashRateCents < 0) {
+      return { ok: false, error: "Cash rate must be zero or more." };
+    }
+    if (offer.cashRateCents > offer.listRateCents) {
+      return { ok: false, error: "Cash rate cannot exceed the list rate." };
+    }
+  }
+
+  const db = getDb();
+  const existing = await db.select().from(baseRates).orderBy(asc(baseRates.sortOrder));
+  const standardDeals = await db
+    .select({ id: deals.id })
+    .from(deals)
+    .where(eq(deals.ratesOverridden, false));
+  const standardIds = standardDeals.map((row) => row.id);
+
+  await db.transaction(async (tx) => {
+    for (const offer of offers) {
+      const current = existing.find((row) => row.sortOrder === offer.sortOrder);
+      const values = {
+        serviceName: offer.serviceName.trim(),
+        hoursPerWeek: offer.hoursPerWeek,
+        listRateCents: offer.listRateCents,
+        cashRateCents: offer.cashRateCents,
+        sortOrder: offer.sortOrder,
+      };
+      if (current) {
+        await tx.update(baseRates).set(values).where(eq(baseRates.id, current.id));
+      } else {
+        await tx.insert(baseRates).values(values);
+      }
+      await tx
+        .update(packages)
+        .set({ serviceName: values.serviceName, hoursPerWeek: values.hoursPerWeek, enabled: true })
+        .where(eq(packages.sortOrder, offer.sortOrder));
+      if (standardIds.length > 0) {
+        await tx
+          .update(packages)
+          .set({ listRateCents: values.listRateCents, cashRateCents: values.cashRateCents })
+          .where(and(eq(packages.sortOrder, offer.sortOrder), inArray(packages.dealId, standardIds)));
+      }
+    }
+  });
+  return { ok: true };
+}
+
+function presentOffers(base: OfferRate[], rows: PackageRow[], ratesOverridden: boolean): PackageRow[] {
+  const overrides = ratesOverridden
+    ? rows.map((row) => ({
+        sortOrder: row.sortOrder,
+        listRateCents: row.listRateCents,
+        cashRateCents: row.cashRateCents,
+      }))
+    : null;
+  const offers = cascadeOffers(base, overrides);
+  return offers.map((offer) => {
+    const existing = rows.find((row) => row.sortOrder === offer.sortOrder);
+    return {
+      id: existing?.id ?? crypto.randomUUID(),
+      dealId: existing?.dealId ?? rows[0]?.dealId ?? "",
+      serviceName: offer.serviceName,
+      hoursPerWeek: offer.hoursPerWeek,
+      enabled: true,
+      listRateCents: offer.listRateCents,
+      cashRateCents: offer.cashRateCents,
+      sortOrder: offer.sortOrder,
+    };
+  });
+}
+
+async function ensureOfferRows(dealId: string, base: OfferRate[], rows: PackageRow[]): Promise<PackageRow[]> {
+  const missing = base.filter((offer) => !rows.some((row) => row.sortOrder === offer.sortOrder));
+  if (missing.length === 0) return rows;
+  const db = getDb();
+  const inserted = await db
+    .insert(packages)
+    .values(
+      missing.map((offer) => ({
+        id: crypto.randomUUID(),
+        dealId,
+        serviceName: offer.serviceName,
+        hoursPerWeek: offer.hoursPerWeek,
+        enabled: true,
+        listRateCents: offer.listRateCents,
+        cashRateCents: offer.cashRateCents,
+        sortOrder: offer.sortOrder,
+      })),
+    )
+    .returning();
+  return [...rows, ...inserted];
+}
+
 async function readDeal(where: ReturnType<typeof eq>): Promise<DealRecord | null> {
   const db = getDb();
   const [deal] = await db.select().from(deals).where(where).limit(1);
   if (!deal) return null;
-  const rows = await db
+  const base = await listBaseRates();
+  const stored = await db
     .select()
     .from(packages)
     .where(eq(packages.dealId, deal.id))
     .orderBy(asc(packages.sortOrder), asc(packages.id));
-  return toDealRecord(deal, rows);
+  const rows = await ensureOfferRows(deal.id, base, stored);
+  return toDealRecord(deal, presentOffers(base, rows, deal.ratesOverridden));
 }
 
 function draftError(input: DealDraft): string | null {
@@ -185,6 +332,7 @@ export async function listDeals(): Promise<DealListItem[]> {
       contactName: deals.contactName,
       contactRole: deals.contactRole,
       termLength: deals.termLength,
+      ratesOverridden: deals.ratesOverridden,
     })
     .from(deals)
     .orderBy(asc(deals.companyName), asc(deals.id));
@@ -195,6 +343,7 @@ export async function listDeals(): Promise<DealListItem[]> {
     contactName: row.contactName,
     contactRole: row.contactRole,
     termLength: termFromColumn(row.termLength),
+    ratesOverridden: row.ratesOverridden,
   }));
 }
 
@@ -211,9 +360,19 @@ export async function createDeal(input: { companyName: string }): Promise<DealRe
   const companyName = input.companyName.trim();
   if (companyName === "") throw new Error("Company name is required.");
   const db = getDb();
+  const base = await listBaseRates();
   const id = crypto.randomUUID();
-  const packageId = crypto.randomUUID();
   const token = crypto.randomBytes(32).toString("base64url");
+  const offerRows = base.map((offer) => ({
+    id: crypto.randomUUID(),
+    dealId: id,
+    serviceName: offer.serviceName,
+    hoursPerWeek: offer.hoursPerWeek,
+    enabled: true,
+    listRateCents: offer.listRateCents,
+    cashRateCents: offer.cashRateCents,
+    sortOrder: offer.sortOrder,
+  }));
   const record: DealRecord = {
     id,
     token,
@@ -224,6 +383,7 @@ export async function createDeal(input: { companyName: string }): Promise<DealRe
     avatarUrl: null,
     companyLogoUrl: null,
     equityEnabled: false,
+    ratesOverridden: false,
     termLength: "six-month",
     round: null,
     valuationDollars: null,
@@ -231,24 +391,11 @@ export async function createDeal(input: { companyName: string }): Promise<DealRe
     selectedPackageId: null,
     hubspotContactId: null,
     hubspotDealId: null,
-    packages: [
-      {
-        id: packageId,
-        dealId: id,
-        serviceName: "Design Engineering",
-        hoursPerWeek: 40,
-        enabled: true,
-        listRateCents: 0,
-        cashRateCents: 0,
-        sortOrder: 0,
-      },
-    ],
+    packages: offerRows,
   };
-  const pkg = record.packages[0];
-  if (!pkg) throw new Error("Could not create the package.");
   await db.transaction(async (tx) => {
-    await tx.insert(deals).values({ id, token, companyName });
-    await tx.insert(packages).values(pkg);
+    await tx.insert(deals).values({ id, token, companyName, ratesOverridden: false });
+    await tx.insert(packages).values(offerRows);
   });
   return record;
 }
@@ -287,6 +434,7 @@ export async function saveDeal(
     avatarUrl: input.avatarUrl,
     companyLogoUrl: input.companyLogoUrl,
     equityEnabled: input.equityEnabled,
+    ratesOverridden: input.ratesOverridden,
     termLength: input.termLength,
     round: blankToNull(input.round),
     valuationDollars: input.valuationDollars,
