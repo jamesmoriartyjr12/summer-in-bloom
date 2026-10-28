@@ -1,0 +1,99 @@
+export type TermLength = "six-month" | "one-year" | "multi-year";
+
+export function termLabel(term: TermLength): string {
+  if (term === "six-month") return "Six months";
+  if (term === "one-year") return "One year";
+  return "Multi-year";
+}
+
+export function weeklyAmountCents(hoursPerWeek: number, rateCents: number): number {
+  return hoursPerWeek * rateCents;
+}
+
+export function equityPerHourCents(listRateCents: number, cashRateCents: number): number {
+  return listRateCents - cashRateCents;
+}
+
+export function equityPerWeekCents(
+  hoursPerWeek: number,
+  listRateCents: number,
+  cashRateCents: number,
+): number {
+  return hoursPerWeek * (listRateCents - cashRateCents);
+}
+
+export function formatDollars(cents: number): string {
+  const sign = cents < 0 ? "-" : "";
+  const absolute = Math.abs(cents);
+  const dollars = Math.trunc(absolute / 100);
+  const remainder = absolute % 100;
+  const formatted = dollars.toLocaleString("en-US");
+  if (remainder === 0) return `${sign}$${formatted}`;
+  return `${sign}$${formatted}.${String(remainder).padStart(2, "0")}`;
+}
+
+export type PackageInput = {
+  serviceName: string;
+  hoursPerWeek: number;
+  enabled: boolean;
+  listRateCents: number;
+  cashRateCents: number;
+  equityEnabled: boolean;
+};
+
+export function validatePackage(input: PackageInput): string | null {
+  if (input.serviceName.trim() === "") return "Service name is required.";
+  if (!Number.isInteger(input.hoursPerWeek) || input.hoursPerWeek < 1) {
+    return "Hours per week must be a positive whole number.";
+  }
+  if (!Number.isInteger(input.listRateCents) || input.listRateCents < 0) {
+    return "List rate must be zero or more.";
+  }
+  if (!Number.isInteger(input.cashRateCents) || input.cashRateCents < 0) {
+    return "Cash rate must be zero or more.";
+  }
+  if (input.equityEnabled && input.cashRateCents > input.listRateCents) {
+    return "Cash rate cannot exceed the list rate.";
+  }
+  return null;
+}
+
+export type LetterPackage = {
+  id: string;
+  serviceName: string;
+  hoursPerWeek: number;
+  listRateCents: number;
+  cashRateCents: number;
+  weeklyListCents: number;
+  weeklyCashCents: number;
+  equityPerHourCents: number;
+  equityPerWeekCents: number;
+};
+
+export type LetterDeal = {
+  companyName: string;
+  termLabel: string;
+  equityEnabled: boolean;
+  packages: LetterPackage[];
+  selectedPackageId: string | null;
+};
+
+export function toLetterPackage(pkg: {
+  id: string;
+  serviceName: string;
+  hoursPerWeek: number;
+  listRateCents: number;
+  cashRateCents: number;
+}): LetterPackage {
+  return {
+    id: pkg.id,
+    serviceName: pkg.serviceName,
+    hoursPerWeek: pkg.hoursPerWeek,
+    listRateCents: pkg.listRateCents,
+    cashRateCents: pkg.cashRateCents,
+    weeklyListCents: weeklyAmountCents(pkg.hoursPerWeek, pkg.listRateCents),
+    weeklyCashCents: weeklyAmountCents(pkg.hoursPerWeek, pkg.cashRateCents),
+    equityPerHourCents: equityPerHourCents(pkg.listRateCents, pkg.cashRateCents),
+    equityPerWeekCents: equityPerWeekCents(pkg.hoursPerWeek, pkg.listRateCents, pkg.cashRateCents),
+  };
+}

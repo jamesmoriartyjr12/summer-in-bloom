@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test lib/operate/pricing.test.ts"
   },
   "dependencies": {
     "framer-motion": "^11.5.4",
@@ -27,6 +28,7 @@
     "postcss": "^8.4.47",
     "sharp": "^0.35.3",
     "tailwindcss": "^3.4.13",
+    "tsx": "^4.23.15",
     "typescript": "^5.6.3"
   }
 }
