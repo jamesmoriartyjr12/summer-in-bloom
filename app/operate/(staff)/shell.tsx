@@ -134,7 +134,7 @@ export function OperateShell({
         <header className="sticky top-0 z-20 flex h-12 shrink-0 items-center gap-3 border-b border-border bg-background px-3">
           <SidebarTrigger />
           <span className="operate-label text-muted-foreground">
-            {current ? `Deals / ${current.companyName}` : "Deals"}
+            {current ? `Deals / ${current.companyName}` : pathname === "/operate/new" ? "Deals / New deal" : "Deals"}
           </span>
         </header>
         {children}

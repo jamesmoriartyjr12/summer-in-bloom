@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition, type FormEvent } from "react";
 import { DealLetter } from "@/components/operate/DealLetter";
 import {
@@ -10,8 +11,9 @@ import {
   type LetterDeal,
   type TermLength,
 } from "@/lib/operate/pricing";
-import { lookupLinkedInAction, saveDealAction } from "@/app/operate/actions";
+import { createDealAction, lookupLinkedInAction, saveDealAction } from "@/app/operate/actions";
 
+// A deal with an empty id and token has not been saved yet.
 export type EditorDeal = {
   id: string;
   token: string;
@@ -243,6 +245,8 @@ export function Editor({ deal }: { deal: EditorDeal }) {
   const [pending, startTransition] = useTransition();
   const [origin, setOrigin] = useState("");
   const [copied, setCopied] = useState(false);
+  const router = useRouter();
+  const isNew = deal.id === "";
 
   useEffect(() => {
     setOrigin(window.location.origin);
@@ -270,6 +274,15 @@ export function Editor({ deal }: { deal: EditorDeal }) {
     const formData = new FormData(event.currentTarget);
     startTransition(async () => {
       try {
+        if (isNew) {
+          const created = await createDealAction(formData);
+          if (created.ok) {
+            router.push(`/operate/${created.id}`);
+            return;
+          }
+          setMessage({ ok: false, text: created.error });
+          return;
+        }
         const result = await saveDealAction(deal.id, formData);
         setMessage(
           result.ok
@@ -329,7 +342,7 @@ export function Editor({ deal }: { deal: EditorDeal }) {
         <Link href="/operate" style={{ color: "inherit", fontSize: 14 }}>
           All deals
         </Link>
-        <h1>{fields.companyName || "Deal"}</h1>
+        <h1>{fields.companyName || (isNew ? "New deal" : "Deal")}</h1>
 
         <fieldset>
           <legend>Letter</legend>
@@ -405,20 +418,22 @@ export function Editor({ deal }: { deal: EditorDeal }) {
           </label>
         </fieldset>
 
-        <fieldset>
-          <legend>Private link</legend>
-          <div className="operate-editor__link">
-            <input type="text" readOnly value={origin ? link : ""} aria-label="Private link" />
-            <button type="button" onClick={copyLink} disabled={!origin}>
-              {copied ? "Copied" : "Copy"}
-            </button>
-          </div>
-          <p style={{ margin: "8px 0 0", fontSize: 14 }}>
-            <a href={`/operate/d/${deal.token}`} target="_blank" rel="noreferrer" style={{ color: "inherit" }}>
-              Open the client page
-            </a>
-          </p>
-        </fieldset>
+        {isNew ? null : (
+          <fieldset>
+            <legend>Private link</legend>
+            <div className="operate-editor__link">
+              <input type="text" readOnly value={origin ? link : ""} aria-label="Private link" />
+              <button type="button" onClick={copyLink} disabled={!origin}>
+                {copied ? "Copied" : "Copy"}
+              </button>
+            </div>
+            <p style={{ margin: "8px 0 0", fontSize: 14 }}>
+              <a href={`/operate/d/${deal.token}`} target="_blank" rel="noreferrer" style={{ color: "inherit" }}>
+                Open the client page
+              </a>
+            </p>
+          </fieldset>
+        )}
 
         <fieldset>
           <legend>Offers</legend>
@@ -509,7 +524,7 @@ export function Editor({ deal }: { deal: EditorDeal }) {
 
         <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
           <button type="submit" disabled={pending}>
-            {pending ? "Saving" : "Save"}
+            {pending ? "Saving" : isNew ? "Create deal" : "Save"}
           </button>
           {message ? (
             <span role="status" style={{ color: message.ok ? "inherit" : "#FA4C1F" }}>
@@ -522,9 +537,13 @@ export function Editor({ deal }: { deal: EditorDeal }) {
       <div className="operate-editor__preview">
         <div className="operate-editor__preview-bar">
           <span>Client letter</span>
-          <a href={`/operate/d/${deal.token}`} target="_blank" rel="noreferrer">
-            Open the client page
-          </a>
+          {isNew ? (
+            <span>The private link appears once the deal is created.</span>
+          ) : (
+            <a href={`/operate/d/${deal.token}`} target="_blank" rel="noreferrer">
+              Open the client page
+            </a>
+          )}
         </div>
         <DealLetter deal={letter} mode="preview" />
       </div>

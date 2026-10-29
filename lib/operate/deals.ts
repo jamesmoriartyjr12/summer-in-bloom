@@ -422,48 +422,47 @@ export async function getDealByToken(token: string): Promise<DealRecord | null> 
   return readDeal(eq(deals.token, token));
 }
 
-export async function createDeal(input: { companyName: string }): Promise<DealRecord> {
-  const companyName = input.companyName.trim();
-  if (companyName === "") throw new Error("Company name is required.");
+export async function createDeal(
+  input: DealDraft,
+): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
+  const error = draftError(input);
+  if (error) return { ok: false, error };
   const db = getDb();
-  const base = await listBaseRates();
   const id = crypto.randomUUID();
   const token = crypto.randomBytes(32).toString("base64url");
-  const offerRows = base.map((offer) => ({
-    id: crypto.randomUUID(),
-    dealId: id,
-    serviceName: offer.serviceName,
-    hoursPerWeek: offer.hoursPerWeek,
-    enabled: true,
-    listRateCents: offer.listRateCents,
-    cashRateCents: offer.cashRateCents,
-    sortOrder: offer.sortOrder,
-  }));
-  const record: DealRecord = {
-    id,
-    token,
-    companyName,
-    contactName: "",
-    contactRole: "",
-    linkedinUrl: null,
-    avatarUrl: null,
-    companyLogoUrl: null,
-    equityEnabled: false,
-    ratesOverridden: false,
-    termLength: "six-month",
-    round: null,
-    valuationDollars: null,
-    hourlyCostCents: null,
-    selectedPackageId: null,
-    hubspotContactId: null,
-    hubspotDealId: null,
-    packages: offerRows,
-  };
   await db.transaction(async (tx) => {
-    await tx.insert(deals).values({ id, token, companyName, ratesOverridden: false });
-    await tx.insert(packages).values(offerRows);
+    await tx.insert(deals).values({
+      id,
+      token,
+      companyName: input.companyName.trim(),
+      contactName: input.contactName,
+      contactRole: input.contactRole,
+      linkedinUrl: blankToNull(input.linkedinUrl),
+      avatarUrl: input.avatarUrl,
+      companyLogoUrl: input.companyLogoUrl,
+      equityEnabled: input.equityEnabled,
+      ratesOverridden: input.ratesOverridden,
+      termLength: input.termLength,
+      round: blankToNull(input.round),
+      valuationDollars: input.valuationDollars,
+      hourlyCostCents: input.hourlyCostCents,
+    });
+    if (input.packages.length > 0) {
+      await tx.insert(packages).values(
+        input.packages.map((pkg) => ({
+          id: crypto.randomUUID(),
+          dealId: id,
+          serviceName: pkg.serviceName,
+          hoursPerWeek: pkg.hoursPerWeek,
+          enabled: pkg.enabled,
+          listRateCents: pkg.listRateCents,
+          cashRateCents: pkg.cashRateCents,
+          sortOrder: pkg.sortOrder,
+        })),
+      );
+    }
   });
-  return record;
+  return { ok: true, id };
 }
 
 export async function saveDeal(

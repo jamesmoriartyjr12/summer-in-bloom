@@ -9,6 +9,7 @@ import {
   billableHourCents,
   cascadeOffers,
   contractValueCents,
+  equityValueCents,
   packageRates,
   termWeeks,
   validatePackage,
@@ -32,6 +33,8 @@ describe("amplifier pricing", () => {
     assert.equal(contractValueCents(40, 15000, "six-month"), 15600000);
     assert.equal(contractValueCents(80, 15000, "one-year"), 62400000);
     assert.equal(contractValueCents(40, 15000, "multi-year"), null);
+    assert.equal(equityValueCents(80, 19000, 15000, "one-year"), 16640000);
+    assert.equal(equityValueCents(80, 19000, 15000, "multi-year"), null);
   });
 
   it("names the term", () => {

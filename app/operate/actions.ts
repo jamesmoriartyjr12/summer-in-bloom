@@ -3,7 +3,16 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { auth, signOut } from "@/auth";
-import { createDeal, getDeal, listBaseRates, saveBaseRates, saveDeal, type DealDraft, type PackageDraft } from "@/lib/operate/deals";
+import {
+  createDeal,
+  getDeal,
+  listBaseRates,
+  saveBaseRates,
+  saveDeal,
+  type DealDraft,
+  type DealRecord,
+  type PackageDraft,
+} from "@/lib/operate/deals";
 import { readLinkedInProfile } from "@/lib/operate/linkedin";
 import { cascadeOffers, type TermLength } from "@/lib/operate/pricing";
 
@@ -102,13 +111,66 @@ export async function saveBaseRatesAction(formData: FormData): Promise<void> {
   redirect("/operate?saved=rates");
 }
 
-export async function createDealAction(formData: FormData): Promise<void> {
+async function completeDraft(
+  formData: FormData,
+  existing: DealRecord | null,
+): Promise<{ draft: DealDraft; notice?: string } | { ok: false; error: string }> {
+  const draft = parseDraft(formData);
+  if ("error" in draft) return { ok: false, error: draft.error };
+  let notice: string | undefined;
+  if (draft.linkedinUrl) {
+    const profile = await readLinkedInProfile(draft.linkedinUrl);
+    if (!profile.ok) return profile;
+    draft.linkedinUrl = profile.url;
+    if (profile.limited) {
+      if (draft.contactName.trim() === "") draft.contactName = profile.profile.name;
+      const sameLink = existing?.linkedinUrl === profile.url;
+      draft.avatarUrl = sameLink ? (existing?.avatarUrl ?? null) : null;
+      draft.companyLogoUrl = sameLink ? (existing?.companyLogoUrl ?? null) : null;
+      notice = "Saved. LinkedIn is not showing a public profile, so the name comes from the link.";
+    } else {
+      draft.contactName = profile.profile.name;
+      draft.avatarUrl = profile.profile.avatarUrl;
+      draft.companyLogoUrl = profile.profile.companyLogoUrl;
+      if (profile.profile.headline) draft.contactRole = profile.profile.headline;
+      if (profile.profile.company) draft.companyName = profile.profile.company;
+    }
+  }
+  const base = await listBaseRates();
+  const offers = cascadeOffers(
+    base,
+    draft.ratesOverridden
+      ? draft.packages.map((pkg) => ({
+          sortOrder: pkg.sortOrder,
+          listRateCents: pkg.listRateCents,
+          cashRateCents: pkg.cashRateCents,
+        }))
+      : null,
+  );
+  draft.packages = offers.map((offer) => {
+    const current = draft.packages.find((pkg) => pkg.sortOrder === offer.sortOrder);
+    return {
+      ...(current?.id ? { id: current.id } : {}),
+      serviceName: offer.serviceName,
+      hoursPerWeek: offer.hoursPerWeek,
+      enabled: true,
+      listRateCents: offer.listRateCents,
+      cashRateCents: offer.cashRateCents,
+      sortOrder: offer.sortOrder,
+    };
+  });
+  return { draft, notice };
+}
+
+export async function createDealAction(
+  formData: FormData,
+): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
   await requireSession();
-  const companyName = text(formData, "companyName").trim();
-  if (companyName === "") redirect("/operate?error=company");
-  const deal = await createDeal({ companyName });
-  revalidatePath("/operate");
-  redirect(`/operate/${deal.id}`);
+  const completed = await completeDraft(formData, null);
+  if (!("draft" in completed)) return completed;
+  const result = await createDeal(completed.draft);
+  if (result.ok) revalidatePath("/operate");
+  return result;
 }
 
 export async function lookupLinkedInAction(raw: string): Promise<
@@ -139,51 +201,9 @@ export async function lookupLinkedInAction(raw: string): Promise<
 
 export async function saveDealAction(dealId: string, formData: FormData): Promise<SaveResult> {
   await requireSession();
-  const draft = parseDraft(formData);
-  if ("error" in draft) return { ok: false, error: draft.error };
-  let notice: string | undefined;
-  if (draft.linkedinUrl) {
-    const profile = await readLinkedInProfile(draft.linkedinUrl);
-    if (!profile.ok) return profile;
-    draft.linkedinUrl = profile.url;
-    if (profile.limited) {
-      if (draft.contactName.trim() === "") draft.contactName = profile.profile.name;
-      const existing = await getDeal(dealId);
-      const sameLink = existing?.linkedinUrl === profile.url;
-      draft.avatarUrl = sameLink ? (existing?.avatarUrl ?? null) : null;
-      draft.companyLogoUrl = sameLink ? (existing?.companyLogoUrl ?? null) : null;
-      notice = "Saved. LinkedIn is not showing a public profile, so the name comes from the link.";
-    } else {
-      draft.contactName = profile.profile.name;
-      draft.avatarUrl = profile.profile.avatarUrl;
-      draft.companyLogoUrl = profile.profile.companyLogoUrl;
-      if (profile.profile.headline) draft.contactRole = profile.profile.headline;
-      if (profile.profile.company) draft.companyName = profile.profile.company;
-    }
-  }
-  const base = await listBaseRates();
-  const offers = cascadeOffers(
-    base,
-    draft.ratesOverridden
-      ? draft.packages.map((pkg) => ({
-          sortOrder: pkg.sortOrder,
-          listRateCents: pkg.listRateCents,
-          cashRateCents: pkg.cashRateCents,
-        }))
-      : null,
-  );
-  draft.packages = offers.map((offer) => {
-    const existing = draft.packages.find((pkg) => pkg.sortOrder === offer.sortOrder);
-    return {
-      ...(existing?.id ? { id: existing.id } : {}),
-      serviceName: offer.serviceName,
-      hoursPerWeek: offer.hoursPerWeek,
-      enabled: true,
-      listRateCents: offer.listRateCents,
-      cashRateCents: offer.cashRateCents,
-      sortOrder: offer.sortOrder,
-    };
-  });
+  const completed = await completeDraft(formData, await getDeal(dealId));
+  if (!("draft" in completed)) return completed;
+  const { draft, notice } = completed;
   const result = await saveDeal(dealId, draft);
   if (result.ok) {
     revalidatePath("/operate");

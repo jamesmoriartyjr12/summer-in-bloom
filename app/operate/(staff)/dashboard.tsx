@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -132,8 +131,4 @@ export function DealDashboard({
       </Dialog>
     </>
   );
-}
-
-export function RateBadge({ custom }: { custom: boolean }) {
-  return <Badge>{custom ? "Custom" : "Baseline"}</Badge>;
 }

@@ -28,6 +28,16 @@ export function contractValueCents(hoursPerWeek: number, rateCents: number, term
   return weeks === null ? null : weeklyAmountCents(hoursPerWeek, rateCents) * weeks;
 }
 
+export function equityValueCents(
+  hoursPerWeek: number,
+  listRateCents: number,
+  cashRateCents: number,
+  term: TermLength,
+): number | null {
+  const weeks = termWeeks(term);
+  return weeks === null ? null : equityPerWeekCents(hoursPerWeek, listRateCents, cashRateCents) * weeks;
+}
+
 export function equityPerHourCents(listRateCents: number, cashRateCents: number): number {
   return listRateCents - cashRateCents;
 }

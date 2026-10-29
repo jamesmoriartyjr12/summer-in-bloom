@@ -1,30 +1,30 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowDown, ArrowUp } from "lucide-react";
+import { ArrowDown, ArrowUp, Plus } from "lucide-react";
 import { auth } from "@/auth";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Item, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from "@/components/ui/item";
 import { listDashboard, type DashboardDeal } from "@/lib/operate/deals";
 import {
   averageBillableCents,
   billableHourCents,
   contractValueCents,
+  equityValueCents,
   formatDollars,
   termLabel,
   termWeeks,
+  type OfferRate,
 } from "@/lib/operate/pricing";
-import { createDealAction } from "@/app/operate/actions";
 import { DealAvatar } from "./deal-avatar";
-import { DealDashboard, RateBadge } from "./dashboard";
+import { DealDashboard } from "./dashboard";
 
 export const dynamic = "force-dynamic";
 
-const SORTS = ["company", "hours", "length", "value"] as const;
+const SORTS = ["company", "hours", "length", "value", "equity"] as const;
 type Sort = (typeof SORTS)[number];
 type Direction = "asc" | "desc";
 
-const COLUMNS = "md:grid md:grid-cols-[minmax(0,1fr)_6.5rem_7rem_9rem_6.5rem_8rem] md:gap-6";
+const COLUMNS = "md:grid md:grid-cols-[minmax(0,1fr)_5.5rem_7rem_8.5rem_8.5rem_8rem] md:gap-6";
 
 function one(value: string | string[] | undefined): string {
   return Array.isArray(value) ? (value[0] ?? "") : (value ?? "");
@@ -36,27 +36,51 @@ function isSort(value: string): value is Sort {
 
 type PipelineRow = {
   deal: DashboardDeal;
-  hoursPerWeek: number | null;
+  quoted: OfferRate | null;
   weeks: number | null;
   valueCents: number | null;
+  equityCents: number | null;
 };
 
 function toRow(deal: DashboardDeal): PipelineRow {
-  const quoted = deal.offers.find((offer) => offer.sortOrder === deal.selectedSortOrder) ?? deal.offers[0];
-  if (!quoted) return { deal, hoursPerWeek: null, weeks: termWeeks(deal.termLength), valueCents: null };
+  const quoted = deal.offers.find((offer) => offer.sortOrder === deal.selectedSortOrder) ?? deal.offers[0] ?? null;
+  const weeks = termWeeks(deal.termLength);
+  if (!quoted) return { deal, quoted, weeks, valueCents: null, equityCents: null };
   const rate = billableHourCents(quoted.listRateCents, quoted.cashRateCents, deal.equityEnabled);
   return {
     deal,
-    hoursPerWeek: quoted.hoursPerWeek,
-    weeks: termWeeks(deal.termLength),
+    quoted,
+    weeks,
     valueCents: contractValueCents(quoted.hoursPerWeek, rate, deal.termLength),
+    equityCents: deal.equityEnabled
+      ? equityValueCents(quoted.hoursPerWeek, quoted.listRateCents, quoted.cashRateCents, deal.termLength)
+      : null,
   };
 }
 
 function sortKey(row: PipelineRow, sort: Exclude<Sort, "company">): number | null {
-  if (sort === "hours") return row.hoursPerWeek;
+  if (sort === "hours") return row.quoted?.hoursPerWeek ?? null;
   if (sort === "length") return row.weeks;
+  if (sort === "equity") return row.equityCents;
   return row.valueCents;
+}
+
+function Money({ cents }: { cents: number | null }) {
+  if (cents === null) return <span className="text-right text-muted-foreground">—</span>;
+  return <span className="text-right text-base font-medium tabular-nums">{formatDollars(cents)}</span>;
+}
+
+function Rates({ deal, quoted }: { deal: DashboardDeal; quoted: OfferRate | null }) {
+  if (!quoted) return <span className="text-right text-muted-foreground">—</span>;
+  return (
+    <span className="grid justify-items-end gap-0.5 text-right tabular-nums">
+      <span>{formatDollars(quoted.listRateCents)}/hr</span>
+      {deal.equityEnabled ? (
+        <span className="text-xs text-muted-foreground">{formatDollars(quoted.cashRateCents)} cash</span>
+      ) : null}
+      {deal.ratesOverridden ? <span className="operate-label text-[10px] text-orange">Custom</span> : null}
+    </span>
+  );
 }
 
 function sortRows(rows: PipelineRow[], sort: Sort, direction: Direction): PipelineRow[] {
@@ -140,15 +164,13 @@ export default async function OperatePage({
           <p className="operate-label text-muted-foreground">Operate</p>
           <h1 className="mt-2 text-4xl font-medium tracking-tight">Deals</h1>
         </div>
-        <form action={createDealAction} className="flex items-center gap-2">
-          <label htmlFor="new-deal-company" className="sr-only">
-            Company name
-          </label>
-          <Input id="new-deal-company" name="companyName" required placeholder="Company name" className="w-60" />
-          <Button type="submit">Add deal</Button>
-        </form>
+        <Button asChild>
+          <Link href="/operate/new">
+            <Plus aria-hidden="true" className="size-4" />
+            Add deal
+          </Link>
+        </Button>
       </div>
-      {error === "company" ? <p className="mt-4 text-right text-sm text-orange">Enter a company name.</p> : null}
 
       <DealDashboard
         rates={rates}
@@ -167,23 +189,26 @@ export default async function OperatePage({
             <SortHeader column="hours" label="Hrs/week" sort={sort} direction={direction} align="right" />
             <SortHeader column="length" label="Length" sort={sort} direction={direction} />
             <SortHeader column="value" label="Value" sort={sort} direction={direction} align="right" />
-            <span className="operate-label text-muted-foreground">Rates</span>
-            <span aria-hidden="true" />
+            <SortHeader column="equity" label="Equity" sort={sort} direction={direction} align="right" />
+            <span className="operate-label text-right text-muted-foreground">Rate</span>
           </div>
           <ItemGroup className="mt-3 gap-3">
-            {rows.map(({ deal, hoursPerWeek, valueCents }) => (
+            {rows.map(({ deal, quoted, valueCents, equityCents }) => (
               <Item
                 key={deal.id}
                 variant="outline"
-                className={`relative items-center bg-card transition-colors hover:border-orange ${COLUMNS}`}
+                className={`relative items-center bg-card transition-colors focus-within:border-orange hover:border-orange ${COLUMNS}`}
               >
                 <div className="flex min-w-0 flex-1 items-center gap-4">
                   <ItemMedia>
                     <DealAvatar companyName={deal.companyName} logoUrl={deal.companyLogoUrl} size="lg" />
                   </ItemMedia>
                   <ItemContent>
-                    <ItemTitle className="text-base">
-                      <Link href={`/operate/${deal.id}`} className="after:absolute after:inset-0 focus-visible:outline-none">
+                    <ItemTitle className="w-full text-base">
+                      <Link
+                        href={`/operate/${deal.id}`}
+                        className="truncate after:absolute after:inset-0 focus-visible:outline-none"
+                      >
                         {deal.companyName}
                       </Link>
                     </ItemTitle>
@@ -192,19 +217,11 @@ export default async function OperatePage({
                     </ItemDescription>
                   </ItemContent>
                 </div>
-                <span className="text-right tabular-nums">{hoursPerWeek === null ? "—" : hoursPerWeek}</span>
+                <span className="text-right tabular-nums">{quoted ? quoted.hoursPerWeek : "—"}</span>
                 <span className="operate-label text-muted-foreground">{termLabel(deal.termLength)}</span>
-                <span className="text-right text-base font-medium tabular-nums">
-                  {valueCents === null ? "—" : formatDollars(valueCents)}
-                </span>
-                <span>
-                  <RateBadge custom={deal.ratesOverridden} />
-                </span>
-                <Button asChild variant="outline" size="sm" className="relative z-10 justify-self-end">
-                  <a href={`/operate/d/${deal.token}`} target="_blank" rel="noreferrer">
-                    Client page
-                  </a>
-                </Button>
+                <Money cents={valueCents} />
+                <Money cents={equityCents} />
+                <Rates deal={deal} quoted={quoted} />
               </Item>
             ))}
           </ItemGroup>
