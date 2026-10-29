@@ -9,7 +9,14 @@ export default async function StaffLayout({ children }: { children: React.ReactN
   const session = await auth();
   if (!session) redirect("/operate/sign-in");
 
-  const deals = process.env.DATABASE_URL ? await listDeals() : [];
+  let deals: Awaited<ReturnType<typeof listDeals>> = [];
+  if (process.env.DATABASE_URL) {
+    try {
+      deals = await listDeals();
+    } catch {
+      deals = [];
+    }
+  }
   const email = session.user?.email ?? "";
 
   return (
