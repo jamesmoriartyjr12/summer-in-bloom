@@ -33,11 +33,12 @@ export default async function NewDealPage() {
     equityEnabled: false,
     ratesOverridden: false,
     baseRates,
-    termLength: "six-month",
+    termOffer: "both",
     round: "",
     valuationDollars: "",
     hourlyCostCents: null,
     selectedPackageId: null,
+    selectedTerm: null,
     packages: baseRates.map((rate) => ({
       id: "",
       serviceName: rate.serviceName,
@@ -45,6 +46,8 @@ export default async function NewDealPage() {
       enabled: true,
       listRateCents: rate.listRateCents,
       cashRateCents: rate.cashRateCents,
+      yearListRateCents: rate.yearListRateCents,
+      yearCashRateCents: rate.yearCashRateCents,
     })),
   };
 

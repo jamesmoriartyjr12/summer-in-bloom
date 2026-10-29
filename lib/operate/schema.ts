@@ -18,6 +18,7 @@ export const deals = pgTable("deals", {
   valuationDollars: bigint("valuation_dollars", { mode: "bigint" }),
   hourlyCostCents: integer("hourly_cost_cents"),
   selectedPackageId: uuid("selected_package_id"),
+  selectedTerm: text("selected_term"),
   hubspotContactId: text("hubspot_contact_id"),
   hubspotDealId: text("hubspot_deal_id"),
 });
@@ -41,5 +42,7 @@ export const packages = pgTable("packages", {
   enabled: boolean("enabled").notNull().default(true),
   listRateCents: integer("list_rate_cents").notNull(),
   cashRateCents: integer("cash_rate_cents").notNull(),
+  yearListRateCents: integer("year_list_rate_cents"),
+  yearCashRateCents: integer("year_cash_rate_cents"),
   sortOrder: integer("sort_order").notNull().default(0),
 });

@@ -4,8 +4,69 @@ export type TermLength = "six-month" | "one-year" | "multi-year";
 
 export type ClientTerm = "six-month" | "one-year";
 
+export const CLIENT_TERMS: readonly ClientTerm[] = ["six-month", "one-year"];
+
 export function isClientTerm(value: string): value is ClientTerm {
   return value === "six-month" || value === "one-year";
+}
+
+// A deal offers one term, or both so the client can pick.
+export type TermOffer = ClientTerm | "both";
+
+export function isTermOffer(value: string): value is TermOffer {
+  return value === "both" || isClientTerm(value);
+}
+
+export function offeredTerms(offer: TermOffer): ClientTerm[] {
+  return offer === "both" ? [...CLIENT_TERMS] : [offer];
+}
+
+export function quotedTerm(offer: TermOffer, selected: ClientTerm | null): ClientTerm {
+  const terms = offeredTerms(offer);
+  return selected !== null && terms.includes(selected) ? selected : terms[0]!;
+}
+
+// The pricing sheet: each 40 hours a week past the first takes $10 off the base rate,
+// and the twelve-month term takes another $20 off.
+export const SHEET_HOURS = [40, 80, 120] as const;
+export const SHEET_SERVICE = "Design Engineering";
+export const HOURS_STEP = 40;
+export const STEP_DISCOUNT_CENTS = 1000;
+export const LONG_TERM_DISCOUNT_CENTS = 2000;
+
+function hourSteps(hoursPerWeek: number): number {
+  return Math.max(0, Math.ceil(hoursPerWeek / HOURS_STEP) - 1);
+}
+
+export function longTermCents(sixMonthCents: number): number {
+  return Math.max(0, sixMonthCents - LONG_TERM_DISCOUNT_CENTS);
+}
+
+export function sheetRateCents(baseCents: number, hoursPerWeek: number, term: ClientTerm): number {
+  const sixMonth = Math.max(0, baseCents - hourSteps(hoursPerWeek) * STEP_DISCOUNT_CENTS);
+  return term === "one-year" ? longTermCents(sixMonth) : sixMonth;
+}
+
+export function baseRateCents(offers: { hoursPerWeek: number; listRateCents: number; sortOrder: number }[]): number | null {
+  const first = [...offers].sort((left, right) => left.sortOrder - right.sortOrder)[0];
+  if (!first) return null;
+  return first.listRateCents + hourSteps(first.hoursPerWeek) * STEP_DISCOUNT_CENTS;
+}
+
+export function sheetOffers(baseCents: number): OfferRate[] {
+  return SHEET_HOURS.map((hoursPerWeek, sortOrder) => {
+    const sixMonth = sheetRateCents(baseCents, hoursPerWeek, "six-month");
+    const oneYear = sheetRateCents(baseCents, hoursPerWeek, "one-year");
+    return {
+      serviceName: SHEET_SERVICE,
+      hoursPerWeek,
+      listRateCents: sixMonth,
+      cashRateCents: sixMonth,
+      yearListRateCents: oneYear,
+      yearCashRateCents: oneYear,
+      sortOrder,
+    };
+  });
 }
 
 export function termLabel(term: TermLength): string {
@@ -94,15 +155,6 @@ export function validatePackage(input: PackageInput): string | null {
   return null;
 }
 
-export type TermRates = {
-  listRateCents: number;
-  cashRateCents: number;
-  weeklyListCents: number;
-  weeklyCashCents: number;
-  equityPerHourCents: number;
-  equityPerWeekCents: number;
-};
-
 export type LetterPackage = {
   id: string;
   serviceName: string;
@@ -115,17 +167,27 @@ export type LetterPackage = {
   equityPerWeekCents: number;
 };
 
+export type LetterTerm = {
+  term: ClientTerm;
+  label: string;
+  packages: LetterPackage[];
+};
+
 export type LetterDeal = {
   blocks: LetterBlock[];
   companyName: string;
   companyLogoUrl: string | null;
   contactName: string;
   avatarUrl: string | null;
-  termLabel: string;
   equityEnabled: boolean;
-  packages: LetterPackage[];
+  terms: LetterTerm[];
   selectedPackageId: string | null;
+  selectedTerm: ClientTerm | null;
 };
+
+export function letterTerm(deal: LetterDeal, term: ClientTerm | null): LetterTerm | undefined {
+  return deal.terms.find((item) => item.term === term) ?? deal.terms[0];
+}
 
 export function toLetterPackage(pkg: {
   id: string;
@@ -147,18 +209,35 @@ export function toLetterPackage(pkg: {
   };
 }
 
+// `listRateCents` and `cashRateCents` are the six-month rates; the `year` pair is twelve months.
 export type OfferRate = {
   serviceName: string;
   hoursPerWeek: number;
   listRateCents: number;
   cashRateCents: number;
+  yearListRateCents: number;
+  yearCashRateCents: number;
   sortOrder: number;
 };
 
+export type TermPrice = { listRateCents: number; cashRateCents: number };
+
+export function offerPrice(
+  offer: { listRateCents: number; cashRateCents: number; yearListRateCents: number; yearCashRateCents: number },
+  term: ClientTerm,
+): TermPrice {
+  return term === "one-year"
+    ? { listRateCents: offer.yearListRateCents, cashRateCents: offer.yearCashRateCents }
+    : { listRateCents: offer.listRateCents, cashRateCents: offer.cashRateCents };
+}
+
+// A missing twelve-month price follows the sheet from the six-month one.
 export type RateOverride = {
   sortOrder: number;
   listRateCents: number;
   cashRateCents: number;
+  yearListRateCents: number | null;
+  yearCashRateCents: number | null;
 };
 
 // Every deal shows the same offers. An override replaces the price for one customer
@@ -196,28 +275,8 @@ export function cascadeOffers(base: OfferRate[], overrides: RateOverride[] | nul
       ...offer,
       listRateCents: custom.listRateCents,
       cashRateCents: custom.cashRateCents,
+      yearListRateCents: custom.yearListRateCents ?? longTermCents(custom.listRateCents),
+      yearCashRateCents: custom.yearCashRateCents ?? longTermCents(custom.cashRateCents),
     };
   });
-}
-
-export function packageRates(
-  pkg: {
-    hoursPerWeek: number;
-    sixMonthListRateCents: number;
-    sixMonthCashRateCents: number;
-    oneYearListRateCents: number;
-    oneYearCashRateCents: number;
-  },
-  term: ClientTerm,
-): TermRates {
-  const listRateCents = term === "one-year" ? pkg.oneYearListRateCents : pkg.sixMonthListRateCents;
-  const cashRateCents = term === "one-year" ? pkg.oneYearCashRateCents : pkg.sixMonthCashRateCents;
-  return {
-    listRateCents,
-    cashRateCents,
-    weeklyListCents: weeklyAmountCents(pkg.hoursPerWeek, listRateCents),
-    weeklyCashCents: weeklyAmountCents(pkg.hoursPerWeek, cashRateCents),
-    equityPerHourCents: equityPerHourCents(listRateCents, cashRateCents),
-    equityPerWeekCents: equityPerWeekCents(pkg.hoursPerWeek, listRateCents, cashRateCents),
-  };
 }

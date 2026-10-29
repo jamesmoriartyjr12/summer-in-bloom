@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, useTransition } from "react";
-import { ArrowDown, ArrowUp, ChevronDown, ExternalLink, Link2, Lock, Plus, Trash2, UserRound } from "lucide-react";
+import { ArrowDown, ArrowUp, ExternalLink, Link2, Lock, Plus, Trash2, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { blockClassName, GreetingView, LetterFrame, OffersView } from "@/components/operate/DealLetter";
+import { blockClassName, GreetingView, LetterFrame, OffersView, TermToggle } from "@/components/operate/DealLetter";
 import {
   BLOCK_TYPES,
   blockLabel,
@@ -25,7 +25,16 @@ import {
   type BlockType,
   type LetterBlock,
 } from "@/lib/operate/blocks";
-import { termLabel, toLetterPackage, type LetterDeal, type TermLength } from "@/lib/operate/pricing";
+import {
+  CLIENT_TERMS,
+  offeredTerms,
+  termLabel,
+  toLetterPackage,
+  type ClientTerm,
+  type LetterDeal,
+  type OfferRate,
+  type TermOffer,
+} from "@/lib/operate/pricing";
 import { createDealAction, lookupLinkedInAction, saveDealAction } from "@/app/operate/actions";
 
 // A deal with an empty id and token has not been saved yet.
@@ -42,12 +51,13 @@ export type EditorDeal = {
   letterBlocks: LetterBlock[];
   equityEnabled: boolean;
   ratesOverridden: boolean;
-  baseRates: { serviceName: string; hoursPerWeek: number; listRateCents: number; cashRateCents: number }[];
-  termLength: TermLength;
+  baseRates: OfferRate[];
+  termOffer: TermOffer;
   round: string;
   valuationDollars: string;
   hourlyCostCents: number | null;
   selectedPackageId: string | null;
+  selectedTerm: ClientTerm | null;
   packages: {
     id: string;
     serviceName: string;
@@ -55,6 +65,8 @@ export type EditorDeal = {
     enabled: boolean;
     listRateCents: number;
     cashRateCents: number;
+    yearListRateCents: number;
+    yearCashRateCents: number;
   }[];
 };
 
@@ -65,7 +77,15 @@ type PackageFields = {
   hours: string;
   listRate: string;
   cashRate: string;
+  yearListRate: string;
+  yearCashRate: string;
 };
+
+type RateKey = "listRate" | "cashRate" | "yearListRate" | "yearCashRate";
+
+function rateKeys(term: ClientTerm): { list: RateKey; cash: RateKey } {
+  return term === "one-year" ? { list: "yearListRate", cash: "yearCashRate" } : { list: "listRate", cash: "cashRate" };
+}
 
 type Fields = {
   companyName: string;
@@ -77,14 +97,14 @@ type Fields = {
   companyUrl: string;
   equityEnabled: boolean;
   ratesOverridden: boolean;
-  termLength: TermLength;
+  termOffer: TermOffer;
   round: string;
   valuationDollars: string;
   hourlyCostDollars: string;
-  packages: [PackageFields, PackageFields];
+  packages: PackageFields[];
 };
 
-const TERMS: TermLength[] = ["six-month", "one-year", "multi-year"];
+const TERM_OPTIONS = CLIENT_TERMS.map((term) => ({ term, label: termLabel(term) }));
 
 function centsToDollars(cents: number): string {
   return cents % 100 === 0 ? String(cents / 100) : (cents / 100).toFixed(2);
@@ -95,10 +115,19 @@ function dollarsToCents(raw: string): number {
   return Number.isFinite(cents) ? cents : 0;
 }
 
-function packageFields(pkg: EditorDeal["packages"][number] | undefined, hours: number): PackageFields {
-  if (!pkg) {
-    return { id: "", enabled: true, serviceName: "", hours: String(hours), listRate: "", cashRate: "" };
-  }
+function baseRateFields(base: OfferRate) {
+  return {
+    serviceName: base.serviceName,
+    hours: String(base.hoursPerWeek),
+    listRate: centsToDollars(base.listRateCents),
+    cashRate: centsToDollars(base.cashRateCents),
+    yearListRate: centsToDollars(base.yearListRateCents),
+    yearCashRate: centsToDollars(base.yearCashRateCents),
+  };
+}
+
+function packageFields(pkg: EditorDeal["packages"][number] | undefined, base: OfferRate): PackageFields {
+  if (!pkg) return { id: "", enabled: true, ...baseRateFields(base) };
   return {
     id: pkg.id,
     enabled: pkg.enabled,
@@ -106,6 +135,8 @@ function packageFields(pkg: EditorDeal["packages"][number] | undefined, hours: n
     hours: String(pkg.hoursPerWeek),
     listRate: centsToDollars(pkg.listRateCents),
     cashRate: centsToDollars(pkg.cashRateCents),
+    yearListRate: centsToDollars(pkg.yearListRateCents),
+    yearCashRate: centsToDollars(pkg.yearCashRateCents),
   };
 }
 
@@ -120,11 +151,11 @@ function initialFields(deal: EditorDeal): Fields {
     companyUrl: deal.companyUrl,
     equityEnabled: deal.equityEnabled,
     ratesOverridden: deal.ratesOverridden,
-    termLength: deal.termLength,
+    termOffer: deal.termOffer,
     round: deal.round,
     valuationDollars: deal.valuationDollars,
     hourlyCostDollars: deal.hourlyCostCents === null ? "" : centsToDollars(deal.hourlyCostCents),
-    packages: [packageFields(deal.packages[0], 40), packageFields(deal.packages[1], 80)],
+    packages: deal.baseRates.map((base, index) => packageFields(deal.packages[index], base)),
   };
 }
 
@@ -132,7 +163,12 @@ function rowId(row: PackageFields, index: number): string {
   return row.id || `new-${index}`;
 }
 
-function previewLetter(fields: Fields, blocks: LetterBlock[], selectedPackageId: string | null): LetterDeal {
+function previewLetter(
+  fields: Fields,
+  blocks: LetterBlock[],
+  selectedPackageId: string | null,
+  selectedTerm: ClientTerm | null,
+): LetterDeal {
   const hours = (raw: string) => {
     const value = Number(raw);
     return Number.isInteger(value) && value > 0 ? value : 0;
@@ -144,18 +180,25 @@ function previewLetter(fields: Fields, blocks: LetterBlock[], selectedPackageId:
     companyLogoUrl: fields.companyLogoUrl,
     contactName: fields.contactName,
     avatarUrl: fields.avatarUrl,
-    termLabel: termLabel(fields.termLength),
     equityEnabled: fields.equityEnabled,
-    packages: rows.map((row, index) =>
-      toLetterPackage({
-        id: rowId(row, index),
-        serviceName: row.serviceName,
-        hoursPerWeek: hours(row.hours),
-        listRateCents: dollarsToCents(row.listRate),
-        cashRateCents: dollarsToCents(row.cashRate),
-      }),
-    ),
+    terms: offeredTerms(fields.termOffer).map((term) => {
+      const keys = rateKeys(term);
+      return {
+        term,
+        label: termLabel(term),
+        packages: rows.map((row, index) =>
+          toLetterPackage({
+            id: rowId(row, index),
+            serviceName: row.serviceName,
+            hoursPerWeek: hours(row.hours),
+            listRateCents: dollarsToCents(row[keys.list]),
+            cashRateCents: dollarsToCents(row[keys.cash]),
+          }),
+        ),
+      };
+    }),
     selectedPackageId: rows.some((row) => row.id !== "" && row.id === selectedPackageId) ? selectedPackageId : null,
+    selectedTerm,
   };
 }
 
@@ -166,7 +209,7 @@ function toFormData(fields: Fields, blocks: LetterBlock[]): FormData {
   data.set("contactRole", fields.contactRole);
   data.set("linkedinUrl", fields.linkedinUrl);
   data.set("companyUrl", fields.companyUrl);
-  data.set("termLength", fields.termLength);
+  data.set("termOffer", fields.termOffer);
   data.set("round", fields.round);
   data.set("valuationDollars", fields.valuationDollars);
   data.set("hourlyCostDollars", fields.hourlyCostDollars);
@@ -176,6 +219,8 @@ function toFormData(fields: Fields, blocks: LetterBlock[]): FormData {
     data.set(`package${index}Id`, row.id);
     data.set(`package${index}ListRate`, row.listRate);
     data.set(`package${index}CashRate`, row.cashRate);
+    data.set(`package${index}YearListRate`, row.yearListRate);
+    data.set(`package${index}YearCashRate`, row.yearCashRate);
   });
   data.set("letterBlocks", JSON.stringify(blocks));
   return data;
@@ -317,14 +362,18 @@ export function Editor({ deal }: { deal: EditorDeal }) {
   const [pending, startTransition] = useTransition();
   const [origin, setOrigin] = useState("");
   const [copied, setCopied] = useState(false);
+  const [viewTerm, setViewTerm] = useState<ClientTerm>(() =>
+    deal.termOffer === "both" ? (deal.selectedTerm ?? "six-month") : deal.termOffer,
+  );
+  const shownTerm: ClientTerm = fields.termOffer === "both" ? viewTerm : fields.termOffer;
 
   useEffect(() => {
     setOrigin(window.location.origin);
   }, []);
 
   const letter = useMemo(
-    () => previewLetter(fields, blocks, deal.selectedPackageId),
-    [fields, blocks, deal.selectedPackageId],
+    () => previewLetter(fields, blocks, deal.selectedPackageId, deal.selectedTerm),
+    [fields, blocks, deal.selectedPackageId, deal.selectedTerm],
   );
   const dirty = JSON.stringify([fields, blocks]) !== saved;
   const link = `${origin}/operate/d/${deal.token}`;
@@ -340,12 +389,21 @@ export function Editor({ deal }: { deal: EditorDeal }) {
   }
 
   function patchPackage(index: number, next: Partial<PackageFields>) {
-    setFields((current) => {
-      const rows: [PackageFields, PackageFields] = [current.packages[0], current.packages[1]];
-      rows[index] = { ...rows[index], ...next };
-      return { ...current, packages: rows };
-    });
+    setFields((current) => ({
+      ...current,
+      packages: current.packages.map((row, i) => (i === index ? { ...row, ...next } : row)),
+    }));
     setMessage(null);
+  }
+
+  // With one term offered, the toggle picks it. With both, it picks which one to price.
+  function chooseTerm(term: ClientTerm) {
+    setViewTerm(term);
+    if (fields.termOffer !== "both") patch({ termOffer: term });
+  }
+
+  function setBothTerms(on: boolean) {
+    patch({ termOffer: on ? "both" : shownTerm });
   }
 
   function setCustomRates(on: boolean) {
@@ -355,15 +413,8 @@ export function Editor({ deal }: { deal: EditorDeal }) {
     }
     const packages = fields.packages.map((row, index) => {
       const base = deal.baseRates[index];
-      if (!base) return row;
-      return {
-        ...row,
-        serviceName: base.serviceName,
-        hours: String(base.hoursPerWeek),
-        listRate: centsToDollars(base.listRateCents),
-        cashRate: centsToDollars(base.cashRateCents),
-      };
-    }) as [PackageFields, PackageFields];
+      return base ? { ...row, ...baseRateFields(base) } : row;
+    });
     patch({ ratesOverridden: false, packages });
   }
 
@@ -452,22 +503,19 @@ export function Editor({ deal }: { deal: EditorDeal }) {
       );
     }
     if (block.type === "term") {
+      const both = fields.termOffer === "both";
       return (
-        <label className="relative inline-flex items-center">
-          <span className="sr-only">Term</span>
-          <select
-            value={fields.termLength}
-            onChange={(event) => patch({ termLength: event.target.value as TermLength })}
-            className="operate-letter__term cursor-pointer appearance-none border-0 border-b border-dashed border-foreground/30 bg-transparent py-0 pl-0 pr-6 text-inherit outline-none focus:border-orange"
+        <div className="flex flex-wrap items-center gap-3">
+          <TermToggle options={TERM_OPTIONS} value={shownTerm} onChange={chooseTerm} />
+          <button
+            type="button"
+            aria-pressed={both}
+            onClick={() => setBothTerms(!both)}
+            className={`${chip} ${both ? "border-orange text-orange" : "text-muted-foreground"}`}
           >
-            {TERMS.map((term) => (
-              <option key={term} value={term}>
-                {termLabel(term)}
-              </option>
-            ))}
-          </select>
-          <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-0 size-4 text-muted-foreground" />
-        </label>
+            Both terms {both ? "on" : "off"}
+          </button>
+        </div>
       );
     }
     if (block.type === "offers") {
@@ -493,34 +541,36 @@ export function Editor({ deal }: { deal: EditorDeal }) {
           </div>
           <OffersView
             deal={letter}
+            term={shownTerm}
             mode="preview"
             renderRate={(pkg) => {
               if (!fields.ratesOverridden) return undefined;
               const index = fields.packages.findIndex((row, i) => rowId(row, i) === pkg.id);
               if (index < 0) return undefined;
-              const row = fields.packages[index];
-              const name = `${row.hours} hours`;
+              const row = fields.packages[index]!;
+              const keys = rateKeys(shownTerm);
+              const name = `${row.hours} hours, ${termLabel(shownTerm).toLowerCase()}`;
               return (
                 <span className="operate-letter__pair">
                   {fields.equityEnabled ? (
                     <>
                       <span className="operate-letter__struck">
-                        <RateInput value={row.listRate} label={`List rate, ${name}`} onChange={(listRate) => patchPackage(index, { listRate })} />
+                        <RateInput value={row[keys.list]} label={`List rate, ${name}`} onChange={(value) => patchPackage(index, { [keys.list]: value })} />
                       </span>
-                      <RateInput value={row.cashRate} label={`Cash rate, ${name}`} onChange={(cashRate) => patchPackage(index, { cashRate })} />
+                      <RateInput value={row[keys.cash]} label={`Cash rate, ${name}`} onChange={(value) => patchPackage(index, { [keys.cash]: value })} />
                     </>
                   ) : (
-                    <RateInput value={row.listRate} label={`Rate, ${name}`} onChange={(listRate) => patchPackage(index, { listRate })} />
+                    <RateInput value={row[keys.list]} label={`Rate, ${name}`} onChange={(value) => patchPackage(index, { [keys.list]: value })} />
                   )}
                 </span>
               );
             }}
           />
-          {!fields.ratesOverridden ? (
-            <p className="mt-3 text-xs text-muted-foreground">
-              Baseline rates. Turn on custom rates to change them for this deal.
-            </p>
-          ) : null}
+          <p className="mt-3 text-xs text-muted-foreground">
+            {fields.ratesOverridden
+              ? `Custom ${termLabel(shownTerm).toLowerCase()} rates for this deal.`
+              : "Pricing sheet rates. Turn on custom rates to change them for this deal."}
+          </p>
         </>
       );
     }

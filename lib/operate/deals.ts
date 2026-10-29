@@ -1,14 +1,21 @@
 import crypto from "node:crypto";
-import { and, asc, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, gte, inArray } from "drizzle-orm";
 import { getDb } from "./db";
 import {
   cascadeOffers,
+  isClientTerm,
+  isTermOffer,
+  longTermCents,
+  offeredTerms,
+  offerPrice,
+  sheetOffers,
   termLabel,
   toLetterPackage,
   validatePackage,
+  type ClientTerm,
   type LetterDeal,
   type OfferRate,
-  type TermLength,
+  type TermOffer,
 } from "./pricing";
 import { parseBlocks, type LetterBlock } from "./blocks";
 import { baseRates, deals, packages } from "./schema";
@@ -24,6 +31,8 @@ export type DealPackage = {
   enabled: boolean;
   listRateCents: number;
   cashRateCents: number;
+  yearListRateCents: number;
+  yearCashRateCents: number;
   sortOrder: number;
 };
 
@@ -40,11 +49,12 @@ export type DealRecord = {
   letterBlocks: LetterBlock[];
   equityEnabled: boolean;
   ratesOverridden: boolean;
-  termLength: TermLength;
+  termOffer: TermOffer;
   round: string | null;
   valuationDollars: bigint | null;
   hourlyCostCents: number | null;
   selectedPackageId: string | null;
+  selectedTerm: ClientTerm | null;
   hubspotContactId: string | null;
   hubspotDealId: string | null;
   packages: DealPackage[];
@@ -57,6 +67,8 @@ export type PackageDraft = {
   enabled: boolean;
   listRateCents: number;
   cashRateCents: number;
+  yearListRateCents: number;
+  yearCashRateCents: number;
   sortOrder: number;
 };
 
@@ -71,7 +83,7 @@ export type DealDraft = {
   letterBlocks: LetterBlock[];
   equityEnabled: boolean;
   ratesOverridden: boolean;
-  termLength: TermLength;
+  termOffer: TermOffer;
   round: string | null;
   valuationDollars: bigint | null;
   hourlyCostCents: number | null;
@@ -88,7 +100,8 @@ export type DealListItem = {
   companyUrl: string | null;
   linkedinUrl: string | null;
   avatarUrl: string | null;
-  termLength: TermLength;
+  termOffer: TermOffer;
+  selectedTerm: ClientTerm | null;
   ratesOverridden: boolean;
 };
 
@@ -99,13 +112,15 @@ function isUuid(value: string): boolean {
   return UUID_PATTERN.test(value);
 }
 
-function isTermLength(value: string): value is TermLength {
-  return value === "six-month" || value === "one-year" || value === "multi-year";
+// Multi-year is no longer offered; those deals read as twelve months.
+function offerFromColumn(value: string): TermOffer {
+  if (isTermOffer(value)) return value;
+  if (value === "multi-year") return "one-year";
+  throw new Error(`Unknown term length "${value}".`);
 }
 
-function termFromColumn(value: string): TermLength {
-  if (!isTermLength(value)) throw new Error(`Unknown term length "${value}".`);
-  return value;
+function selectedTermFromColumn(value: string | null): ClientTerm | null {
+  return value !== null && isClientTerm(value) ? value : null;
 }
 
 function blankToNull(value: string | null): string | null {
@@ -123,6 +138,8 @@ function toPackage(row: PackageRow): DealPackage {
     enabled: row.enabled,
     listRateCents: row.listRateCents,
     cashRateCents: row.cashRateCents,
+    yearListRateCents: row.yearListRateCents ?? longTermCents(row.listRateCents),
+    yearCashRateCents: row.yearCashRateCents ?? longTermCents(row.cashRateCents),
     sortOrder: row.sortOrder,
   };
 }
@@ -141,33 +158,19 @@ function toDealRecord(deal: DealRow, rows: PackageRow[]): DealRecord {
     letterBlocks: parseBlocks(deal.letterBlocks),
     equityEnabled: deal.equityEnabled,
     ratesOverridden: deal.ratesOverridden,
-    termLength: termFromColumn(deal.termLength),
+    termOffer: offerFromColumn(deal.termLength),
     round: deal.round,
     valuationDollars: deal.valuationDollars,
     hourlyCostCents: deal.hourlyCostCents,
     selectedPackageId: deal.selectedPackageId,
+    selectedTerm: selectedTermFromColumn(deal.selectedTerm),
     hubspotContactId: deal.hubspotContactId,
     hubspotDealId: deal.hubspotDealId,
     packages: rows.map(toPackage),
   };
 }
 
-const DEFAULT_OFFERS: OfferRate[] = [
-  {
-    serviceName: "Design Engineering",
-    hoursPerWeek: 40,
-    listRateCents: 0,
-    cashRateCents: 0,
-    sortOrder: 0,
-  },
-  {
-    serviceName: "Design Engineering",
-    hoursPerWeek: 80,
-    listRateCents: 0,
-    cashRateCents: 0,
-    sortOrder: 1,
-  },
-];
+const DEFAULT_BASE_CENTS = 20000;
 
 function toOffer(row: typeof baseRates.$inferSelect): OfferRate {
   return {
@@ -175,7 +178,19 @@ function toOffer(row: typeof baseRates.$inferSelect): OfferRate {
     hoursPerWeek: row.hoursPerWeek,
     listRateCents: row.listRateCents,
     cashRateCents: row.cashRateCents,
+    yearListRateCents: longTermCents(row.listRateCents),
+    yearCashRateCents: longTermCents(row.cashRateCents),
     sortOrder: row.sortOrder,
+  };
+}
+
+function baseRow(offer: OfferRate) {
+  return {
+    serviceName: offer.serviceName,
+    hoursPerWeek: offer.hoursPerWeek,
+    listRateCents: offer.listRateCents,
+    cashRateCents: offer.cashRateCents,
+    sortOrder: offer.sortOrder,
   };
 }
 
@@ -183,30 +198,19 @@ export async function listBaseRates(): Promise<OfferRate[]> {
   const db = getDb();
   const rows = await db.select().from(baseRates).orderBy(asc(baseRates.sortOrder), asc(baseRates.id));
   if (rows.length > 0) return rows.map(toOffer);
-  await db.insert(baseRates).values(DEFAULT_OFFERS);
-  return DEFAULT_OFFERS;
+  const offers = sheetOffers(DEFAULT_BASE_CENTS);
+  await db.insert(baseRates).values(offers.map(baseRow));
+  return offers;
 }
 
-export async function saveBaseRates(
-  offers: OfferRate[],
+// One base rate builds the whole sheet. Deals without custom rates follow it.
+export async function saveBaseRate(
+  baseCents: number,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
-  if (offers.length === 0) return { ok: false, error: "Add at least one offer." };
-  for (const offer of offers) {
-    if (offer.serviceName.trim() === "") return { ok: false, error: "Service name is required." };
-    if (!Number.isInteger(offer.hoursPerWeek) || offer.hoursPerWeek < 1) {
-      return { ok: false, error: "Hours per week must be a positive whole number." };
-    }
-    if (!Number.isInteger(offer.listRateCents) || offer.listRateCents < 0) {
-      return { ok: false, error: "List rate must be zero or more." };
-    }
-    if (!Number.isInteger(offer.cashRateCents) || offer.cashRateCents < 0) {
-      return { ok: false, error: "Cash rate must be zero or more." };
-    }
-    if (offer.cashRateCents > offer.listRateCents) {
-      return { ok: false, error: "Cash rate cannot exceed the list rate." };
-    }
+  if (!Number.isInteger(baseCents) || baseCents <= 0) {
+    return { ok: false, error: "The base rate must be more than zero." };
   }
-
+  const offers = sheetOffers(baseCents);
   const db = getDb();
   const existing = await db.select().from(baseRates).orderBy(asc(baseRates.sortOrder));
   const standardDeals = await db
@@ -218,13 +222,7 @@ export async function saveBaseRates(
   await db.transaction(async (tx) => {
     for (const offer of offers) {
       const current = existing.find((row) => row.sortOrder === offer.sortOrder);
-      const values = {
-        serviceName: offer.serviceName.trim(),
-        hoursPerWeek: offer.hoursPerWeek,
-        listRateCents: offer.listRateCents,
-        cashRateCents: offer.cashRateCents,
-        sortOrder: offer.sortOrder,
-      };
+      const values = baseRow(offer);
       if (current) {
         await tx.update(baseRates).set(values).where(eq(baseRates.id, current.id));
       } else {
@@ -237,10 +235,16 @@ export async function saveBaseRates(
       if (standardIds.length > 0) {
         await tx
           .update(packages)
-          .set({ listRateCents: values.listRateCents, cashRateCents: values.cashRateCents })
+          .set({
+            listRateCents: values.listRateCents,
+            cashRateCents: values.cashRateCents,
+            yearListRateCents: null,
+            yearCashRateCents: null,
+          })
           .where(and(eq(packages.sortOrder, offer.sortOrder), inArray(packages.dealId, standardIds)));
       }
     }
+    await tx.delete(baseRates).where(gte(baseRates.sortOrder, offers.length));
   });
   return { ok: true };
 }
@@ -251,6 +255,8 @@ function presentOffers(base: OfferRate[], rows: PackageRow[], ratesOverridden: b
         sortOrder: row.sortOrder,
         listRateCents: row.listRateCents,
         cashRateCents: row.cashRateCents,
+        yearListRateCents: row.yearListRateCents,
+        yearCashRateCents: row.yearCashRateCents,
       }))
     : null;
   const offers = cascadeOffers(base, overrides);
@@ -264,6 +270,8 @@ function presentOffers(base: OfferRate[], rows: PackageRow[], ratesOverridden: b
       enabled: true,
       listRateCents: offer.listRateCents,
       cashRateCents: offer.cashRateCents,
+      yearListRateCents: offer.yearListRateCents,
+      yearCashRateCents: offer.yearCashRateCents,
       sortOrder: offer.sortOrder,
     };
   });
@@ -307,7 +315,7 @@ async function readDeal(where: ReturnType<typeof eq>): Promise<DealRecord | null
 
 function draftError(input: DealDraft): string | null {
   if (input.companyName.trim() === "") return "Company name is required.";
-  if (!isTermLength(input.termLength)) return "Term length is not valid.";
+  if (!isTermOffer(input.termOffer)) return "Term length is not valid.";
   if (input.valuationDollars !== null && typeof input.valuationDollars !== "bigint") {
     return "Valuation must be whole dollars.";
   }
@@ -316,15 +324,16 @@ function draftError(input: DealDraft): string | null {
   }
   const seen = new Set<string>();
   for (const pkg of input.packages) {
-    const error = validatePackage({
-      serviceName: pkg.serviceName,
-      hoursPerWeek: pkg.hoursPerWeek,
-      enabled: pkg.enabled,
-      listRateCents: pkg.listRateCents,
-      cashRateCents: pkg.cashRateCents,
-      equityEnabled: input.equityEnabled,
-    });
-    if (error) return error;
+    for (const term of offeredTerms(input.termOffer)) {
+      const error = validatePackage({
+        serviceName: pkg.serviceName,
+        hoursPerWeek: pkg.hoursPerWeek,
+        enabled: pkg.enabled,
+        ...offerPrice(pkg, term),
+        equityEnabled: input.equityEnabled,
+      });
+      if (error) return error;
+    }
     if (!Number.isInteger(pkg.sortOrder)) return "Sort order must be a whole number.";
     if (!pkg.id) continue;
     if (!isUuid(pkg.id) || seen.has(pkg.id)) return "Package not found.";
@@ -354,6 +363,7 @@ export async function listDashboard(): Promise<{ rates: OfferRate[]; deals: Dash
       linkedinUrl: deals.linkedinUrl,
       avatarUrl: deals.avatarUrl,
       termLength: deals.termLength,
+      selectedTerm: deals.selectedTerm,
       ratesOverridden: deals.ratesOverridden,
       equityEnabled: deals.equityEnabled,
       selectedPackageId: deals.selectedPackageId,
@@ -378,7 +388,8 @@ export async function listDashboard(): Promise<{ rates: OfferRate[]; deals: Dash
         companyUrl: row.companyUrl,
         linkedinUrl: row.linkedinUrl,
         avatarUrl: row.avatarUrl,
-        termLength: termFromColumn(row.termLength),
+        termOffer: offerFromColumn(row.termLength),
+        selectedTerm: selectedTermFromColumn(row.selectedTerm),
         ratesOverridden: row.ratesOverridden,
         equityEnabled: row.equityEnabled,
         offers: cascadeOffers(
@@ -388,6 +399,8 @@ export async function listDashboard(): Promise<{ rates: OfferRate[]; deals: Dash
                 sortOrder: pkg.sortOrder,
                 listRateCents: pkg.listRateCents,
                 cashRateCents: pkg.cashRateCents,
+                yearListRateCents: pkg.yearListRateCents,
+                yearCashRateCents: pkg.yearCashRateCents,
               }))
             : null,
         ),
@@ -411,6 +424,7 @@ export async function listDeals(): Promise<DealListItem[]> {
       linkedinUrl: deals.linkedinUrl,
       avatarUrl: deals.avatarUrl,
       termLength: deals.termLength,
+      selectedTerm: deals.selectedTerm,
       ratesOverridden: deals.ratesOverridden,
     })
     .from(deals)
@@ -425,7 +439,8 @@ export async function listDeals(): Promise<DealListItem[]> {
     companyUrl: row.companyUrl,
     linkedinUrl: row.linkedinUrl,
     avatarUrl: row.avatarUrl,
-    termLength: termFromColumn(row.termLength),
+    termOffer: offerFromColumn(row.termLength),
+    selectedTerm: selectedTermFromColumn(row.selectedTerm),
     ratesOverridden: row.ratesOverridden,
   }));
 }
@@ -461,7 +476,7 @@ export async function createDeal(
       letterBlocks: input.letterBlocks,
       equityEnabled: input.equityEnabled,
       ratesOverridden: input.ratesOverridden,
-      termLength: input.termLength,
+      termLength: input.termOffer,
       round: blankToNull(input.round),
       valuationDollars: input.valuationDollars,
       hourlyCostCents: input.hourlyCostCents,
@@ -476,6 +491,8 @@ export async function createDeal(
           enabled: pkg.enabled,
           listRateCents: pkg.listRateCents,
           cashRateCents: pkg.cashRateCents,
+          yearListRateCents: pkg.yearListRateCents,
+          yearCashRateCents: pkg.yearCashRateCents,
           sortOrder: pkg.sortOrder,
         })),
       );
@@ -504,10 +521,12 @@ export async function saveDeal(
   for (const pkg of input.packages) {
     if (pkg.enabled && pkg.id) enabledIds.add(pkg.id);
   }
-  const selectedPackageId =
-    existing.selectedPackageId !== null && enabledIds.has(existing.selectedPackageId)
-      ? existing.selectedPackageId
-      : null;
+  // A choice made on a term that is no longer offered is cleared with it.
+  const termKept =
+    existing.selectedTerm === null || offeredTerms(input.termOffer).includes(existing.selectedTerm);
+  const packageKept = existing.selectedPackageId !== null && enabledIds.has(existing.selectedPackageId);
+  const selectedPackageId = termKept && packageKept ? existing.selectedPackageId : null;
+  const selectedTerm = selectedPackageId === null ? null : existing.selectedTerm;
 
   const db = getDb();
   const dealUpdate = {
@@ -521,11 +540,12 @@ export async function saveDeal(
     letterBlocks: input.letterBlocks,
     equityEnabled: input.equityEnabled,
     ratesOverridden: input.ratesOverridden,
-    termLength: input.termLength,
+    termLength: input.termOffer,
     round: blankToNull(input.round),
     valuationDollars: input.valuationDollars,
     hourlyCostCents: input.hourlyCostCents,
     selectedPackageId,
+    selectedTerm,
   };
   await db.transaction(async (tx) => {
     await tx.delete(packages).where(eq(packages.dealId, id));
@@ -539,6 +559,8 @@ export async function saveDeal(
           enabled: pkg.enabled,
           listRateCents: pkg.listRateCents,
           cashRateCents: pkg.cashRateCents,
+          yearListRateCents: pkg.yearListRateCents,
+          yearCashRateCents: pkg.yearCashRateCents,
           sortOrder: pkg.sortOrder,
         })),
       );
@@ -551,14 +573,18 @@ export async function saveDeal(
 export async function selectPackage(
   token: string,
   packageId: string,
+  term: string,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
-  if (!isUuid(packageId)) return { ok: false, error: "Package not found." };
+  if (!isUuid(packageId) || !isClientTerm(term)) return { ok: false, error: "Package not found." };
   const deal = await getDealByToken(token);
   if (!deal) return { ok: false, error: "Package not found." };
   const match = deal.packages.find((pkg) => pkg.id === packageId && pkg.enabled);
-  if (!match) return { ok: false, error: "Package not found." };
+  if (!match || !offeredTerms(deal.termOffer).includes(term)) return { ok: false, error: "Package not found." };
   const db = getDb();
-  await db.update(deals).set({ selectedPackageId: packageId }).where(eq(deals.id, deal.id));
+  await db
+    .update(deals)
+    .set({ selectedPackageId: packageId, selectedTerm: term })
+    .where(eq(deals.id, deal.id));
   return { ok: true };
 }
 
@@ -572,9 +598,13 @@ export function dealToLetter(deal: DealRecord): LetterDeal {
     companyLogoUrl: deal.companyLogoUrl,
     contactName: deal.contactName,
     avatarUrl: deal.avatarUrl,
-    termLabel: termLabel(deal.termLength),
     equityEnabled: deal.equityEnabled,
-    packages: visible.map((pkg) => toLetterPackage(pkg)),
+    terms: offeredTerms(deal.termOffer).map((term) => ({
+      term,
+      label: termLabel(term),
+      packages: visible.map((pkg) => toLetterPackage({ ...pkg, ...offerPrice(pkg, term) })),
+    })),
     selectedPackageId: deal.selectedPackageId,
+    selectedTerm: deal.selectedTerm,
   };
 }

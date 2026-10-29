@@ -12,8 +12,10 @@ import {
   contractValueCents,
   equityValueCents,
   formatDollars,
-  termLabel,
+  offerPrice,
+  quotedTerm,
   termMonths,
+  type ClientTerm,
   type OfferRate,
 } from "@/lib/operate/pricing";
 import { DealAvatar } from "./deal-avatar";
@@ -39,25 +41,34 @@ function isSort(value: string): value is Sort {
 type PipelineRow = {
   deal: DashboardDeal;
   quoted: OfferRate | null;
+  term: ClientTerm;
   months: number | null;
   rateCents: number | null;
   valueCents: number | null;
   equityCents: number | null;
 };
 
+// Until the client chooses, a deal is valued on its first offer and its first term.
+function dealTerm(deal: DashboardDeal): ClientTerm {
+  return quotedTerm(deal.termOffer, deal.selectedTerm);
+}
+
 function toRow(deal: DashboardDeal): PipelineRow {
   const quoted = deal.offers.find((offer) => offer.sortOrder === deal.selectedSortOrder) ?? deal.offers[0] ?? null;
-  const months = termMonths(deal.termLength);
-  if (!quoted) return { deal, quoted, months, rateCents: null, valueCents: null, equityCents: null };
-  const rate = billableHourCents(quoted.listRateCents, quoted.cashRateCents, deal.equityEnabled);
+  const term = dealTerm(deal);
+  const months = termMonths(term);
+  if (!quoted) return { deal, quoted, term, months, rateCents: null, valueCents: null, equityCents: null };
+  const price = offerPrice(quoted, term);
+  const rate = billableHourCents(price.listRateCents, price.cashRateCents, deal.equityEnabled);
   return {
     deal,
     quoted,
+    term,
     months,
     rateCents: rate,
-    valueCents: contractValueCents(quoted.hoursPerWeek, rate, deal.termLength),
+    valueCents: contractValueCents(quoted.hoursPerWeek, rate, term),
     equityCents: deal.equityEnabled
-      ? equityValueCents(quoted.hoursPerWeek, quoted.listRateCents, quoted.cashRateCents, deal.termLength)
+      ? equityValueCents(quoted.hoursPerWeek, price.listRateCents, price.cashRateCents, term)
       : null,
   };
 }
@@ -174,7 +185,12 @@ export default async function OperatePage({
   const { rates, deals } = await listDashboard();
   const error = one(searchParams.error);
   const notice = error === "rates" ? one(searchParams.message) : "";
-  const billableCents = averageBillableCents(deals);
+  const billableCents = averageBillableCents(
+    deals.map((deal) => ({
+      equityEnabled: deal.equityEnabled,
+      offers: deal.offers.map((offer) => offerPrice(offer, dealTerm(deal))),
+    })),
+  );
   const requested = one(searchParams.sort);
   const sort: Sort = isSort(requested) ? requested : "company";
   const direction: Direction = one(searchParams.dir) === "desc" ? "desc" : "asc";
@@ -240,7 +256,7 @@ export default async function OperatePage({
                   </ItemContent>
                 </div>
                 <span className="text-right tabular-nums">{quoted ? quoted.hoursPerWeek : "—"}</span>
-                <span className="tabular-nums">{months === null ? termLabel(deal.termLength) : `${months} months`}</span>
+                <span className="tabular-nums">{months === null ? "—" : `${months} months`}</span>
                 <Money cents={rateCents} suffix="/hr" />
                 <Money cents={equityCents} />
                 <Money cents={valueCents} />

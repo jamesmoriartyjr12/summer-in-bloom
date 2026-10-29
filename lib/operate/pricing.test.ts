@@ -10,7 +10,12 @@ import {
   cascadeOffers,
   contractValueCents,
   equityValueCents,
-  packageRates,
+  baseRateCents,
+  offeredTerms,
+  offerPrice,
+  quotedTerm,
+  sheetOffers,
+  sheetRateCents,
   termMonths,
   termWeeks,
   validatePackage,
@@ -96,6 +101,8 @@ describe("amplifier pricing", () => {
         hoursPerWeek: 40,
         listRateCents: 19000,
         cashRateCents: 15000,
+        yearListRateCents: 17000,
+        yearCashRateCents: 13000,
         sortOrder: 0,
       },
       {
@@ -103,27 +110,51 @@ describe("amplifier pricing", () => {
         hoursPerWeek: 80,
         listRateCents: 16000,
         cashRateCents: 12000,
+        yearListRateCents: 14000,
+        yearCashRateCents: 10000,
         sortOrder: 1,
       },
     ];
     assert.deepEqual(cascadeOffers(base, null), base);
-    const custom = cascadeOffers(base, [{ sortOrder: 0, listRateCents: 17000, cashRateCents: 14000 }]);
+    const custom = cascadeOffers(base, [
+      { sortOrder: 0, listRateCents: 17000, cashRateCents: 14000, yearListRateCents: null, yearCashRateCents: 11000 },
+    ]);
     assert.equal(custom[0]?.hoursPerWeek, 40);
     assert.equal(custom[0]?.listRateCents, 17000);
+    assert.equal(custom[0]?.yearListRateCents, 15000);
+    assert.equal(custom[0]?.yearCashRateCents, 11000);
     assert.equal(custom[1]?.listRateCents, 16000);
     assert.equal(custom[1]?.serviceName, "Design Engineering");
   });
 
-  it("switches the weekly rate when the term changes", () => {
-    const rates = {
-      hoursPerWeek: 40,
-      sixMonthListRateCents: 19000,
-      sixMonthCashRateCents: 15000,
-      oneYearListRateCents: 16000,
-      oneYearCashRateCents: 12000,
-    };
-    assert.equal(packageRates(rates, "six-month").weeklyCashCents, 600000);
-    assert.equal(packageRates(rates, "one-year").weeklyCashCents, 480000);
-    assert.equal(packageRates(rates, "one-year").listRateCents, 16000);
+  it("builds the pricing sheet from the base rate", () => {
+    assert.equal(sheetRateCents(20000, 40, "six-month"), 20000);
+    assert.equal(sheetRateCents(20000, 80, "six-month"), 19000);
+    assert.equal(sheetRateCents(20000, 120, "six-month"), 18000);
+    assert.equal(sheetRateCents(20000, 40, "one-year"), 18000);
+    assert.equal(sheetRateCents(20000, 80, "one-year"), 17000);
+    assert.equal(sheetRateCents(20000, 120, "one-year"), 16000);
+    const sheet = sheetOffers(20000);
+    assert.deepEqual(
+      sheet.map((offer) => [offer.hoursPerWeek, offer.listRateCents, offer.yearListRateCents]),
+      [
+        [40, 20000, 18000],
+        [80, 19000, 17000],
+        [120, 18000, 16000],
+      ],
+    );
+    assert.equal(baseRateCents(sheet), 20000);
+    assert.equal(baseRateCents([]), null);
+  });
+
+  it("prices the term the client is looking at", () => {
+    assert.deepEqual(offeredTerms("both"), ["six-month", "one-year"]);
+    assert.deepEqual(offeredTerms("one-year"), ["one-year"]);
+    assert.equal(quotedTerm("both", null), "six-month");
+    assert.equal(quotedTerm("both", "one-year"), "one-year");
+    assert.equal(quotedTerm("six-month", "one-year"), "six-month");
+    const offer = { listRateCents: 20000, cashRateCents: 16000, yearListRateCents: 18000, yearCashRateCents: 14000 };
+    assert.deepEqual(offerPrice(offer, "six-month"), { listRateCents: 20000, cashRateCents: 16000 });
+    assert.deepEqual(offerPrice(offer, "one-year"), { listRateCents: 18000, cashRateCents: 14000 });
   });
 });

@@ -7,7 +7,7 @@ import {
   createDeal,
   getDeal,
   listBaseRates,
-  saveBaseRates,
+  saveBaseRate,
   saveDeal,
   type DealDraft,
   type DealRecord,
@@ -16,7 +16,7 @@ import {
 import { contactFullName, readLinkedInProfile } from "@/lib/operate/linkedin";
 import { companyWebsiteUrl } from "@/lib/operate/website";
 import { parseBlocks } from "@/lib/operate/blocks";
-import { cascadeOffers, type TermLength } from "@/lib/operate/pricing";
+import { cascadeOffers, isTermOffer, type OfferRate } from "@/lib/operate/pricing";
 
 type SaveResult = { ok: true; notice?: string } | { ok: false; error: string };
 
@@ -42,10 +42,6 @@ function dollarsToCents(raw: string): number | null {
   return Math.round(Number(clean) * 100);
 }
 
-function isTermLength(value: string): value is TermLength {
-  return value === "six-month" || value === "one-year" || value === "multi-year";
-}
-
 function readPackage(formData: FormData, index: number): PackageDraft {
   const key = `package${index}`;
   const id = text(formData, `${key}Id`);
@@ -56,13 +52,15 @@ function readPackage(formData: FormData, index: number): PackageDraft {
     enabled: true,
     listRateCents: dollarsToCents(text(formData, `${key}ListRate`)) ?? 0,
     cashRateCents: dollarsToCents(text(formData, `${key}CashRate`)) ?? 0,
+    yearListRateCents: dollarsToCents(text(formData, `${key}YearListRate`)) ?? 0,
+    yearCashRateCents: dollarsToCents(text(formData, `${key}YearCashRate`)) ?? 0,
     sortOrder: index,
   };
 }
 
-function parseDraft(formData: FormData): DealDraft | { error: string } {
-  const termLength = text(formData, "termLength");
-  if (!isTermLength(termLength)) return { error: "Term length is not valid." };
+function parseDraft(formData: FormData, base: OfferRate[]): DealDraft | { error: string } {
+  const termOffer = text(formData, "termOffer");
+  if (!isTermOffer(termOffer)) return { error: "Term length is not valid." };
 
   const valuationRaw = dollarsText(text(formData, "valuationDollars"));
   let valuationDollars: bigint | null = null;
@@ -92,7 +90,7 @@ function parseDraft(formData: FormData): DealDraft | { error: string } {
     return { error: "The letter blocks could not be read." };
   }
 
-  const packages: PackageDraft[] = [0, 1].map((index) => readPackage(formData, index));
+  const packages: PackageDraft[] = base.map((offer) => readPackage(formData, offer.sortOrder));
 
   return {
     companyName: text(formData, "companyName"),
@@ -105,7 +103,7 @@ function parseDraft(formData: FormData): DealDraft | { error: string } {
     letterBlocks: parseBlocks(letterBlocks),
     equityEnabled: formData.get("equityEnabled") === "on",
     ratesOverridden: formData.get("ratesOverridden") === "on",
-    termLength,
+    termOffer,
     round: text(formData, "round"),
     valuationDollars,
     hourlyCostCents,
@@ -113,16 +111,9 @@ function parseDraft(formData: FormData): DealDraft | { error: string } {
   };
 }
 
-export async function saveBaseRatesAction(formData: FormData): Promise<void> {
+export async function saveBaseRateAction(formData: FormData): Promise<void> {
   await requireSession();
-  const offers = [0, 1].map((index) => ({
-    serviceName: text(formData, `offer${index}Service`),
-    hoursPerWeek: Number(text(formData, `offer${index}Hours`)),
-    listRateCents: dollarsToCents(text(formData, `offer${index}List`)) ?? -1,
-    cashRateCents: dollarsToCents(text(formData, `offer${index}Cash`)) ?? -1,
-    sortOrder: index,
-  }));
-  const result = await saveBaseRates(offers);
+  const result = await saveBaseRate(dollarsToCents(text(formData, "baseRate")) ?? -1);
   revalidatePath("/operate");
   if (!result.ok) redirect(`/operate?error=rates&message=${encodeURIComponent(result.error)}`);
   redirect("/operate?saved=rates");
@@ -132,7 +123,8 @@ async function completeDraft(
   formData: FormData,
   existing: DealRecord | null,
 ): Promise<{ draft: DealDraft; notice?: string } | { ok: false; error: string }> {
-  const draft = parseDraft(formData);
+  const base = await listBaseRates();
+  const draft = parseDraft(formData, base);
   if ("error" in draft) return { ok: false, error: draft.error };
   let notice: string | undefined;
   if (draft.linkedinUrl) {
@@ -153,7 +145,6 @@ async function completeDraft(
       if (profile.profile.company) draft.companyName = profile.profile.company;
     }
   }
-  const base = await listBaseRates();
   const offers = cascadeOffers(
     base,
     draft.ratesOverridden
@@ -161,6 +152,8 @@ async function completeDraft(
           sortOrder: pkg.sortOrder,
           listRateCents: pkg.listRateCents,
           cashRateCents: pkg.cashRateCents,
+          yearListRateCents: pkg.yearListRateCents,
+          yearCashRateCents: pkg.yearCashRateCents,
         }))
       : null,
   );
@@ -173,6 +166,8 @@ async function completeDraft(
       enabled: true,
       listRateCents: offer.listRateCents,
       cashRateCents: offer.cashRateCents,
+      yearListRateCents: offer.yearListRateCents,
+      yearCashRateCents: offer.yearCashRateCents,
       sortOrder: offer.sortOrder,
     };
   });

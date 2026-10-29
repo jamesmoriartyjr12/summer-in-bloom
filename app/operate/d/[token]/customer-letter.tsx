@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DealLetter } from "@/components/operate/DealLetter";
-import type { LetterDeal } from "@/lib/operate/pricing";
+import type { ClientTerm, LetterDeal } from "@/lib/operate/pricing";
 
 const errorStyle = {
   margin: 0,
@@ -15,34 +15,37 @@ const errorStyle = {
   textAlign: "center",
 } as const;
 
+type Choice = { packageId: string | null; term: ClientTerm | null };
+
 export function CustomerLetter({ token, deal }: { token: string; deal: LetterDeal }) {
   const router = useRouter();
-  const [selectedPackageId, setSelectedPackageId] = useState(deal.selectedPackageId);
+  const [choice, setChoice] = useState<Choice>({ packageId: deal.selectedPackageId, term: deal.selectedTerm });
   const [error, setError] = useState<string | null>(null);
-  const selectedRef = useRef(deal.selectedPackageId);
+  const choiceRef = useRef(choice);
   const requestRef = useRef(0);
 
-  async function onSelect(packageId: string) {
+  async function onSelect(packageId: string, term: ClientTerm) {
     const request = ++requestRef.current;
-    const previous = selectedRef.current;
-    selectedRef.current = packageId;
-    setSelectedPackageId(packageId);
+    const previous = choiceRef.current;
+    const next = { packageId, term };
+    choiceRef.current = next;
+    setChoice(next);
     setError(null);
 
     try {
       const response = await fetch(`/operate/d/${token}/select`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ packageId }),
+        body: JSON.stringify(next),
       });
       // A slower response for a package the customer has left is ignored.
-      if (requestRef.current !== request || selectedRef.current !== packageId) return;
+      if (requestRef.current !== request || choiceRef.current !== next) return;
       if (!response.ok) throw new Error("select failed");
       router.refresh();
     } catch {
-      if (requestRef.current !== request || selectedRef.current !== packageId) return;
-      selectedRef.current = previous;
-      setSelectedPackageId(previous);
+      if (requestRef.current !== request || choiceRef.current !== next) return;
+      choiceRef.current = previous;
+      setChoice(previous);
       setError("Could not save that choice.");
     }
   }
@@ -55,7 +58,7 @@ export function CustomerLetter({ token, deal }: { token: string; deal: LetterDea
         </p>
       ) : null}
       <DealLetter
-        deal={{ ...deal, selectedPackageId }}
+        deal={{ ...deal, selectedPackageId: choice.packageId, selectedTerm: choice.term }}
         mode="customer"
         onSelect={onSelect}
       />

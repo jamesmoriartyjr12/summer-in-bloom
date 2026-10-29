@@ -1,8 +1,14 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { greetingParts, type LetterBlock } from "@/lib/operate/blocks";
-import { formatDollars, type LetterDeal, type LetterPackage } from "@/lib/operate/pricing";
+import {
+  formatDollars,
+  letterTerm,
+  type ClientTerm,
+  type LetterDeal,
+  type LetterPackage,
+} from "@/lib/operate/pricing";
 
 export const letterStyles = `
 .operate-letter {
@@ -30,11 +36,6 @@ export const letterStyles = `
 .operate-letter--canvas .operate-letter__sheet {
   padding-left: 80px;
   padding-right: 48px;
-}
-.operate-letter__brand {
-  display: block;
-  width: 60px;
-  height: 60px;
 }
 .operate-letter__logo {
   display: block;
@@ -86,6 +87,39 @@ export const letterStyles = `
   margin: 0;
   font-size: 18px;
   line-height: 1.4;
+}
+.operate-letter__terms {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid rgba(7, 15, 24, 0.2);
+  border-radius: 999px;
+}
+.operate-letter__term-option {
+  margin: 0;
+  padding: 8px 18px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(7, 15, 24, 0.7);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+  appearance: none;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+.operate-letter__term-option:hover {
+  color: #070F18;
+}
+.operate-letter__term-option[aria-checked="true"] {
+  background: #070F18;
+  color: #FAF6EC;
+}
+.operate-letter__term-option:focus-visible {
+  outline: 2px solid #070F18;
+  outline-offset: 3px;
 }
 .operate-letter__divider {
   margin: 0;
@@ -304,29 +338,79 @@ export function GreetingView({ text, companyName }: { text: string; companyName:
   );
 }
 
+export function TermToggle({
+  options,
+  value,
+  onChange,
+}: {
+  options: { term: ClientTerm; label: string }[];
+  value: ClientTerm;
+  onChange: (term: ClientTerm) => void;
+}) {
+  return (
+    <div role="radiogroup" aria-label="Term" className="operate-letter__terms">
+      {options.map((option) => (
+        <button
+          key={option.term}
+          type="button"
+          role="radio"
+          aria-checked={option.term === value}
+          className="operate-letter__term-option"
+          onClick={() => onChange(option.term)}
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export function TermView({
+  deal,
+  term,
+  onTerm,
+}: {
+  deal: LetterDeal;
+  term: ClientTerm;
+  onTerm: (term: ClientTerm) => void;
+}) {
+  if (deal.terms.length > 1) return <TermToggle options={deal.terms} value={term} onChange={onTerm} />;
+  return <p className="operate-letter__term">{deal.terms[0]?.label}</p>;
+}
+
+// A choice saved before terms could be compared belongs to the first term.
+function chosenTerm(deal: LetterDeal): ClientTerm | undefined {
+  return deal.selectedTerm ?? deal.terms[0]?.term;
+}
+
 export function OffersView({
   deal,
+  term,
   mode,
   onSelect,
   renderRate,
 }: {
   deal: LetterDeal;
+  term: ClientTerm;
   mode: "customer" | "preview";
   onSelect?: (packageId: string) => void;
   renderRate?: (pkg: LetterPackage, index: number) => ReactNode;
 }) {
-  const quoted = deal.packages.find((pkg) => pkg.id === deal.selectedPackageId) ?? deal.packages[0];
+  const current = letterTerm(deal, term);
+  const packages = current?.packages ?? [];
+  const chosenHere = current !== undefined && chosenTerm(deal) === current.term;
+  const quoted = (chosenHere ? packages.find((pkg) => pkg.id === deal.selectedPackageId) : undefined) ?? packages[0];
   const sentence = equitySentence(deal.equityEnabled, quoted);
   return (
     <>
       <div className="operate-letter__packages">
-        {deal.packages.map((pkg, index) => (
+        {packages.map((pkg, index) => (
           <PackageRow
             key={pkg.id}
             pkg={pkg}
             mode={mode}
             equityEnabled={deal.equityEnabled}
-            selected={pkg.id === deal.selectedPackageId}
+            selected={chosenHere && pkg.id === deal.selectedPackageId}
             onSelect={onSelect}
             rate={renderRate?.(pkg, index)}
           />
@@ -355,13 +439,11 @@ export function LetterFrame({
   return (
     <article className={canvas ? "operate-letter operate-letter--canvas" : "operate-letter"}>
       <style>{letterStyles}</style>
-      <header className="operate-letter__header">
-        {companyLogoUrl ? (
+      {companyLogoUrl ? (
+        <header className="operate-letter__header">
           <img className="operate-letter__logo" src={companyLogoUrl} alt={companyName} />
-        ) : (
-          <img className="operate-letter__brand" src="/bloom-mark.svg" alt="Bloom" />
-        )}
-      </header>
+        </header>
+      ) : null}
       <img className="operate-letter__wordmark" src="/bloom-wordmark.svg" alt="" aria-hidden draggable={false} />
       <div className="operate-letter__sheet">
         {children}
@@ -381,15 +463,18 @@ export function DealLetter({
 }: {
   deal: LetterDeal;
   mode: "customer" | "preview";
-  onSelect?: (packageId: string) => void;
+  onSelect?: (packageId: string, term: ClientTerm) => void;
 }) {
+  const [term, setTerm] = useState<ClientTerm>(() => letterTerm(deal, deal.selectedTerm)?.term ?? "six-month");
   return (
     <LetterFrame companyName={deal.companyName} companyLogoUrl={deal.companyLogoUrl}>
       {deal.blocks.map((block) => (
         <section key={block.id} className={blockClassName(block)}>
           {block.type === "greeting" ? <GreetingView text={block.text} companyName={deal.companyName} /> : null}
-          {block.type === "term" ? <p className="operate-letter__term">{deal.termLabel}</p> : null}
-          {block.type === "offers" ? <OffersView deal={deal} mode={mode} onSelect={onSelect} /> : null}
+          {block.type === "term" ? <TermView deal={deal} term={term} onTerm={setTerm} /> : null}
+          {block.type === "offers" ? (
+            <OffersView deal={deal} term={term} mode={mode} onSelect={(packageId) => onSelect?.(packageId, term)} />
+          ) : null}
           {block.type === "divider" ? <hr className="operate-letter__divider" /> : null}
         </section>
       ))}

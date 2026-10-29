@@ -2,24 +2,25 @@ import { selectPackage } from "@/lib/operate/deals";
 
 export const dynamic = "force-dynamic";
 
-function readPackageId(body: unknown): string | null {
-  if (!body || typeof body !== "object" || !("packageId" in body)) return null;
-  const packageId = (body as { packageId: unknown }).packageId;
-  return typeof packageId === "string" ? packageId : null;
+function readChoice(body: unknown): { packageId: string; term: string } | null {
+  if (!body || typeof body !== "object") return null;
+  const { packageId, term } = body as { packageId?: unknown; term?: unknown };
+  if (typeof packageId !== "string" || typeof term !== "string") return null;
+  return { packageId, term };
 }
 
 export async function POST(request: Request, { params }: { params: { token: string } }) {
-  let packageId: string | null = null;
+  let choice: { packageId: string; term: string } | null = null;
   try {
-    packageId = readPackageId(await request.json());
+    choice = readChoice(await request.json());
   } catch {
-    packageId = null;
+    choice = null;
   }
-  if (!packageId || !process.env.DATABASE_URL) {
+  if (!choice || !process.env.DATABASE_URL) {
     return new Response(null, { status: 404 });
   }
 
-  const result = await selectPackage(params.token, packageId);
+  const result = await selectPackage(params.token, choice.packageId, choice.term);
   if (!result.ok) return new Response(null, { status: 404 });
   return Response.json({ ok: true });
 }
