@@ -327,6 +327,7 @@ function draftError(input: DealDraft): string | null {
 export type DashboardDeal = DealListItem & {
   equityEnabled: boolean;
   offers: OfferRate[];
+  selectedSortOrder: number | null;
 };
 
 export async function listDashboard(): Promise<{ rates: OfferRate[]; deals: DashboardDeal[] }> {
@@ -344,6 +345,7 @@ export async function listDashboard(): Promise<{ rates: OfferRate[]; deals: Dash
       termLength: deals.termLength,
       ratesOverridden: deals.ratesOverridden,
       equityEnabled: deals.equityEnabled,
+      selectedPackageId: deals.selectedPackageId,
     })
     .from(deals)
     .orderBy(asc(deals.companyName), asc(deals.id));
@@ -376,6 +378,7 @@ export async function listDashboard(): Promise<{ rates: OfferRate[]; deals: Dash
               }))
             : null,
         ),
+        selectedSortOrder: mine.find((pkg) => pkg.id === row.selectedPackageId)?.sortOrder ?? null,
       };
     }),
   };

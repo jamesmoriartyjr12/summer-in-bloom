@@ -16,6 +16,18 @@ export function weeklyAmountCents(hoursPerWeek: number, rateCents: number): numb
   return hoursPerWeek * rateCents;
 }
 
+// A multi-year deal has no fixed length yet, so it has no contract value.
+export function termWeeks(term: TermLength): number | null {
+  if (term === "six-month") return 26;
+  if (term === "one-year") return 52;
+  return null;
+}
+
+export function contractValueCents(hoursPerWeek: number, rateCents: number, term: TermLength): number | null {
+  const weeks = termWeeks(term);
+  return weeks === null ? null : weeklyAmountCents(hoursPerWeek, rateCents) * weeks;
+}
+
 export function equityPerHourCents(listRateCents: number, cashRateCents: number): number {
   return listRateCents - cashRateCents;
 }

@@ -8,7 +8,9 @@ import {
   averageBillableCents,
   billableHourCents,
   cascadeOffers,
+  contractValueCents,
   packageRates,
+  termWeeks,
   validatePackage,
   weeklyAmountCents,
 } from "./pricing";
@@ -21,6 +23,15 @@ describe("amplifier pricing", () => {
     assert.equal(equityPerWeekCents(40, 19000, 15000), 160000);
     assert.equal(formatDollars(760000), "$7,600");
     assert.equal(formatDollars(4000), "$40");
+  });
+
+  it("values a contract over its term", () => {
+    assert.equal(termWeeks("six-month"), 26);
+    assert.equal(termWeeks("one-year"), 52);
+    assert.equal(termWeeks("multi-year"), null);
+    assert.equal(contractValueCents(40, 15000, "six-month"), 15600000);
+    assert.equal(contractValueCents(80, 15000, "one-year"), 62400000);
+    assert.equal(contractValueCents(40, 15000, "multi-year"), null);
   });
 
   it("names the term", () => {

@@ -89,7 +89,7 @@ export function OperateShell({
           </SidebarGroup>
 
           <SidebarGroup className="p-0 px-2">
-            <SidebarGroupLabel className={railLabel}>Open deals</SidebarGroupLabel>
+            <SidebarGroupLabel className={railLabel}>Pipeline</SidebarGroupLabel>
             <SidebarMenu className="gap-1">
               {deals.map((deal) => (
                 <SidebarMenuItem key={deal.id}>
