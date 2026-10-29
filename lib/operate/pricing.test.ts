@@ -5,6 +5,8 @@ import {
   equityPerWeekCents,
   formatDollars,
   termLabel,
+  averageBillableCents,
+  billableHourCents,
   cascadeOffers,
   packageRates,
   validatePackage,
@@ -49,6 +51,24 @@ describe("amplifier pricing", () => {
       equityEnabled: false,
     });
     assert.equal(error, null);
+  });
+
+  it("averages the billable rate across deals", () => {
+    assert.equal(billableHourCents(19000, 15000, false), 19000);
+    assert.equal(billableHourCents(19000, 15000, true), 15000);
+    assert.equal(
+      averageBillableCents([
+        {
+          equityEnabled: true,
+          offers: [
+            { listRateCents: 19000, cashRateCents: 15000 },
+            { listRateCents: 16000, cashRateCents: 12000 },
+          ],
+        },
+      ]),
+      13500,
+    );
+    assert.equal(averageBillableCents([]), null);
   });
 
   it("keeps the same offers on every deal", () => {

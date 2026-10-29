@@ -132,6 +132,30 @@ export type RateOverride = {
 
 // Every deal shows the same offers. An override replaces the price for one customer
 // and leaves the hours and service on the company card.
+export function billableHourCents(
+  listRateCents: number,
+  cashRateCents: number,
+  equityEnabled: boolean,
+): number {
+  return equityEnabled ? cashRateCents : listRateCents;
+}
+
+export function averageBillableCents(
+  deals: {
+    equityEnabled: boolean;
+    offers: { listRateCents: number; cashRateCents: number }[];
+  }[],
+): number | null {
+  const rates = deals.flatMap((deal) =>
+    deal.offers.map((offer) =>
+      billableHourCents(offer.listRateCents, offer.cashRateCents, deal.equityEnabled),
+    ),
+  );
+  if (rates.length === 0) return null;
+  const total = rates.reduce((sum, rate) => sum + rate, 0);
+  return Math.round(total / rates.length);
+}
+
 export function cascadeOffers(base: OfferRate[], overrides: RateOverride[] | null): OfferRate[] {
   return base.map((offer) => {
     if (!overrides) return offer;

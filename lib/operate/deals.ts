@@ -322,6 +322,59 @@ function draftError(input: DealDraft): string | null {
   return null;
 }
 
+export type DashboardDeal = DealListItem & {
+  equityEnabled: boolean;
+  offers: OfferRate[];
+};
+
+export async function listDashboard(): Promise<{ rates: OfferRate[]; deals: DashboardDeal[] }> {
+  const db = getDb();
+  const rates = await listBaseRates();
+  const rows = await db
+    .select({
+      id: deals.id,
+      token: deals.token,
+      companyName: deals.companyName,
+      contactName: deals.contactName,
+      contactRole: deals.contactRole,
+      termLength: deals.termLength,
+      ratesOverridden: deals.ratesOverridden,
+      equityEnabled: deals.equityEnabled,
+    })
+    .from(deals)
+    .orderBy(asc(deals.companyName), asc(deals.id));
+  const ids = rows.map((row) => row.id);
+  const offerRows =
+    ids.length === 0 ? [] : await db.select().from(packages).where(inArray(packages.dealId, ids));
+
+  return {
+    rates,
+    deals: rows.map((row) => {
+      const mine = offerRows.filter((pkg) => pkg.dealId === row.id);
+      return {
+        id: row.id,
+        token: row.token,
+        companyName: row.companyName,
+        contactName: row.contactName,
+        contactRole: row.contactRole,
+        termLength: termFromColumn(row.termLength),
+        ratesOverridden: row.ratesOverridden,
+        equityEnabled: row.equityEnabled,
+        offers: cascadeOffers(
+          rates,
+          row.ratesOverridden
+            ? mine.map((pkg) => ({
+                sortOrder: pkg.sortOrder,
+                listRateCents: pkg.listRateCents,
+                cashRateCents: pkg.cashRateCents,
+              }))
+            : null,
+        ),
+      };
+    }),
+  };
+}
+
 export async function listDeals(): Promise<DealListItem[]> {
   const db = getDb();
   const rows = await db
