@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import { and, asc, eq, gte, inArray } from "drizzle-orm";
 import { getDb } from "./db";
 import {
+  buildLetterTerm,
   cascadeOffers,
   isClientTerm,
   isTermOffer,
@@ -9,15 +10,23 @@ import {
   offeredTerms,
   offerPrice,
   sheetOffers,
-  termLabel,
-  toLetterPackage,
   validatePackage,
   type ClientTerm,
+  type EquitySettings,
   type LetterDeal,
   type OfferRate,
   type TermOffer,
 } from "./pricing";
 import { parseBlocks, type LetterBlock } from "./blocks";
+import {
+  DEFAULT_MULTIPLIER,
+  defaultEquityBasis,
+  isEquityBasis,
+  isValuationBasis,
+  MIN_CASH_RATE_CENTS,
+  type EquityBasis,
+  type ValuationBasis,
+} from "./equity";
 import { baseRates, deals, packages } from "./schema";
 
 const UUID_PATTERN =
@@ -52,9 +61,14 @@ export type DealRecord = {
   termOffer: TermOffer;
   round: string | null;
   valuationDollars: bigint | null;
+  valuationBasis: ValuationBasis;
+  equityBasis: EquityBasis | null;
+  equityMultiplier: number;
+  cashFloorCents: number;
   hourlyCostCents: number | null;
   selectedPackageId: string | null;
   selectedTerm: ClientTerm | null;
+  selectedEquityCents: number;
   hubspotContactId: string | null;
   hubspotDealId: string | null;
   packages: DealPackage[];
@@ -86,6 +100,10 @@ export type DealDraft = {
   termOffer: TermOffer;
   round: string | null;
   valuationDollars: bigint | null;
+  valuationBasis: ValuationBasis;
+  equityBasis: EquityBasis | null;
+  equityMultiplierTenths: number | null;
+  cashFloorCents: number | null;
   hourlyCostCents: number | null;
   packages: PackageDraft[];
 };
@@ -121,6 +139,10 @@ function offerFromColumn(value: string): TermOffer {
 
 function selectedTermFromColumn(value: string | null): ClientTerm | null {
   return value !== null && isClientTerm(value) ? value : null;
+}
+
+function multiplierFromColumn(tenths: number | null): number {
+  return tenths === null || tenths <= 0 ? DEFAULT_MULTIPLIER : tenths / 10;
 }
 
 function blankToNull(value: string | null): string | null {
@@ -161,9 +183,14 @@ function toDealRecord(deal: DealRow, rows: PackageRow[]): DealRecord {
     termOffer: offerFromColumn(deal.termLength),
     round: deal.round,
     valuationDollars: deal.valuationDollars,
+    valuationBasis: isValuationBasis(deal.valuationBasis) ? deal.valuationBasis : "post",
+    equityBasis: deal.equityBasis !== null && isEquityBasis(deal.equityBasis) ? deal.equityBasis : null,
+    equityMultiplier: multiplierFromColumn(deal.equityMultiplierTenths),
+    cashFloorCents: deal.cashFloorCents ?? MIN_CASH_RATE_CENTS,
     hourlyCostCents: deal.hourlyCostCents,
     selectedPackageId: deal.selectedPackageId,
     selectedTerm: selectedTermFromColumn(deal.selectedTerm),
+    selectedEquityCents: deal.selectedEquityCents ?? 0,
     hubspotContactId: deal.hubspotContactId,
     hubspotDealId: deal.hubspotDealId,
     packages: rows.map(toPackage),
@@ -322,6 +349,17 @@ function draftError(input: DealDraft): string | null {
   if (input.hourlyCostCents !== null && !Number.isInteger(input.hourlyCostCents)) {
     return "Hourly cost must be a whole number of cents.";
   }
+  if (!isValuationBasis(input.valuationBasis)) return "Valuation must be pre-money or post-money.";
+  if (input.equityBasis !== null && !isEquityBasis(input.equityBasis)) return "Equity basis is not valid.";
+  if (
+    input.equityMultiplierTenths !== null &&
+    (!Number.isInteger(input.equityMultiplierTenths) || input.equityMultiplierTenths <= 0)
+  ) {
+    return "The multiplier must be more than zero.";
+  }
+  if (input.cashFloorCents !== null && (!Number.isInteger(input.cashFloorCents) || input.cashFloorCents < 0)) {
+    return "The cash floor must be zero or more.";
+  }
   const seen = new Set<string>();
   for (const pkg of input.packages) {
     for (const term of offeredTerms(input.termOffer)) {
@@ -346,6 +384,8 @@ export type DashboardDeal = DealListItem & {
   equityEnabled: boolean;
   offers: OfferRate[];
   selectedSortOrder: number | null;
+  selectedEquityCents: number;
+  cashFloorCents: number;
 };
 
 export async function listDashboard(): Promise<{ rates: OfferRate[]; deals: DashboardDeal[] }> {
@@ -367,6 +407,8 @@ export async function listDashboard(): Promise<{ rates: OfferRate[]; deals: Dash
       ratesOverridden: deals.ratesOverridden,
       equityEnabled: deals.equityEnabled,
       selectedPackageId: deals.selectedPackageId,
+      selectedEquityCents: deals.selectedEquityCents,
+      cashFloorCents: deals.cashFloorCents,
     })
     .from(deals)
     .orderBy(asc(deals.companyName), asc(deals.id));
@@ -405,6 +447,8 @@ export async function listDashboard(): Promise<{ rates: OfferRate[]; deals: Dash
             : null,
         ),
         selectedSortOrder: mine.find((pkg) => pkg.id === row.selectedPackageId)?.sortOrder ?? null,
+        selectedEquityCents: row.selectedEquityCents ?? 0,
+        cashFloorCents: row.cashFloorCents ?? MIN_CASH_RATE_CENTS,
       };
     }),
   };
@@ -479,6 +523,10 @@ export async function createDeal(
       termLength: input.termOffer,
       round: blankToNull(input.round),
       valuationDollars: input.valuationDollars,
+      valuationBasis: input.valuationBasis,
+      equityBasis: input.equityBasis,
+      equityMultiplierTenths: input.equityMultiplierTenths,
+      cashFloorCents: input.cashFloorCents,
       hourlyCostCents: input.hourlyCostCents,
     });
     if (input.packages.length > 0) {
@@ -527,6 +575,7 @@ export async function saveDeal(
   const packageKept = existing.selectedPackageId !== null && enabledIds.has(existing.selectedPackageId);
   const selectedPackageId = termKept && packageKept ? existing.selectedPackageId : null;
   const selectedTerm = selectedPackageId === null ? null : existing.selectedTerm;
+  const selectedEquityCents = selectedPackageId === null || !input.equityEnabled ? null : existing.selectedEquityCents;
 
   const db = getDb();
   const dealUpdate = {
@@ -543,9 +592,14 @@ export async function saveDeal(
     termLength: input.termOffer,
     round: blankToNull(input.round),
     valuationDollars: input.valuationDollars,
+    valuationBasis: input.valuationBasis,
+    equityBasis: input.equityBasis,
+    equityMultiplierTenths: input.equityMultiplierTenths,
+    cashFloorCents: input.cashFloorCents,
     hourlyCostCents: input.hourlyCostCents,
     selectedPackageId,
     selectedTerm,
+    selectedEquityCents,
   };
   await db.transaction(async (tx) => {
     await tx.delete(packages).where(eq(packages.dealId, id));
@@ -574,18 +628,42 @@ export async function selectPackage(
   token: string,
   packageId: string,
   term: string,
+  equityCents: number,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   if (!isUuid(packageId) || !isClientTerm(term)) return { ok: false, error: "Package not found." };
   const deal = await getDealByToken(token);
   if (!deal) return { ok: false, error: "Package not found." };
   const match = deal.packages.find((pkg) => pkg.id === packageId && pkg.enabled);
-  if (!match || !offeredTerms(deal.termOffer).includes(term)) return { ok: false, error: "Package not found." };
+  const offered = dealToLetter(deal).terms.find((item) => item.term === term);
+  if (!match || !offered) return { ok: false, error: "Package not found." };
+  if (!offered.steps.includes(equityCents)) return { ok: false, error: "That equity amount is not offered." };
   const db = getDb();
   await db
     .update(deals)
-    .set({ selectedPackageId: packageId, selectedTerm: term })
+    .set({ selectedPackageId: packageId, selectedTerm: term, selectedEquityCents: equityCents })
     .where(eq(deals.id, deal.id));
   return { ok: true };
+}
+
+export function dealEquitySettings(deal: {
+  equityEnabled: boolean;
+  cashFloorCents: number;
+  valuationDollars: bigint | null;
+  valuationBasis: ValuationBasis;
+  equityBasis: EquityBasis | null;
+  equityMultiplier: number;
+  round: string | null;
+}): EquitySettings {
+  return {
+    equityEnabled: deal.equityEnabled,
+    floorCents: deal.cashFloorCents,
+    ownership: {
+      valuationDollars: deal.valuationDollars === null ? null : Number(deal.valuationDollars),
+      valuationBasis: deal.valuationBasis,
+      equityBasis: deal.equityBasis ?? defaultEquityBasis(deal.round),
+      multiplier: deal.equityMultiplier,
+    },
+  };
 }
 
 export function dealToLetter(deal: DealRecord): LetterDeal {
@@ -599,12 +677,15 @@ export function dealToLetter(deal: DealRecord): LetterDeal {
     contactName: deal.contactName,
     avatarUrl: deal.avatarUrl,
     equityEnabled: deal.equityEnabled,
-    terms: offeredTerms(deal.termOffer).map((term) => ({
-      term,
-      label: termLabel(term),
-      packages: visible.map((pkg) => toLetterPackage({ ...pkg, ...offerPrice(pkg, term) })),
-    })),
+    terms: offeredTerms(deal.termOffer).map((term) =>
+      buildLetterTerm(
+        term,
+        visible.map((pkg) => ({ ...pkg, listRateCents: offerPrice(pkg, term).listRateCents })),
+        dealEquitySettings(deal),
+      ),
+    ),
     selectedPackageId: deal.selectedPackageId,
     selectedTerm: deal.selectedTerm,
+    selectedEquityCents: deal.equityEnabled ? deal.selectedEquityCents : 0,
   };
 }

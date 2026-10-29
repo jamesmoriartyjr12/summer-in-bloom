@@ -1,5 +1,6 @@
 export type LetterBlock =
   | { id: string; type: "greeting"; text: string }
+  | { id: string; type: "equity" }
   | { id: string; type: "term" }
   | { id: string; type: "offers" }
   | { id: string; type: "divider" };
@@ -8,13 +9,14 @@ export type BlockType = LetterBlock["type"];
 
 export const COMPANY_TOKEN = "{company}";
 export const DEFAULT_GREETING = `Hello ${COMPANY_TOKEN}, so nice to see you again.`;
-export const BLOCK_TYPES: BlockType[] = ["greeting", "term", "offers", "divider"];
-const SINGLE: BlockType[] = ["greeting", "term", "offers"];
+export const BLOCK_TYPES: BlockType[] = ["greeting", "equity", "term", "offers", "divider"];
+const SINGLE: BlockType[] = ["greeting", "equity", "term", "offers"];
 const MAX_BLOCKS = 24;
 const MAX_GREETING = 280;
 
 export function blockLabel(type: BlockType): string {
   if (type === "greeting") return "Greeting";
+  if (type === "equity") return "Equity";
   if (type === "term") return "Term";
   if (type === "offers") return "Offers";
   return "Divider";
@@ -35,7 +37,16 @@ export function newBlock(type: BlockType, id: string): LetterBlock {
 }
 
 export function defaultBlocks(): LetterBlock[] {
-  return [newBlock("greeting", "greeting"), newBlock("term", "term"), newBlock("offers", "offers")];
+  return [
+    newBlock("greeting", "greeting"),
+    newBlock("equity", "equity"),
+    newBlock("term", "term"),
+    newBlock("offers", "offers"),
+  ];
+}
+
+function isBlockType(value: unknown): value is BlockType {
+  return typeof value === "string" && (BLOCK_TYPES as string[]).includes(value);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -51,7 +62,7 @@ export function parseBlocks(value: unknown): LetterBlock[] {
     if (!isRecord(item) || typeof item.id !== "string" || item.id === "" || item.id.length > 64) continue;
     if (ids.has(item.id)) continue;
     const type = item.type;
-    if (type !== "greeting" && type !== "term" && type !== "offers" && type !== "divider") continue;
+    if (!isBlockType(type)) continue;
     if (isSingleBlock(type) && blocks.some((block) => block.type === type)) continue;
     ids.add(item.id);
     if (type === "greeting") {

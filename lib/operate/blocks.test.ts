@@ -16,7 +16,7 @@ describe("letter blocks", () => {
     assert.deepEqual(parseBlocks(null), defaultBlocks());
     assert.deepEqual(
       defaultBlocks().map((block) => block.type),
-      ["greeting", "term", "offers"],
+      ["greeting", "equity", "term", "offers"],
     );
   });
 
@@ -42,8 +42,8 @@ describe("letter blocks", () => {
   it("moves a block and ignores moves off the end", () => {
     const blocks = defaultBlocks();
     assert.deepEqual(
-      moveBlock(blocks, 2, -1).map((block) => block.type),
-      ["greeting", "offers", "term"],
+      moveBlock(blocks, 3, -1).map((block) => block.type),
+      ["greeting", "equity", "offers", "term"],
     );
     assert.equal(moveBlock(blocks, 0, -1), blocks);
   });

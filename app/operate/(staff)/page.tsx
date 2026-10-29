@@ -18,6 +18,7 @@ import {
   type ClientTerm,
   type OfferRate,
 } from "@/lib/operate/pricing";
+import { cashRateAt } from "@/lib/operate/equity";
 import { DealAvatar } from "./deal-avatar";
 import { DealMenu } from "./deal-menu";
 import { DealDashboard } from "./dashboard";
@@ -48,9 +49,15 @@ type PipelineRow = {
   equityCents: number | null;
 };
 
-// Until the client chooses, a deal is valued on its first offer and its first term.
+// Until the client chooses, a deal is valued on its first offer and its first term, all cash.
 function dealTerm(deal: DashboardDeal): ClientTerm {
   return quotedTerm(deal.termOffer, deal.selectedTerm);
+}
+
+function quotedPrice(deal: DashboardDeal, offer: OfferRate, term: ClientTerm) {
+  const listRateCents = offerPrice(offer, term).listRateCents;
+  const step = deal.equityEnabled ? deal.selectedEquityCents : 0;
+  return { listRateCents, cashRateCents: cashRateAt(listRateCents, step, deal.cashFloorCents) };
 }
 
 function toRow(deal: DashboardDeal): PipelineRow {
@@ -58,7 +65,7 @@ function toRow(deal: DashboardDeal): PipelineRow {
   const term = dealTerm(deal);
   const months = termMonths(term);
   if (!quoted) return { deal, quoted, term, months, rateCents: null, valueCents: null, equityCents: null };
-  const price = offerPrice(quoted, term);
+  const price = quotedPrice(deal, quoted, term);
   const rate = billableHourCents(price.listRateCents, price.cashRateCents, deal.equityEnabled);
   return {
     deal,
@@ -188,7 +195,7 @@ export default async function OperatePage({
   const billableCents = averageBillableCents(
     deals.map((deal) => ({
       equityEnabled: deal.equityEnabled,
-      offers: deal.offers.map((offer) => offerPrice(offer, dealTerm(deal))),
+      offers: deal.offers.map((offer) => quotedPrice(deal, offer, dealTerm(deal))),
     })),
   );
   const requested = one(searchParams.sort);

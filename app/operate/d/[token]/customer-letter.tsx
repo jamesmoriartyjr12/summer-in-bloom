@@ -15,19 +15,23 @@ const errorStyle = {
   textAlign: "center",
 } as const;
 
-type Choice = { packageId: string | null; term: ClientTerm | null };
+type Choice = { packageId: string | null; term: ClientTerm | null; equityCents: number };
 
 export function CustomerLetter({ token, deal }: { token: string; deal: LetterDeal }) {
   const router = useRouter();
-  const [choice, setChoice] = useState<Choice>({ packageId: deal.selectedPackageId, term: deal.selectedTerm });
+  const [choice, setChoice] = useState<Choice>({
+    packageId: deal.selectedPackageId,
+    term: deal.selectedTerm,
+    equityCents: deal.selectedEquityCents,
+  });
   const [error, setError] = useState<string | null>(null);
   const choiceRef = useRef(choice);
   const requestRef = useRef(0);
 
-  async function onSelect(packageId: string, term: ClientTerm) {
+  async function onSelect(packageId: string, term: ClientTerm, equityCents: number) {
     const request = ++requestRef.current;
     const previous = choiceRef.current;
-    const next = { packageId, term };
+    const next = { packageId, term, equityCents };
     choiceRef.current = next;
     setChoice(next);
     setError(null);
@@ -58,7 +62,12 @@ export function CustomerLetter({ token, deal }: { token: string; deal: LetterDea
         </p>
       ) : null}
       <DealLetter
-        deal={{ ...deal, selectedPackageId: choice.packageId, selectedTerm: choice.term }}
+        deal={{
+          ...deal,
+          selectedPackageId: choice.packageId,
+          selectedTerm: choice.term,
+          selectedEquityCents: choice.equityCents,
+        }}
         mode="customer"
         onSelect={onSelect}
       />

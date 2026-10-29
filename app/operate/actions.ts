@@ -17,6 +17,7 @@ import { contactFullName, readLinkedInProfile } from "@/lib/operate/linkedin";
 import { companyWebsiteUrl } from "@/lib/operate/website";
 import { parseBlocks } from "@/lib/operate/blocks";
 import { cascadeOffers, isTermOffer, type OfferRate } from "@/lib/operate/pricing";
+import { isEquityBasis, isValuationBasis } from "@/lib/operate/equity";
 
 type SaveResult = { ok: true; notice?: string } | { ok: false; error: string };
 
@@ -42,18 +43,21 @@ function dollarsToCents(raw: string): number | null {
   return Math.round(Number(clean) * 100);
 }
 
+// Staff set the list rate. The cash rate comes from the client's equity choice and the floor.
 function readPackage(formData: FormData, index: number): PackageDraft {
   const key = `package${index}`;
   const id = text(formData, `${key}Id`);
+  const listRateCents = dollarsToCents(text(formData, `${key}ListRate`)) ?? 0;
+  const yearListRateCents = dollarsToCents(text(formData, `${key}YearListRate`)) ?? 0;
   return {
     ...(id ? { id } : {}),
     serviceName: "",
     hoursPerWeek: 0,
     enabled: true,
-    listRateCents: dollarsToCents(text(formData, `${key}ListRate`)) ?? 0,
-    cashRateCents: dollarsToCents(text(formData, `${key}CashRate`)) ?? 0,
-    yearListRateCents: dollarsToCents(text(formData, `${key}YearListRate`)) ?? 0,
-    yearCashRateCents: dollarsToCents(text(formData, `${key}YearCashRate`)) ?? 0,
+    listRateCents,
+    cashRateCents: listRateCents,
+    yearListRateCents,
+    yearCashRateCents: yearListRateCents,
     sortOrder: index,
   };
 }
@@ -75,6 +79,21 @@ function parseDraft(formData: FormData, base: OfferRate[]): DealDraft | { error:
   const hourlyCostCents = dollarsToCents(text(formData, "hourlyCostDollars"));
   if (hourlyCostCents !== null && (!Number.isInteger(hourlyCostCents) || hourlyCostCents < 0)) {
     return { error: "Hourly cost must be zero or more." };
+  }
+
+  const valuationBasis = text(formData, "valuationBasis") || "post";
+  if (!isValuationBasis(valuationBasis)) return { error: "Valuation must be pre-money or post-money." };
+  const equityBasisRaw = text(formData, "equityBasis");
+  const equityBasis = equityBasisRaw === "" ? null : isEquityBasis(equityBasisRaw) ? equityBasisRaw : undefined;
+  if (equityBasis === undefined) return { error: "Equity basis is not valid." };
+  const multiplierRaw = text(formData, "equityMultiplier").trim();
+  const equityMultiplierTenths = multiplierRaw === "" ? null : Math.round(Number(multiplierRaw) * 10);
+  if (equityMultiplierTenths !== null && !(equityMultiplierTenths > 0)) {
+    return { error: "The multiplier must be more than zero." };
+  }
+  const cashFloorCents = dollarsToCents(text(formData, "cashFloorDollars"));
+  if (cashFloorCents !== null && (!Number.isInteger(cashFloorCents) || cashFloorCents < 0)) {
+    return { error: "The cash floor must be zero or more." };
   }
 
   const websiteRaw = text(formData, "companyUrl");
@@ -106,6 +125,10 @@ function parseDraft(formData: FormData, base: OfferRate[]): DealDraft | { error:
     termOffer,
     round: text(formData, "round"),
     valuationDollars,
+    valuationBasis,
+    equityBasis,
+    equityMultiplierTenths,
+    cashFloorCents,
     hourlyCostCents,
     packages,
   };

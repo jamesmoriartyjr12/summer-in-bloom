@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test lib/operate/pricing.test.ts lib/operate/linkedin.test.ts lib/operate/website.test.ts lib/operate/blocks.test.ts"
+    "test": "tsx --test lib/operate/pricing.test.ts lib/operate/linkedin.test.ts lib/operate/website.test.ts lib/operate/blocks.test.ts lib/operate/equity.test.ts"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.3.1",

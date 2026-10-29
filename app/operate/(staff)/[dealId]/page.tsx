@@ -44,9 +44,14 @@ export default async function DealEditorPage({ params }: { params: { dealId: str
     termOffer: deal.termOffer,
     round: deal.round ?? "",
     valuationDollars: deal.valuationDollars === null ? "" : deal.valuationDollars.toString(),
+    valuationBasis: deal.valuationBasis,
+    equityBasis: deal.equityBasis,
+    equityMultiplier: deal.equityMultiplier,
+    cashFloorCents: deal.cashFloorCents,
     hourlyCostCents: deal.hourlyCostCents,
     selectedPackageId: deal.selectedPackageId,
     selectedTerm: deal.selectedTerm,
+    selectedEquityCents: deal.selectedEquityCents,
     packages: deal.packages
       .slice()
       .sort((left, right) => left.sortOrder - right.sortOrder || left.id.localeCompare(right.id))
@@ -56,9 +61,7 @@ export default async function DealEditorPage({ params }: { params: { dealId: str
         hoursPerWeek: pkg.hoursPerWeek,
         enabled: pkg.enabled,
         listRateCents: pkg.listRateCents,
-        cashRateCents: pkg.cashRateCents,
         yearListRateCents: pkg.yearListRateCents,
-        yearCashRateCents: pkg.yearCashRateCents,
       })),
   };
 

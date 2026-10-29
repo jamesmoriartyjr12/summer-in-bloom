@@ -1,4 +1,5 @@
 import type { LetterBlock } from "./blocks";
+import { cashRateAt, equitySteps, ownershipPercent, type OwnershipTerms } from "./equity";
 
 export type TermLength = "six-month" | "one-year" | "multi-year";
 
@@ -155,21 +156,31 @@ export function validatePackage(input: PackageInput): string | null {
   return null;
 }
 
+// One option per equity step on the term, in the same order as `LetterTerm.steps`.
+export type EquityOption = {
+  stepCents: number;
+  cashRateCents: number;
+  weeklyCashCents: number;
+  equityPerHourCents: number;
+  equityPerWeekCents: number;
+  equityTotalCents: number;
+  ownershipPercent: number | null;
+};
+
 export type LetterPackage = {
   id: string;
   serviceName: string;
   hoursPerWeek: number;
   listRateCents: number;
-  cashRateCents: number;
   weeklyListCents: number;
-  weeklyCashCents: number;
-  equityPerHourCents: number;
-  equityPerWeekCents: number;
+  options: EquityOption[];
 };
 
 export type LetterTerm = {
   term: ClientTerm;
   label: string;
+  months: number;
+  steps: number[];
   packages: LetterPackage[];
 };
 
@@ -183,29 +194,66 @@ export type LetterDeal = {
   terms: LetterTerm[];
   selectedPackageId: string | null;
   selectedTerm: ClientTerm | null;
+  selectedEquityCents: number;
 };
 
 export function letterTerm(deal: LetterDeal, term: ClientTerm | null): LetterTerm | undefined {
   return deal.terms.find((item) => item.term === term) ?? deal.terms[0];
 }
 
-export function toLetterPackage(pkg: {
-  id: string;
-  serviceName: string;
-  hoursPerWeek: number;
-  listRateCents: number;
-  cashRateCents: number;
-}): LetterPackage {
+// A step past what this term allows falls back to the largest one it has.
+export function stepIndex(steps: number[], stepCents: number): number {
+  let index = 0;
+  steps.forEach((step, i) => {
+    if (step <= stepCents) index = i;
+  });
+  return index;
+}
+
+export type EquitySettings = {
+  equityEnabled: boolean;
+  floorCents: number;
+  ownership: OwnershipTerms;
+};
+
+export function buildLetterTerm(
+  term: ClientTerm,
+  packages: { id: string; serviceName: string; hoursPerWeek: number; listRateCents: number }[],
+  settings: EquitySettings,
+): LetterTerm {
+  const weeks = termWeeks(term) ?? 0;
+  const steps = settings.equityEnabled
+    ? equitySteps(
+        packages.map((pkg) => pkg.listRateCents),
+        settings.floorCents,
+      )
+    : [0];
   return {
-    id: pkg.id,
-    serviceName: pkg.serviceName,
-    hoursPerWeek: pkg.hoursPerWeek,
-    listRateCents: pkg.listRateCents,
-    cashRateCents: pkg.cashRateCents,
-    weeklyListCents: weeklyAmountCents(pkg.hoursPerWeek, pkg.listRateCents),
-    weeklyCashCents: weeklyAmountCents(pkg.hoursPerWeek, pkg.cashRateCents),
-    equityPerHourCents: equityPerHourCents(pkg.listRateCents, pkg.cashRateCents),
-    equityPerWeekCents: equityPerWeekCents(pkg.hoursPerWeek, pkg.listRateCents, pkg.cashRateCents),
+    term,
+    label: termLabel(term),
+    months: termMonths(term) ?? 0,
+    steps,
+    packages: packages.map((pkg) => ({
+      id: pkg.id,
+      serviceName: pkg.serviceName,
+      hoursPerWeek: pkg.hoursPerWeek,
+      listRateCents: pkg.listRateCents,
+      weeklyListCents: weeklyAmountCents(pkg.hoursPerWeek, pkg.listRateCents),
+      options: steps.map((stepCents) => {
+        const cashRateCents = cashRateAt(pkg.listRateCents, stepCents, settings.floorCents);
+        const perWeek = equityPerWeekCents(pkg.hoursPerWeek, pkg.listRateCents, cashRateCents);
+        const total = perWeek * weeks;
+        return {
+          stepCents,
+          cashRateCents,
+          weeklyCashCents: weeklyAmountCents(pkg.hoursPerWeek, cashRateCents),
+          equityPerHourCents: equityPerHourCents(pkg.listRateCents, cashRateCents),
+          equityPerWeekCents: perWeek,
+          equityTotalCents: total,
+          ownershipPercent: ownershipPercent(total, settings.ownership),
+        };
+      }),
+    })),
   };
 }
 

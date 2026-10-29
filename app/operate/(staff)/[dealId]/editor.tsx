@@ -13,7 +13,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { blockClassName, GreetingView, LetterFrame, OffersView, TermToggle } from "@/components/operate/DealLetter";
+import {
+  blockClassName,
+  EquityView,
+  GreetingView,
+  LetterFrame,
+  OffersView,
+} from "@/components/operate/DealLetter";
 import {
   BLOCK_TYPES,
   blockLabel,
@@ -26,10 +32,22 @@ import {
   type LetterBlock,
 } from "@/lib/operate/blocks";
 import {
+  defaultEquityBasis,
+  DEFAULT_MULTIPLIER,
+  EQUITY_BASES,
+  equityBasisLabel,
+  isEquityBasis,
+  MIN_CASH_RATE_CENTS,
+  type EquityBasis,
+  type ValuationBasis,
+} from "@/lib/operate/equity";
+import {
+  buildLetterTerm,
   CLIENT_TERMS,
+  formatDollars,
+  letterTerm,
   offeredTerms,
   termLabel,
-  toLetterPackage,
   type ClientTerm,
   type LetterDeal,
   type OfferRate,
@@ -55,18 +73,21 @@ export type EditorDeal = {
   termOffer: TermOffer;
   round: string;
   valuationDollars: string;
+  valuationBasis: ValuationBasis;
+  equityBasis: EquityBasis | null;
+  equityMultiplier: number;
+  cashFloorCents: number;
   hourlyCostCents: number | null;
   selectedPackageId: string | null;
   selectedTerm: ClientTerm | null;
+  selectedEquityCents: number;
   packages: {
     id: string;
     serviceName: string;
     hoursPerWeek: number;
     enabled: boolean;
     listRateCents: number;
-    cashRateCents: number;
     yearListRateCents: number;
-    yearCashRateCents: number;
   }[];
 };
 
@@ -76,15 +97,11 @@ type PackageFields = {
   serviceName: string;
   hours: string;
   listRate: string;
-  cashRate: string;
   yearListRate: string;
-  yearCashRate: string;
 };
 
-type RateKey = "listRate" | "cashRate" | "yearListRate" | "yearCashRate";
-
-function rateKeys(term: ClientTerm): { list: RateKey; cash: RateKey } {
-  return term === "one-year" ? { list: "yearListRate", cash: "yearCashRate" } : { list: "listRate", cash: "cashRate" };
+function rateKey(term: ClientTerm): "listRate" | "yearListRate" {
+  return term === "one-year" ? "yearListRate" : "listRate";
 }
 
 type Fields = {
@@ -100,11 +117,13 @@ type Fields = {
   termOffer: TermOffer;
   round: string;
   valuationDollars: string;
+  valuationBasis: ValuationBasis;
+  equityBasis: EquityBasis | "";
+  equityMultiplier: string;
+  cashFloorDollars: string;
   hourlyCostDollars: string;
   packages: PackageFields[];
 };
-
-const TERM_OPTIONS = CLIENT_TERMS.map((term) => ({ term, label: termLabel(term) }));
 
 function centsToDollars(cents: number): string {
   return cents % 100 === 0 ? String(cents / 100) : (cents / 100).toFixed(2);
@@ -120,9 +139,7 @@ function baseRateFields(base: OfferRate) {
     serviceName: base.serviceName,
     hours: String(base.hoursPerWeek),
     listRate: centsToDollars(base.listRateCents),
-    cashRate: centsToDollars(base.cashRateCents),
     yearListRate: centsToDollars(base.yearListRateCents),
-    yearCashRate: centsToDollars(base.yearCashRateCents),
   };
 }
 
@@ -134,9 +151,7 @@ function packageFields(pkg: EditorDeal["packages"][number] | undefined, base: Of
     serviceName: pkg.serviceName,
     hours: String(pkg.hoursPerWeek),
     listRate: centsToDollars(pkg.listRateCents),
-    cashRate: centsToDollars(pkg.cashRateCents),
     yearListRate: centsToDollars(pkg.yearListRateCents),
-    yearCashRate: centsToDollars(pkg.yearCashRateCents),
   };
 }
 
@@ -154,6 +169,10 @@ function initialFields(deal: EditorDeal): Fields {
     termOffer: deal.termOffer,
     round: deal.round,
     valuationDollars: deal.valuationDollars,
+    valuationBasis: deal.valuationBasis,
+    equityBasis: deal.equityBasis ?? "",
+    equityMultiplier: String(deal.equityMultiplier),
+    cashFloorDollars: centsToDollars(deal.cashFloorCents),
     hourlyCostDollars: deal.hourlyCostCents === null ? "" : centsToDollars(deal.hourlyCostCents),
     packages: deal.baseRates.map((base, index) => packageFields(deal.packages[index], base)),
   };
@@ -163,15 +182,34 @@ function rowId(row: PackageFields, index: number): string {
   return row.id || `new-${index}`;
 }
 
+function floorCents(fields: Fields): number {
+  return fields.cashFloorDollars.trim() === "" ? MIN_CASH_RATE_CENTS : dollarsToCents(fields.cashFloorDollars);
+}
+
+function resolvedBasis(fields: Fields): EquityBasis {
+  return fields.equityBasis === "" ? defaultEquityBasis(fields.round) : fields.equityBasis;
+}
+
 function previewLetter(
   fields: Fields,
   blocks: LetterBlock[],
-  selectedPackageId: string | null,
-  selectedTerm: ClientTerm | null,
+  selected: { packageId: string | null; term: ClientTerm | null; equityCents: number },
 ): LetterDeal {
   const hours = (raw: string) => {
     const value = Number(raw);
     return Number.isInteger(value) && value > 0 ? value : 0;
+  };
+  const valuation = Number(fields.valuationDollars.replace(/[$,\s]/g, ""));
+  const multiplier = Number(fields.equityMultiplier);
+  const settings = {
+    equityEnabled: fields.equityEnabled,
+    floorCents: floorCents(fields),
+    ownership: {
+      valuationDollars: fields.valuationDollars.trim() !== "" && valuation > 0 ? valuation : null,
+      valuationBasis: fields.valuationBasis,
+      equityBasis: resolvedBasis(fields),
+      multiplier: multiplier > 0 ? multiplier : DEFAULT_MULTIPLIER,
+    },
   };
   const rows = fields.packages.filter((row) => row.enabled);
   return {
@@ -181,24 +219,21 @@ function previewLetter(
     contactName: fields.contactName,
     avatarUrl: fields.avatarUrl,
     equityEnabled: fields.equityEnabled,
-    terms: offeredTerms(fields.termOffer).map((term) => {
-      const keys = rateKeys(term);
-      return {
+    terms: offeredTerms(fields.termOffer).map((term) =>
+      buildLetterTerm(
         term,
-        label: termLabel(term),
-        packages: rows.map((row, index) =>
-          toLetterPackage({
-            id: rowId(row, index),
-            serviceName: row.serviceName,
-            hoursPerWeek: hours(row.hours),
-            listRateCents: dollarsToCents(row[keys.list]),
-            cashRateCents: dollarsToCents(row[keys.cash]),
-          }),
-        ),
-      };
-    }),
-    selectedPackageId: rows.some((row) => row.id !== "" && row.id === selectedPackageId) ? selectedPackageId : null,
-    selectedTerm,
+        rows.map((row, index) => ({
+          id: rowId(row, index),
+          serviceName: row.serviceName,
+          hoursPerWeek: hours(row.hours),
+          listRateCents: dollarsToCents(row[rateKey(term)]),
+        })),
+        settings,
+      ),
+    ),
+    selectedPackageId: rows.some((row) => row.id !== "" && row.id === selected.packageId) ? selected.packageId : null,
+    selectedTerm: selected.term,
+    selectedEquityCents: selected.equityCents,
   };
 }
 
@@ -212,15 +247,17 @@ function toFormData(fields: Fields, blocks: LetterBlock[]): FormData {
   data.set("termOffer", fields.termOffer);
   data.set("round", fields.round);
   data.set("valuationDollars", fields.valuationDollars);
+  data.set("valuationBasis", fields.valuationBasis);
+  data.set("equityBasis", fields.equityBasis);
+  data.set("equityMultiplier", fields.equityMultiplier);
+  data.set("cashFloorDollars", fields.cashFloorDollars);
   data.set("hourlyCostDollars", fields.hourlyCostDollars);
   if (fields.equityEnabled) data.set("equityEnabled", "on");
   if (fields.ratesOverridden) data.set("ratesOverridden", "on");
   fields.packages.forEach((row, index) => {
     data.set(`package${index}Id`, row.id);
     data.set(`package${index}ListRate`, row.listRate);
-    data.set(`package${index}CashRate`, row.cashRate);
     data.set(`package${index}YearListRate`, row.yearListRate);
-    data.set(`package${index}YearCashRate`, row.yearCashRate);
   });
   data.set("letterBlocks", JSON.stringify(blocks));
   return data;
@@ -362,19 +399,26 @@ export function Editor({ deal }: { deal: EditorDeal }) {
   const [pending, startTransition] = useTransition();
   const [origin, setOrigin] = useState("");
   const [copied, setCopied] = useState(false);
-  const [viewTerm, setViewTerm] = useState<ClientTerm>(() =>
-    deal.termOffer === "both" ? (deal.selectedTerm ?? "six-month") : deal.termOffer,
-  );
-  const shownTerm: ClientTerm = fields.termOffer === "both" ? viewTerm : fields.termOffer;
+  const [viewTerm, setViewTerm] = useState<ClientTerm>(() => deal.selectedTerm ?? offeredTerms(deal.termOffer)[0]!);
+  const [previewStep, setPreviewStep] = useState(deal.selectedEquityCents);
+  const offered = offeredTerms(fields.termOffer);
+  const shownTerm: ClientTerm = offered.includes(viewTerm) ? viewTerm : offered[0]!;
 
   useEffect(() => {
     setOrigin(window.location.origin);
   }, []);
 
   const letter = useMemo(
-    () => previewLetter(fields, blocks, deal.selectedPackageId, deal.selectedTerm),
-    [fields, blocks, deal.selectedPackageId, deal.selectedTerm],
+    () =>
+      previewLetter(fields, blocks, {
+        packageId: deal.selectedPackageId,
+        term: deal.selectedTerm,
+        equityCents: deal.selectedEquityCents,
+      }),
+    [fields, blocks, deal.selectedPackageId, deal.selectedTerm, deal.selectedEquityCents],
   );
+  const shownLetterTerm = letterTerm(letter, shownTerm);
+  const floor = floorCents(fields);
   const dirty = JSON.stringify([fields, blocks]) !== saved;
   const link = `${origin}/operate/d/${deal.token}`;
 
@@ -396,14 +440,18 @@ export function Editor({ deal }: { deal: EditorDeal }) {
     setMessage(null);
   }
 
-  // With one term offered, the toggle picks it. With both, it picks which one to price.
-  function chooseTerm(term: ClientTerm) {
-    setViewTerm(term);
-    if (fields.termOffer !== "both") patch({ termOffer: term });
-  }
-
-  function setBothTerms(on: boolean) {
-    patch({ termOffer: on ? "both" : shownTerm });
+  // Each term switches on or off on its own; one always stays on.
+  function toggleTerm(term: ClientTerm) {
+    const on = new Set(offered);
+    if (on.has(term)) {
+      if (on.size === 1) return;
+      on.delete(term);
+    } else {
+      on.add(term);
+    }
+    const next = CLIENT_TERMS.filter((item) => on.has(item));
+    patch({ termOffer: next.length === 2 ? "both" : next[0]! });
+    setViewTerm(on.has(term) ? term : next[0]!);
   }
 
   function setCustomRates(on: boolean) {
@@ -502,26 +550,61 @@ export function Editor({ deal }: { deal: EditorDeal }) {
         />
       );
     }
-    if (block.type === "term") {
-      const both = fields.termOffer === "both";
+    if (block.type === "equity") {
+      const hasRoom = (shownLetterTerm?.steps.length ?? 0) > 1;
       return (
-        <div className="flex flex-wrap items-center gap-3">
-          <TermToggle options={TERM_OPTIONS} value={shownTerm} onChange={chooseTerm} />
-          <button
-            type="button"
-            aria-pressed={both}
-            onClick={() => setBothTerms(!both)}
-            className={`${chip} ${both ? "border-orange text-orange" : "text-muted-foreground"}`}
-          >
-            Both terms {both ? "on" : "off"}
-          </button>
+        <>
+          <div className="mb-4 flex flex-wrap gap-2">
+            <button
+              type="button"
+              aria-pressed={fields.equityEnabled}
+              onClick={() => patch({ equityEnabled: !fields.equityEnabled })}
+              className={`${chip} ${fields.equityEnabled ? "border-orange text-orange" : "text-muted-foreground"}`}
+            >
+              Equity {fields.equityEnabled ? "offered" : "off"}
+            </button>
+          </div>
+          {fields.equityEnabled && hasRoom ? (
+            <EquityView term={shownLetterTerm} step={previewStep} onStep={setPreviewStep} />
+          ) : null}
+          <p className="mt-3 text-xs text-muted-foreground">
+            {!fields.equityEnabled
+              ? "The client pays all cash. Offer equity to let them move part of each hour into it."
+              : hasRoom
+                ? `The client picks how much. Cash never goes under ${formatDollars(floor)}/hr.`
+                : `No room above the ${formatDollars(floor)}/hr cash floor at these rates.`}
+          </p>
+        </>
+      );
+    }
+    if (block.type === "term") {
+      return (
+        <div className="flex flex-col items-start gap-2">
+          <div role="group" aria-label="Terms offered" className="operate-letter__terms">
+            {CLIENT_TERMS.map((term) => (
+              <button
+                key={term}
+                type="button"
+                aria-pressed={offered.includes(term)}
+                className="operate-letter__term-option"
+                onClick={() => toggleTerm(term)}
+              >
+                {termLabel(term)}
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {offered.length === 2
+              ? "Both terms are offered. The client picks one."
+              : "Click the other term to offer both."}
+          </p>
         </div>
       );
     }
     if (block.type === "offers") {
       return (
         <>
-          <div className="mb-4 flex flex-wrap gap-2">
+          <div className="mb-4 flex flex-wrap items-center gap-2">
             <button
               type="button"
               aria-pressed={fields.ratesOverridden}
@@ -530,38 +613,46 @@ export function Editor({ deal }: { deal: EditorDeal }) {
             >
               Custom rates {fields.ratesOverridden ? "on" : "off"}
             </button>
-            <button
-              type="button"
-              aria-pressed={fields.equityEnabled}
-              onClick={() => patch({ equityEnabled: !fields.equityEnabled })}
-              className={`${chip} ${fields.equityEnabled ? "border-orange text-orange" : "text-muted-foreground"}`}
-            >
-              Equity {fields.equityEnabled ? "on" : "off"}
-            </button>
+            {offered.length === 2 ? (
+              <>
+                <span className="operate-label ml-2 text-[11px] text-muted-foreground">Showing</span>
+                {offered.map((term) => (
+                  <button
+                    key={term}
+                    type="button"
+                    aria-pressed={term === shownTerm}
+                    onClick={() => setViewTerm(term)}
+                    className={`${chip} ${term === shownTerm ? "border-foreground text-foreground" : "text-muted-foreground"}`}
+                  >
+                    {termLabel(term)}
+                  </button>
+                ))}
+              </>
+            ) : null}
           </div>
           <OffersView
             deal={letter}
             term={shownTerm}
+            step={previewStep}
             mode="preview"
-            renderRate={(pkg) => {
+            renderRate={(pkg, option) => {
               if (!fields.ratesOverridden) return undefined;
               const index = fields.packages.findIndex((row, i) => rowId(row, i) === pkg.id);
               if (index < 0) return undefined;
               const row = fields.packages[index]!;
-              const keys = rateKeys(shownTerm);
-              const name = `${row.hours} hours, ${termLabel(shownTerm).toLowerCase()}`;
+              const key = rateKey(shownTerm);
+              const input = (
+                <RateInput
+                  value={row[key]}
+                  label={`Rate, ${row.hours} hours, ${termLabel(shownTerm).toLowerCase()}`}
+                  onChange={(value) => patchPackage(index, { [key]: value })}
+                />
+              );
+              if (option.cashRateCents >= pkg.listRateCents) return input;
               return (
                 <span className="operate-letter__pair">
-                  {fields.equityEnabled ? (
-                    <>
-                      <span className="operate-letter__struck">
-                        <RateInput value={row[keys.list]} label={`List rate, ${name}`} onChange={(value) => patchPackage(index, { [keys.list]: value })} />
-                      </span>
-                      <RateInput value={row[keys.cash]} label={`Cash rate, ${name}`} onChange={(value) => patchPackage(index, { [keys.cash]: value })} />
-                    </>
-                  ) : (
-                    <RateInput value={row[keys.list]} label={`Rate, ${name}`} onChange={(value) => patchPackage(index, { [keys.list]: value })} />
-                  )}
+                  <span className="operate-letter__struck">{input}</span>
+                  <span className="operate-letter__primary">{formatDollars(option.cashRateCents)}</span>
                 </span>
               );
             }}
@@ -630,18 +721,72 @@ export function Editor({ deal }: { deal: EditorDeal }) {
               Staff only
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="grid gap-3">
-            <p className="text-xs text-muted-foreground">Not shown to the client.</p>
+          <PopoverContent className="grid w-96 gap-3">
+            <p className="text-xs text-muted-foreground">Not shown to the client. Ownership percentages are.</p>
             <Field label="Round">
               <Input value={fields.round} onChange={(event) => patch({ round: event.target.value })} />
             </Field>
-            <Field label="Valuation ($, whole dollars)">
+            <Field label="Valuation ($, whole dollars)" note="Ownership shows on the letter once there is a valuation.">
               <Input
                 inputMode="numeric"
                 value={fields.valuationDollars}
                 onChange={(event) => patch({ valuationDollars: event.target.value })}
               />
             </Field>
+            <div role="group" aria-label="Valuation basis" className="flex gap-2">
+              {(["pre", "post"] as const).map((basis) => (
+                <button
+                  key={basis}
+                  type="button"
+                  aria-pressed={fields.valuationBasis === basis}
+                  onClick={() => patch({ valuationBasis: basis })}
+                  className={`${chip} ${fields.valuationBasis === basis ? "border-foreground text-foreground" : "text-muted-foreground"}`}
+                >
+                  {basis === "pre" ? "Pre-money" : "Post-money"}
+                </button>
+              ))}
+            </div>
+            <Field
+              label="Equity basis"
+              note={resolvedBasis(fields) === "percent" ? "Ownership rounds up to a whole percent." : undefined}
+            >
+              <select
+                value={fields.equityBasis}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  patch({ equityBasis: isEquityBasis(value) ? value : "" });
+                }}
+                className="h-9 rounded-md border border-input bg-transparent px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <option value="">From the round: {equityBasisLabel(defaultEquityBasis(fields.round))}</option>
+                {EQUITY_BASES.map((basis) => (
+                  <option key={basis} value={basis}>
+                    {equityBasisLabel(basis)}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            {resolvedBasis(fields) === "multiplier" ? (
+              <Field label="Multiplier (×)" note="Each equity dollar counts this many times toward ownership.">
+                <Input
+                  inputMode="decimal"
+                  value={fields.equityMultiplier}
+                  onChange={(event) => patch({ equityMultiplier: event.target.value })}
+                />
+              </Field>
+            ) : null}
+            <Field label="Cash floor ($/hr)">
+              <Input
+                inputMode="decimal"
+                value={fields.cashFloorDollars}
+                onChange={(event) => patch({ cashFloorDollars: event.target.value })}
+              />
+            </Field>
+            {floor < MIN_CASH_RATE_CENTS ? (
+              <p role="alert" className="text-xs text-orange">
+                Under Bloom&rsquo;s {formatDollars(MIN_CASH_RATE_CENTS)}/hr floor. Keep this for deals James has approved.
+              </p>
+            ) : null}
             <Field label="Hourly cost ($)">
               <Input
                 inputMode="decimal"
