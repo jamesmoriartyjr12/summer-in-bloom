@@ -16,6 +16,12 @@ export function weeklyAmountCents(hoursPerWeek: number, rateCents: number): numb
   return hoursPerWeek * rateCents;
 }
 
+export function termMonths(term: TermLength): number | null {
+  if (term === "six-month") return 6;
+  if (term === "one-year") return 12;
+  return null;
+}
+
 // A multi-year deal has no fixed length yet, so it has no contract value.
 export function termWeeks(term: TermLength): number | null {
   if (term === "six-month") return 26;

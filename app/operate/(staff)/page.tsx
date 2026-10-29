@@ -12,7 +12,7 @@ import {
   equityValueCents,
   formatDollars,
   termLabel,
-  termWeeks,
+  termMonths,
   type OfferRate,
 } from "@/lib/operate/pricing";
 import { DealAvatar } from "./deal-avatar";
@@ -20,11 +20,11 @@ import { DealDashboard } from "./dashboard";
 
 export const dynamic = "force-dynamic";
 
-const SORTS = ["company", "hours", "length", "value", "equity"] as const;
+const SORTS = ["company", "hours", "length", "rate", "equity", "value"] as const;
 type Sort = (typeof SORTS)[number];
 type Direction = "asc" | "desc";
 
-const COLUMNS = "md:grid md:grid-cols-[minmax(0,1fr)_5.5rem_7rem_8.5rem_8.5rem_8rem] md:gap-6";
+const COLUMNS = "md:grid md:grid-cols-[minmax(0,1fr)_5.5rem_7rem_7rem_8.5rem_8.5rem] md:gap-6";
 
 function one(value: string | string[] | undefined): string {
   return Array.isArray(value) ? (value[0] ?? "") : (value ?? "");
@@ -37,20 +37,22 @@ function isSort(value: string): value is Sort {
 type PipelineRow = {
   deal: DashboardDeal;
   quoted: OfferRate | null;
-  weeks: number | null;
+  months: number | null;
+  rateCents: number | null;
   valueCents: number | null;
   equityCents: number | null;
 };
 
 function toRow(deal: DashboardDeal): PipelineRow {
   const quoted = deal.offers.find((offer) => offer.sortOrder === deal.selectedSortOrder) ?? deal.offers[0] ?? null;
-  const weeks = termWeeks(deal.termLength);
-  if (!quoted) return { deal, quoted, weeks, valueCents: null, equityCents: null };
+  const months = termMonths(deal.termLength);
+  if (!quoted) return { deal, quoted, months, rateCents: null, valueCents: null, equityCents: null };
   const rate = billableHourCents(quoted.listRateCents, quoted.cashRateCents, deal.equityEnabled);
   return {
     deal,
     quoted,
-    weeks,
+    months,
+    rateCents: rate,
     valueCents: contractValueCents(quoted.hoursPerWeek, rate, deal.termLength),
     equityCents: deal.equityEnabled
       ? equityValueCents(quoted.hoursPerWeek, quoted.listRateCents, quoted.cashRateCents, deal.termLength)
@@ -60,7 +62,8 @@ function toRow(deal: DashboardDeal): PipelineRow {
 
 function sortKey(row: PipelineRow, sort: Exclude<Sort, "company">): number | null {
   if (sort === "hours") return row.quoted?.hoursPerWeek ?? null;
-  if (sort === "length") return row.weeks;
+  if (sort === "length") return row.months;
+  if (sort === "rate") return row.rateCents;
   if (sort === "equity") return row.equityCents;
   return row.valueCents;
 }
@@ -70,15 +73,12 @@ function Money({ cents }: { cents: number | null }) {
   return <span className="text-right text-base font-medium tabular-nums">{formatDollars(cents)}</span>;
 }
 
-function Rates({ deal, quoted }: { deal: DashboardDeal; quoted: OfferRate | null }) {
-  if (!quoted) return <span className="text-right text-muted-foreground">—</span>;
+function Rate({ cents, custom }: { cents: number | null; custom: boolean }) {
+  if (cents === null) return <span className="text-right text-muted-foreground">—</span>;
   return (
     <span className="grid justify-items-end gap-0.5 text-right tabular-nums">
-      <span>{formatDollars(quoted.listRateCents)}/hr</span>
-      {deal.equityEnabled ? (
-        <span className="text-xs text-muted-foreground">{formatDollars(quoted.cashRateCents)} cash</span>
-      ) : null}
-      {deal.ratesOverridden ? <span className="operate-label text-[10px] text-orange">Custom</span> : null}
+      <span>{formatDollars(cents)}/hr</span>
+      {custom ? <span className="operate-label text-[10px] text-orange">Custom</span> : null}
     </span>
   );
 }
@@ -188,12 +188,12 @@ export default async function OperatePage({
             <SortHeader column="company" label="Company" sort={sort} direction={direction} />
             <SortHeader column="hours" label="Hrs/week" sort={sort} direction={direction} align="right" />
             <SortHeader column="length" label="Length" sort={sort} direction={direction} />
-            <SortHeader column="value" label="Value" sort={sort} direction={direction} align="right" />
+            <SortHeader column="rate" label="Rate" sort={sort} direction={direction} align="right" />
             <SortHeader column="equity" label="Equity" sort={sort} direction={direction} align="right" />
-            <span className="operate-label text-right text-muted-foreground">Rate</span>
+            <SortHeader column="value" label="Value" sort={sort} direction={direction} align="right" />
           </div>
           <ItemGroup className="mt-3 gap-3">
-            {rows.map(({ deal, quoted, valueCents, equityCents }) => (
+            {rows.map(({ deal, quoted, months, rateCents, valueCents, equityCents }) => (
               <Item
                 key={deal.id}
                 variant="outline"
@@ -218,10 +218,10 @@ export default async function OperatePage({
                   </ItemContent>
                 </div>
                 <span className="text-right tabular-nums">{quoted ? quoted.hoursPerWeek : "—"}</span>
-                <span className="operate-label text-muted-foreground">{termLabel(deal.termLength)}</span>
-                <Money cents={valueCents} />
+                <span className="tabular-nums">{months === null ? termLabel(deal.termLength) : `${months} months`}</span>
+                <Rate cents={rateCents} custom={deal.ratesOverridden} />
                 <Money cents={equityCents} />
-                <Rates deal={deal} quoted={quoted} />
+                <Money cents={valueCents} />
               </Item>
             ))}
           </ItemGroup>

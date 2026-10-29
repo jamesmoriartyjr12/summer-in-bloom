@@ -11,6 +11,7 @@ import {
   contractValueCents,
   equityValueCents,
   packageRates,
+  termMonths,
   termWeeks,
   validatePackage,
   weeklyAmountCents,
@@ -30,6 +31,9 @@ describe("amplifier pricing", () => {
     assert.equal(termWeeks("six-month"), 26);
     assert.equal(termWeeks("one-year"), 52);
     assert.equal(termWeeks("multi-year"), null);
+    assert.equal(termMonths("six-month"), 6);
+    assert.equal(termMonths("one-year"), 12);
+    assert.equal(termMonths("multi-year"), null);
     assert.equal(contractValueCents(40, 15000, "six-month"), 15600000);
     assert.equal(contractValueCents(80, 15000, "one-year"), 62400000);
     assert.equal(contractValueCents(40, 15000, "multi-year"), null);

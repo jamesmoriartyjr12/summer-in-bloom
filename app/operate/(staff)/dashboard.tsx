@@ -24,6 +24,15 @@ function money(cents: number | null): string {
   return cents === null ? "—" : formatDollars(cents);
 }
 
+// Offers can carry different list rates; show a range rather than hide one.
+function baselineLabel(rates: Rate[]): string {
+  if (rates.length === 0) return "—";
+  const list = rates.map((rate) => rate.listRateCents);
+  const low = Math.min(...list);
+  const high = Math.max(...list);
+  return low === high ? formatDollars(low) : `${formatDollars(low)}–${formatDollars(high)}`;
+}
+
 export function DealDashboard({
   rates,
   billableCents,
@@ -47,15 +56,8 @@ export function DealDashboard({
         >
           <Card className="h-full p-5 transition-colors group-hover:border-orange">
             <span className="operate-label text-muted-foreground">Baseline</span>
-            <ul className="mt-4 space-y-2">
-              {rates.map((rate) => (
-                <li key={rate.sortOrder} className="flex items-baseline justify-between gap-4">
-                  <span className="text-sm">{rate.hoursPerWeek} hrs/week</span>
-                  <span className="text-lg font-medium tabular-nums">{formatDollars(rate.listRateCents)}</span>
-                </li>
-              ))}
-            </ul>
-            <span className="mt-4 block text-sm text-muted-foreground">Click to change</span>
+            <p className="mt-4 text-4xl font-medium tracking-tight tabular-nums">{baselineLabel(rates)}</p>
+            <span className="mt-4 block text-sm text-muted-foreground">Per hour · Click to change</span>
           </Card>
         </button>
 
