@@ -1,3 +1,5 @@
+import type { LetterBlock } from "./blocks";
+
 export type TermLength = "six-month" | "one-year" | "multi-year";
 
 export type ClientTerm = "six-month" | "one-year";
@@ -114,6 +116,7 @@ export type LetterPackage = {
 };
 
 export type LetterDeal = {
+  blocks: LetterBlock[];
   companyName: string;
   companyLogoUrl: string | null;
   contactName: string;

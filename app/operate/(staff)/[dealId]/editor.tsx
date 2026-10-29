@@ -2,15 +2,30 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState, useTransition, type FormEvent } from "react";
-import { DealLetter } from "@/components/operate/DealLetter";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, useTransition } from "react";
+import { ArrowDown, ArrowUp, ChevronDown, ExternalLink, Link2, Lock, Plus, Trash2, UserRound } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
-  formatDollars,
-  termLabel,
-  toLetterPackage,
-  type LetterDeal,
-  type TermLength,
-} from "@/lib/operate/pricing";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { blockClassName, GreetingView, LetterFrame, OffersView } from "@/components/operate/DealLetter";
+import {
+  BLOCK_TYPES,
+  blockLabel,
+  canAddBlock,
+  greetingForEditing,
+  greetingFromEditing,
+  moveBlock,
+  newBlock,
+  type BlockType,
+  type LetterBlock,
+} from "@/lib/operate/blocks";
+import { termLabel, toLetterPackage, type LetterDeal, type TermLength } from "@/lib/operate/pricing";
 import { createDealAction, lookupLinkedInAction, saveDealAction } from "@/app/operate/actions";
 
 // A deal with an empty id and token has not been saved yet.
@@ -24,6 +39,7 @@ export type EditorDeal = {
   avatarUrl: string | null;
   companyLogoUrl: string | null;
   companyUrl: string;
+  letterBlocks: LetterBlock[];
   equityEnabled: boolean;
   ratesOverridden: boolean;
   baseRates: { serviceName: string; hoursPerWeek: number; listRateCents: number; cashRateCents: number }[];
@@ -112,153 +128,205 @@ function initialFields(deal: EditorDeal): Fields {
   };
 }
 
-function isDroppedRow(row: PackageFields, index: number): boolean {
-  return (
-    index > 0 &&
-    row.serviceName.trim() === "" &&
-    row.listRate.trim() === "" &&
-    row.cashRate.trim() === ""
-  );
+function rowId(row: PackageFields, index: number): string {
+  return row.id || `new-${index}`;
 }
 
-function previewLetter(fields: Fields, selectedPackageId: string | null): LetterDeal {
-  const rows = fields.packages
-    .map((row, index) => ({ row, index }))
-    .filter(({ row, index }) => row.enabled && !isDroppedRow(row, index));
+function previewLetter(fields: Fields, blocks: LetterBlock[], selectedPackageId: string | null): LetterDeal {
   const hours = (raw: string) => {
     const value = Number(raw);
     return Number.isInteger(value) && value > 0 ? value : 0;
   };
+  const rows = fields.packages.filter((row) => row.enabled);
   return {
+    blocks,
     companyName: fields.companyName,
     companyLogoUrl: fields.companyLogoUrl,
     contactName: fields.contactName,
     avatarUrl: fields.avatarUrl,
     termLabel: termLabel(fields.termLength),
     equityEnabled: fields.equityEnabled,
-    packages: rows.map(({ row, index }) =>
+    packages: rows.map((row, index) =>
       toLetterPackage({
-        id: row.id || `new-${index}`,
+        id: rowId(row, index),
         serviceName: row.serviceName,
         hoursPerWeek: hours(row.hours),
         listRateCents: dollarsToCents(row.listRate),
         cashRateCents: dollarsToCents(row.cashRate),
       }),
     ),
-    selectedPackageId: rows.some(({ row }) => row.id !== "" && row.id === selectedPackageId)
-      ? selectedPackageId
-      : null,
+    selectedPackageId: rows.some((row) => row.id !== "" && row.id === selectedPackageId) ? selectedPackageId : null,
   };
 }
 
-const css = `
-.operate-editor { display: grid; grid-template-columns: minmax(320px, 440px) minmax(0, 1fr); align-items: start; }
-.operate-editor__form { padding: 32px 24px 64px; }
-.operate-editor__preview { position: sticky; top: 3rem; height: calc(100vh - 3rem); overflow: auto; border-left: 1px solid rgba(7, 15, 24, 0.14); }
-.operate-editor__preview-bar { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; padding: 16px 24px; border-bottom: 1px solid rgba(7, 15, 24, 0.14); font-size: 14px; }
-.operate-editor__preview-bar a { color: inherit; }
-.operate-editor h1 { margin: 12px 0 24px; font-size: 28px; font-weight: 500; }
-.operate-editor fieldset { margin: 0 0 24px; padding: 0; border: 0; min-width: 0; }
-.operate-editor legend { padding: 0; margin-bottom: 8px; font-weight: 600; }
-.operate-editor label { display: block; margin-bottom: 12px; font-size: 14px; }
-.operate-editor label > span { display: block; margin-bottom: 4px; }
-.operate-editor .operate-editor__note { display: block; margin-top: 2px; font-size: 12px; opacity: 0.6; }
-.operate-editor input[type="text"], .operate-editor input[type="url"], .operate-editor input[type="number"], .operate-editor select {
-  box-sizing: border-box; width: 100%; padding: 8px 10px; font: inherit; color: inherit;
-  background: transparent; border: 1px solid rgba(7, 15, 24, 0.3);
+function toFormData(fields: Fields, blocks: LetterBlock[]): FormData {
+  const data = new FormData();
+  data.set("companyName", fields.companyName);
+  data.set("contactName", fields.contactName);
+  data.set("contactRole", fields.contactRole);
+  data.set("linkedinUrl", fields.linkedinUrl);
+  data.set("companyUrl", fields.companyUrl);
+  data.set("termLength", fields.termLength);
+  data.set("round", fields.round);
+  data.set("valuationDollars", fields.valuationDollars);
+  data.set("hourlyCostDollars", fields.hourlyCostDollars);
+  if (fields.equityEnabled) data.set("equityEnabled", "on");
+  if (fields.ratesOverridden) data.set("ratesOverridden", "on");
+  fields.packages.forEach((row, index) => {
+    data.set(`package${index}Id`, row.id);
+    data.set(`package${index}ListRate`, row.listRate);
+    data.set(`package${index}CashRate`, row.cashRate);
+  });
+  data.set("letterBlocks", JSON.stringify(blocks));
+  return data;
 }
-.operate-editor input:disabled { opacity: 0.7; }
-.operate-editor .operate-editor__check { display: flex; gap: 8px; align-items: center; }
-.operate-editor .operate-editor__check > span { margin: 0; }
-.operate-editor .operate-editor__pair { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.operate-editor .operate-editor__staff { padding: 12px; border: 1px dashed rgba(7, 15, 24, 0.4); }
-.operate-editor button { font: inherit; padding: 8px 16px; cursor: pointer; color: #FAF6EC; background: #070F18; border: 0; }
-.operate-editor button[disabled] { opacity: 0.5; cursor: default; }
-.operate-editor .operate-editor__company { display: flex; gap: 8px; align-items: center; }
-.operate-editor .operate-editor__company input { flex: 1; min-width: 0; }
-.operate-editor .operate-editor__logo { width: 28px; height: 28px; object-fit: contain; flex: none; }
-.operate-editor .operate-editor__link { display: flex; gap: 8px; align-items: center; }
-.operate-editor .operate-editor__link input { flex: 1; }
-@media (max-width: 900px) {
-  .operate-editor { grid-template-columns: minmax(0, 1fr); }
-  .operate-editor__preview { position: static; height: auto; border-left: 0; border-top: 1px solid rgba(7, 15, 24, 0.14); }
-}
-`;
 
-function PackageRow({
-  index,
-  row,
-  overridden,
-  companyList,
-  companyCash,
+const gutterButton =
+  "flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-30";
+
+const blockShell =
+  "group/block relative rounded-sm outline outline-1 outline-offset-[12px] outline-transparent transition-[outline-color] hover:outline-foreground/15 focus-within:outline-foreground/25";
+
+const chip =
+  "operate-label inline-flex h-7 items-center gap-1.5 rounded-full border border-border bg-background px-3 text-[11px] transition-colors hover:border-foreground/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+
+function AddBlockMenu({
+  blocks,
+  onAdd,
+  label,
+}: {
+  blocks: LetterBlock[];
+  onAdd: (type: BlockType) => void;
+  label: string;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          aria-label={label}
+          className="flex size-7 items-center justify-center rounded-full border border-border bg-background text-muted-foreground shadow-sm transition-colors hover:border-orange hover:text-orange focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[state=open]:border-orange data-[state=open]:text-orange"
+        >
+          <Plus aria-hidden="true" className="size-4" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="center">
+        {BLOCK_TYPES.map((type) => (
+          <DropdownMenuItem key={type} disabled={!canAddBlock(blocks, type)} onSelect={() => onAdd(type)}>
+            {blockLabel(type)}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+function GreetingEditor({
+  text,
+  companyName,
   onChange,
 }: {
-  index: number;
-  row: PackageFields;
-  overridden: boolean;
-  companyList: number;
-  companyCash: number;
-  onChange: (next: PackageFields) => void;
+  text: string;
+  companyName: string;
+  onChange: (text: string) => void;
 }) {
-  const key = `package${index}`;
-  return (
-    <fieldset>
-      <legend>
-        {row.serviceName || "Offer"} · {row.hours} hours / week
-      </legend>
-      <input type="hidden" name={`${key}Id`} value={row.id} />
-      <div className="operate-editor__pair" style={{ gridTemplateColumns: "1fr 1fr" }}>
-        <label>
-          <span>List rate ($/hr)</span>
-          <input
-            type="text"
-            inputMode="decimal"
-            name={`${key}ListRate`}
-            value={row.listRate}
-            disabled={!overridden}
-            onChange={(event) => onChange({ ...row, listRate: event.target.value })}
-          />
-        </label>
-        <label>
-          <span>Cash rate ($/hr)</span>
-          <input
-            type="text"
-            inputMode="decimal"
-            name={`${key}CashRate`}
-            value={row.cashRate}
-            disabled={!overridden}
-            onChange={(event) => onChange({ ...row, cashRate: event.target.value })}
-          />
-        </label>
+  const [editing, setEditing] = useState(false);
+  const area = useRef<HTMLTextAreaElement>(null);
+  const value = greetingForEditing(text, companyName);
+
+  useLayoutEffect(() => {
+    const node = area.current;
+    if (!node) return;
+    node.style.height = "auto";
+    node.style.height = `${node.scrollHeight}px`;
+  }, [editing, value]);
+
+  if (!editing) {
+    return (
+      <div
+        role="button"
+        tabIndex={0}
+        aria-label="Edit the greeting"
+        className="cursor-text focus-visible:outline-none"
+        onClick={() => setEditing(true)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            setEditing(true);
+          }
+        }}
+      >
+        <GreetingView text={text} companyName={companyName} />
       </div>
-      {overridden ? (
-        <small className="operate-editor__note">
-          Company rates are {formatDollars(companyList)} list and {formatDollars(companyCash)} cash.
-        </small>
-      ) : (
-        <small className="operate-editor__note">Using the company rate.</small>
-      )}
-    </fieldset>
+    );
+  }
+
+  return (
+    <textarea
+      ref={area}
+      autoFocus
+      rows={1}
+      aria-label="Greeting"
+      className="operate-letter__greeting block w-full resize-none overflow-hidden border-0 bg-transparent p-0 text-inherit outline-none"
+      value={value}
+      onChange={(event) => onChange(greetingFromEditing(event.target.value, companyName))}
+      onBlur={() => setEditing(false)}
+      onKeyDown={(event) => {
+        if (event.key === "Escape" || (event.key === "Enter" && !event.shiftKey)) {
+          event.preventDefault();
+          event.currentTarget.blur();
+        }
+      }}
+    />
+  );
+}
+
+function RateInput({ value, label, onChange }: { value: string; label: string; onChange: (value: string) => void }) {
+  return (
+    <span className="inline-flex items-baseline font-semibold tabular-nums">
+      $
+      <input
+        type="text"
+        inputMode="decimal"
+        aria-label={label}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="w-16 border-0 border-b border-dashed border-foreground/40 bg-transparent p-0 text-right font-semibold tabular-nums text-inherit outline-none focus:border-orange"
+      />
+    </span>
+  );
+}
+
+function Field({ label, note, children }: { label: string; note?: string; children: React.ReactNode }) {
+  return (
+    <label className="grid gap-1.5">
+      <span className="operate-label text-[11px] text-muted-foreground">{label}</span>
+      {children}
+      {note ? <span className="text-xs text-muted-foreground">{note}</span> : null}
+    </label>
   );
 }
 
 export function Editor({ deal }: { deal: EditorDeal }) {
+  const router = useRouter();
+  const isNew = deal.id === "";
   const [fields, setFields] = useState<Fields>(() => initialFields(deal));
+  const [blocks, setBlocks] = useState<LetterBlock[]>(deal.letterBlocks);
+  const [saved, setSaved] = useState(() => JSON.stringify([initialFields(deal), deal.letterBlocks]));
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [pending, startTransition] = useTransition();
   const [origin, setOrigin] = useState("");
   const [copied, setCopied] = useState(false);
-  const router = useRouter();
-  const isNew = deal.id === "";
 
   useEffect(() => {
     setOrigin(window.location.origin);
   }, []);
 
   const letter = useMemo(
-    () => previewLetter(fields, deal.selectedPackageId),
-    [fields, deal.selectedPackageId],
+    () => previewLetter(fields, blocks, deal.selectedPackageId),
+    [fields, blocks, deal.selectedPackageId],
   );
+  const dirty = JSON.stringify([fields, blocks]) !== saved;
   const link = `${origin}/operate/d/${deal.token}`;
 
   function patch(next: Partial<Fields>) {
@@ -266,19 +334,57 @@ export function Editor({ deal }: { deal: EditorDeal }) {
     setMessage(null);
   }
 
-  function patchPackage(index: 0 | 1, next: PackageFields) {
-    const rows: [PackageFields, PackageFields] = [fields.packages[0], fields.packages[1]];
-    rows[index] = next;
-    patch({ packages: rows });
+  function patchBlocks(next: LetterBlock[]) {
+    setBlocks(next);
+    setMessage(null);
   }
 
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
+  function patchPackage(index: number, next: Partial<PackageFields>) {
+    setFields((current) => {
+      const rows: [PackageFields, PackageFields] = [current.packages[0], current.packages[1]];
+      rows[index] = { ...rows[index], ...next };
+      return { ...current, packages: rows };
+    });
+    setMessage(null);
+  }
+
+  function setCustomRates(on: boolean) {
+    if (on) {
+      patch({ ratesOverridden: true });
+      return;
+    }
+    const packages = fields.packages.map((row, index) => {
+      const base = deal.baseRates[index];
+      if (!base) return row;
+      return {
+        ...row,
+        serviceName: base.serviceName,
+        hours: String(base.hoursPerWeek),
+        listRate: centsToDollars(base.listRateCents),
+        cashRate: centsToDollars(base.cashRateCents),
+      };
+    }) as [PackageFields, PackageFields];
+    patch({ ratesOverridden: false, packages });
+  }
+
+  function addBlock(type: BlockType, at: number) {
+    if (!canAddBlock(blocks, type)) return;
+    const next = [...blocks];
+    next.splice(at, 0, newBlock(type, crypto.randomUUID()));
+    patchBlocks(next);
+  }
+
+  function save() {
+    if (fields.companyName.trim() === "") {
+      setMessage({ ok: false, text: "Add the company name in Details." });
+      return;
+    }
+    const data = toFormData(fields, blocks);
+    const snapshot = JSON.stringify([fields, blocks]);
     startTransition(async () => {
       try {
         if (isNew) {
-          const created = await createDealAction(formData);
+          const created = await createDealAction(data);
           if (created.ok) {
             router.push(`/operate/${created.id}`);
             return;
@@ -286,12 +392,14 @@ export function Editor({ deal }: { deal: EditorDeal }) {
           setMessage({ ok: false, text: created.error });
           return;
         }
-        const result = await saveDealAction(deal.id, formData);
-        setMessage(
-          result.ok
-            ? { ok: true, text: result.notice ?? "Saved." }
-            : { ok: false, text: result.error },
-        );
+        const result = await saveDealAction(deal.id, data);
+        if (result.ok) {
+          setSaved(snapshot);
+          setMessage({ ok: true, text: result.notice ?? "Saved." });
+          router.refresh();
+        } else {
+          setMessage({ ok: false, text: result.error });
+        }
       } catch {
         setMessage({ ok: false, text: "Could not save. Sign in again and retry." });
       }
@@ -310,13 +418,8 @@ export function Editor({ deal }: { deal: EditorDeal }) {
       return;
     }
     if (result.limited) {
-      patch({
-        contactName: fields.contactName.trim() === "" ? result.name : fields.contactName,
-      });
-      setMessage({
-        ok: true,
-        text: "LinkedIn is not showing a public profile. The name comes from the link.",
-      });
+      patch({ contactName: fields.contactName.trim() === "" ? result.name : fields.contactName });
+      setMessage({ ok: true, text: "LinkedIn is not showing a public profile. The name comes from the link." });
       return;
     }
     patch({
@@ -338,230 +441,245 @@ export function Editor({ deal }: { deal: EditorDeal }) {
     }
   }
 
+  function renderBlock(block: LetterBlock) {
+    if (block.type === "greeting") {
+      return (
+        <GreetingEditor
+          text={block.text}
+          companyName={fields.companyName}
+          onChange={(text) => patchBlocks(blocks.map((item) => (item.id === block.id ? { ...block, text } : item)))}
+        />
+      );
+    }
+    if (block.type === "term") {
+      return (
+        <label className="relative inline-flex items-center">
+          <span className="sr-only">Term</span>
+          <select
+            value={fields.termLength}
+            onChange={(event) => patch({ termLength: event.target.value as TermLength })}
+            className="operate-letter__term cursor-pointer appearance-none border-0 border-b border-dashed border-foreground/30 bg-transparent py-0 pl-0 pr-6 text-inherit outline-none focus:border-orange"
+          >
+            {TERMS.map((term) => (
+              <option key={term} value={term}>
+                {termLabel(term)}
+              </option>
+            ))}
+          </select>
+          <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-0 size-4 text-muted-foreground" />
+        </label>
+      );
+    }
+    if (block.type === "offers") {
+      return (
+        <>
+          <div className="mb-4 flex flex-wrap gap-2">
+            <button
+              type="button"
+              aria-pressed={fields.ratesOverridden}
+              onClick={() => setCustomRates(!fields.ratesOverridden)}
+              className={`${chip} ${fields.ratesOverridden ? "border-orange text-orange" : "text-muted-foreground"}`}
+            >
+              Custom rates {fields.ratesOverridden ? "on" : "off"}
+            </button>
+            <button
+              type="button"
+              aria-pressed={fields.equityEnabled}
+              onClick={() => patch({ equityEnabled: !fields.equityEnabled })}
+              className={`${chip} ${fields.equityEnabled ? "border-orange text-orange" : "text-muted-foreground"}`}
+            >
+              Equity {fields.equityEnabled ? "on" : "off"}
+            </button>
+          </div>
+          <OffersView
+            deal={letter}
+            mode="preview"
+            renderRate={(pkg) => {
+              if (!fields.ratesOverridden) return undefined;
+              const index = fields.packages.findIndex((row, i) => rowId(row, i) === pkg.id);
+              if (index < 0) return undefined;
+              const row = fields.packages[index];
+              const name = `${row.hours} hours`;
+              return (
+                <span className="operate-letter__pair">
+                  {fields.equityEnabled ? (
+                    <>
+                      <span className="operate-letter__struck">
+                        <RateInput value={row.listRate} label={`List rate, ${name}`} onChange={(listRate) => patchPackage(index, { listRate })} />
+                      </span>
+                      <RateInput value={row.cashRate} label={`Cash rate, ${name}`} onChange={(cashRate) => patchPackage(index, { cashRate })} />
+                    </>
+                  ) : (
+                    <RateInput value={row.listRate} label={`Rate, ${name}`} onChange={(listRate) => patchPackage(index, { listRate })} />
+                  )}
+                </span>
+              );
+            }}
+          />
+          {!fields.ratesOverridden ? (
+            <p className="mt-3 text-xs text-muted-foreground">
+              Baseline rates. Turn on custom rates to change them for this deal.
+            </p>
+          ) : null}
+        </>
+      );
+    }
+    return <hr className="operate-letter__divider" />;
+  }
+
   return (
-    <div className="operate-editor">
-      <style>{css}</style>
-      <form className="operate-editor__form" onSubmit={onSubmit}>
-        <Link href="/operate" style={{ color: "inherit", fontSize: 14 }}>
+    <div className="min-h-full">
+      <div className="sticky top-12 z-10 flex flex-wrap items-center gap-2 border-b border-border bg-background/95 px-4 py-2 backdrop-blur">
+        <Link href="/operate" className="operate-label mr-2 text-[11px] text-muted-foreground hover:text-foreground">
           All deals
         </Link>
-        <h1>{fields.companyName || (isNew ? "New deal" : "Deal")}</h1>
 
-        <fieldset>
-          <legend>Letter</legend>
-          <label>
-            <span>LinkedIn</span>
-            <input
-              type="url"
-              name="linkedinUrl"
-              placeholder="https://www.linkedin.com/in/…"
-              value={fields.linkedinUrl}
-              onChange={(event) => patch({ linkedinUrl: event.target.value })}
-              onBlur={() => void onLinkedInBlur()}
-            />
-            <small className="operate-editor__note">
-              Name, role, company, and logos come from the public page.
-            </small>
-          </label>
-          <label>
-            <span>Contact name</span>
-            <input
-              type="text"
-              name="contactName"
-              value={fields.contactName}
-              onChange={(event) => patch({ contactName: event.target.value })}
-            />
-          </label>
-          <label>
-            <span>Contact role</span>
-            <input
-              type="text"
-              name="contactRole"
-              value={fields.contactRole}
-              onChange={(event) => patch({ contactRole: event.target.value })}
-            />
-          </label>
-          <label>
-            <span>Company</span>
-            <span className="operate-editor__company">
-              {fields.companyLogoUrl ? (
-                <img className="operate-editor__logo" src={fields.companyLogoUrl} alt="" />
-              ) : null}
-              <input
-                type="text"
-                name="companyName"
-                required
-                value={fields.companyName}
-                onChange={(event) => patch({ companyName: event.target.value })}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" size="sm" className="gap-2">
+              <UserRound aria-hidden="true" className="size-4" />
+              Details
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="grid w-96 gap-3">
+            <Field label="LinkedIn" note="Name, role, company, and logos come from the public page.">
+              <Input
+                type="url"
+                placeholder="https://www.linkedin.com/in/…"
+                value={fields.linkedinUrl}
+                onChange={(event) => patch({ linkedinUrl: event.target.value })}
+                onBlur={() => void onLinkedInBlur()}
               />
-            </span>
-          </label>
-          <label>
-            <span>Company website</span>
-            <input
-              type="text"
-              inputMode="url"
-              name="companyUrl"
-              placeholder="amplifier.health"
-              value={fields.companyUrl}
-              onChange={(event) => patch({ companyUrl: event.target.value })}
-            />
-            <small className="operate-editor__note">The company name in the pipeline opens this.</small>
-          </label>
-          <label>
-            <span>Term</span>
-            <select
-              name="termLength"
-              value={fields.termLength}
-              onChange={(event) => patch({ termLength: event.target.value as TermLength })}
-            >
-              {TERMS.map((term) => (
-                <option key={term} value={term}>
-                  {termLabel(term)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="operate-editor__check">
-            <input
-              type="checkbox"
-              name="equityEnabled"
-              checked={fields.equityEnabled}
-              onChange={(event) => patch({ equityEnabled: event.target.checked })}
-            />
-            <span>Equity arrangement</span>
-          </label>
-        </fieldset>
+            </Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Contact name">
+                <Input value={fields.contactName} onChange={(event) => patch({ contactName: event.target.value })} />
+              </Field>
+              <Field label="Contact role">
+                <Input value={fields.contactRole} onChange={(event) => patch({ contactRole: event.target.value })} />
+              </Field>
+            </div>
+            <Field label="Company">
+              <Input required value={fields.companyName} onChange={(event) => patch({ companyName: event.target.value })} />
+            </Field>
+            <Field label="Company website" note="The company name in the pipeline opens this.">
+              <Input
+                inputMode="url"
+                placeholder="amplifier.health"
+                value={fields.companyUrl}
+                onChange={(event) => patch({ companyUrl: event.target.value })}
+              />
+            </Field>
+          </PopoverContent>
+        </Popover>
+
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" size="sm" className="gap-2 border-dashed">
+              <Lock aria-hidden="true" className="size-4" />
+              Staff only
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="grid gap-3">
+            <p className="text-xs text-muted-foreground">Not shown to the client.</p>
+            <Field label="Round">
+              <Input value={fields.round} onChange={(event) => patch({ round: event.target.value })} />
+            </Field>
+            <Field label="Valuation ($, whole dollars)">
+              <Input
+                inputMode="numeric"
+                value={fields.valuationDollars}
+                onChange={(event) => patch({ valuationDollars: event.target.value })}
+              />
+            </Field>
+            <Field label="Hourly cost ($)">
+              <Input
+                inputMode="decimal"
+                value={fields.hourlyCostDollars}
+                onChange={(event) => patch({ hourlyCostDollars: event.target.value })}
+              />
+            </Field>
+          </PopoverContent>
+        </Popover>
 
         {isNew ? null : (
-          <fieldset>
-            <legend>Private link</legend>
-            <div className="operate-editor__link">
-              <input type="text" readOnly value={origin ? link : ""} aria-label="Private link" />
-              <button type="button" onClick={copyLink} disabled={!origin}>
-                {copied ? "Copied" : "Copy"}
-              </button>
-            </div>
-            <p style={{ margin: "8px 0 0", fontSize: 14 }}>
-              <a href={`/operate/d/${deal.token}`} target="_blank" rel="noreferrer" style={{ color: "inherit" }}>
-                Open the client page
+          <>
+            <Button variant="ghost" size="sm" className="gap-2" onClick={() => void copyLink()} disabled={!origin}>
+              <Link2 aria-hidden="true" className="size-4" />
+              {copied ? "Copied" : "Copy link"}
+            </Button>
+            <Button asChild variant="ghost" size="sm" className="gap-2">
+              <a href={`/operate/d/${deal.token}`} target="_blank" rel="noreferrer">
+                <ExternalLink aria-hidden="true" className="size-4" />
+                Open as client
               </a>
-            </p>
-          </fieldset>
+            </Button>
+          </>
         )}
 
-        <fieldset>
-          <legend>Offers</legend>
-          <label className="operate-editor__check">
-            <input
-              type="checkbox"
-              name="ratesOverridden"
-              checked={fields.ratesOverridden}
-              onChange={(event) => {
-                const overridden = event.target.checked;
-                if (!overridden) {
-                  const packages = fields.packages.map((row, index) => {
-                    const base = deal.baseRates[index];
-                    if (!base) return row;
-                    return {
-                      ...row,
-                      serviceName: base.serviceName,
-                      hours: String(base.hoursPerWeek),
-                      listRate: centsToDollars(base.listRateCents),
-                      cashRate: centsToDollars(base.cashRateCents),
-                    };
-                  }) as [PackageFields, PackageFields];
-                  patch({ ratesOverridden: false, packages });
-                  return;
-                }
-                patch({ ratesOverridden: true });
-              }}
-            />
-            <span>Custom rates for this customer</span>
-          </label>
-          <small className="operate-editor__note">
-            Every deal uses the same offers. Custom rates change the price on this deal only.
-          </small>
-        </fieldset>
-
-        <PackageRow
-          index={0}
-          row={fields.packages[0]}
-          overridden={fields.ratesOverridden}
-          companyList={deal.baseRates[0]?.listRateCents ?? 0}
-          companyCash={deal.baseRates[0]?.cashRateCents ?? 0}
-          onChange={(next) => patchPackage(0, next)}
-        />
-        <PackageRow
-          index={1}
-          row={fields.packages[1]}
-          overridden={fields.ratesOverridden}
-          companyList={deal.baseRates[1]?.listRateCents ?? 0}
-          companyCash={deal.baseRates[1]?.cashRateCents ?? 0}
-          onChange={(next) => patchPackage(1, next)}
-        />
-
-        <fieldset className="operate-editor__staff">
-          <legend>Staff only</legend>
-          <label>
-            <span>Round</span>
-            <input
-              type="text"
-              name="round"
-              value={fields.round}
-              onChange={(event) => patch({ round: event.target.value })}
-            />
-            <small className="operate-editor__note">Not shown to the customer.</small>
-          </label>
-          <label>
-            <span>Valuation ($, whole dollars)</span>
-            <input
-              type="text"
-              inputMode="numeric"
-              name="valuationDollars"
-              value={fields.valuationDollars}
-              onChange={(event) => patch({ valuationDollars: event.target.value })}
-            />
-            <small className="operate-editor__note">Not shown to the customer.</small>
-          </label>
-          <label>
-            <span>Hourly cost ($)</span>
-            <input
-              type="text"
-              inputMode="decimal"
-              name="hourlyCostDollars"
-              value={fields.hourlyCostDollars}
-              onChange={(event) => patch({ hourlyCostDollars: event.target.value })}
-            />
-            <small className="operate-editor__note">Not shown to the customer.</small>
-          </label>
-        </fieldset>
-
-        <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-          <button type="submit" disabled={pending}>
-            {pending ? "Saving" : isNew ? "Create deal" : "Save"}
-          </button>
+        <div className="ml-auto flex items-center gap-3">
           {message ? (
-            <span role="status" style={{ color: message.ok ? "inherit" : "#FA4C1F" }}>
+            <span role="status" className={`text-sm ${message.ok ? "text-muted-foreground" : "text-orange"}`}>
               {message.text}
             </span>
+          ) : dirty ? (
+            <span className="text-sm text-muted-foreground">Unsaved changes</span>
           ) : null}
+          <Button size="sm" onClick={save} disabled={pending || (!isNew && !dirty)}>
+            {pending ? "Saving" : isNew ? "Create deal" : "Save"}
+          </Button>
         </div>
-      </form>
-
-      <div className="operate-editor__preview">
-        <div className="operate-editor__preview-bar">
-          <span>Client letter</span>
-          {isNew ? (
-            <span>The private link appears once the deal is created.</span>
-          ) : (
-            <a href={`/operate/d/${deal.token}`} target="_blank" rel="noreferrer">
-              Open the client page
-            </a>
-          )}
-        </div>
-        <DealLetter deal={letter} mode="preview" />
       </div>
+
+      <LetterFrame companyName={fields.companyName} companyLogoUrl={fields.companyLogoUrl} canvas>
+        {blocks.length === 0 ? (
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            <AddBlockMenu blocks={blocks} onAdd={(type) => addBlock(type, 0)} label="Add a block" />
+            The letter is empty. Add a block.
+          </div>
+        ) : null}
+        {blocks.map((block, index) => (
+          <section key={block.id} className={`${blockClassName(block)} ${blockShell}`}>
+            <div className="absolute -left-14 top-0 flex flex-col gap-0.5 opacity-0 transition-opacity group-hover/block:opacity-100 group-focus-within/block:opacity-100">
+              <button
+                type="button"
+                className={gutterButton}
+                aria-label={`Move ${blockLabel(block.type)} up`}
+                disabled={index === 0}
+                onClick={() => patchBlocks(moveBlock(blocks, index, -1))}
+              >
+                <ArrowUp aria-hidden="true" className="size-4" />
+              </button>
+              <button
+                type="button"
+                className={gutterButton}
+                aria-label={`Move ${blockLabel(block.type)} down`}
+                disabled={index === blocks.length - 1}
+                onClick={() => patchBlocks(moveBlock(blocks, index, 1))}
+              >
+                <ArrowDown aria-hidden="true" className="size-4" />
+              </button>
+              <button
+                type="button"
+                className={gutterButton}
+                aria-label={`Remove ${blockLabel(block.type)}`}
+                onClick={() => patchBlocks(blocks.filter((item) => item.id !== block.id))}
+              >
+                <Trash2 aria-hidden="true" className="size-4" />
+              </button>
+            </div>
+            {renderBlock(block)}
+            <div className="absolute -bottom-[38px] left-1/2 z-10 -translate-x-1/2 opacity-0 transition-opacity group-hover/block:opacity-100 group-focus-within/block:opacity-100 has-[[data-state=open]]:opacity-100">
+              <AddBlockMenu
+                blocks={blocks}
+                onAdd={(type) => addBlock(type, index + 1)}
+                label={`Add a block after ${blockLabel(block.type)}`}
+              />
+            </div>
+          </section>
+        ))}
+      </LetterFrame>
     </div>
   );
 }
+

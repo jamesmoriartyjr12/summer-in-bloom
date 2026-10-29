@@ -10,6 +10,7 @@ import {
   type OfferRate,
   type TermLength,
 } from "./pricing";
+import { parseBlocks, type LetterBlock } from "./blocks";
 import { baseRates, deals, packages } from "./schema";
 
 const UUID_PATTERN =
@@ -36,6 +37,7 @@ export type DealRecord = {
   avatarUrl: string | null;
   companyLogoUrl: string | null;
   companyUrl: string | null;
+  letterBlocks: LetterBlock[];
   equityEnabled: boolean;
   ratesOverridden: boolean;
   termLength: TermLength;
@@ -66,6 +68,7 @@ export type DealDraft = {
   avatarUrl: string | null;
   companyLogoUrl: string | null;
   companyUrl: string | null;
+  letterBlocks: LetterBlock[];
   equityEnabled: boolean;
   ratesOverridden: boolean;
   termLength: TermLength;
@@ -135,6 +138,7 @@ function toDealRecord(deal: DealRow, rows: PackageRow[]): DealRecord {
     avatarUrl: deal.avatarUrl,
     companyLogoUrl: deal.companyLogoUrl,
     companyUrl: deal.companyUrl,
+    letterBlocks: parseBlocks(deal.letterBlocks),
     equityEnabled: deal.equityEnabled,
     ratesOverridden: deal.ratesOverridden,
     termLength: termFromColumn(deal.termLength),
@@ -454,6 +458,7 @@ export async function createDeal(
       avatarUrl: input.avatarUrl,
       companyLogoUrl: input.companyLogoUrl,
       companyUrl: input.companyUrl,
+      letterBlocks: input.letterBlocks,
       equityEnabled: input.equityEnabled,
       ratesOverridden: input.ratesOverridden,
       termLength: input.termLength,
@@ -513,6 +518,7 @@ export async function saveDeal(
     avatarUrl: input.avatarUrl,
     companyLogoUrl: input.companyLogoUrl,
     companyUrl: input.companyUrl,
+    letterBlocks: input.letterBlocks,
     equityEnabled: input.equityEnabled,
     ratesOverridden: input.ratesOverridden,
     termLength: input.termLength,
@@ -561,6 +567,7 @@ export function dealToLetter(deal: DealRecord): LetterDeal {
     .filter((pkg) => pkg.enabled)
     .sort((left, right) => left.sortOrder - right.sortOrder || left.id.localeCompare(right.id));
   return {
+    blocks: deal.letterBlocks,
     companyName: deal.companyName,
     companyLogoUrl: deal.companyLogoUrl,
     contactName: deal.contactName,

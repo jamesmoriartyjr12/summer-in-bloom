@@ -37,6 +37,7 @@ export default async function DealEditorPage({ params }: { params: { dealId: str
     avatarUrl: deal.avatarUrl,
     companyLogoUrl: deal.companyLogoUrl,
     companyUrl: deal.companyUrl ?? "",
+    letterBlocks: deal.letterBlocks,
     equityEnabled: deal.equityEnabled,
     ratesOverridden: deal.ratesOverridden,
     baseRates,

@@ -52,6 +52,8 @@ The letter is Paper, Ink, and Orange on the company name. Lime stays off. The he
 
 The greeting is Archivo, sentence case, at display size: “Hello [company], so nice to see you again.” The brand headline is Manifold Extended Heavy, all caps, and the voice line is “Create great company.” The letter as a document, not a poster, is an open question for James. It is not yet a direction.
 
+Staff build the letter on the letter itself. There is no input rail. The deal page shows the client's letter at full width, made of blocks: Greeting, Term, Offers, and Divider. Greeting, Term, and Offers appear once each. Divider can repeat. Each block has a quiet gutter on its left to move it up, move it down, or remove it. A "+" under each block adds one after it. Clicking the greeting turns it into a text field in the same type. The company name is a token, so it stays Orange in the letter. Term is a select set in the letter's own label style. Offers carries two switches, custom rates and equity. With custom rates on, the rates become number fields in place. The equity sentence sits inside Offers. Everything that is not on the letter sits in a thin toolbar above it: Details for the contact and company, Staff only for the round, valuation, and cost, then Copy link, Open as client, and Save. The client sees the same blocks in the same order, with no controls. On the offer rows, the service name and the hours per week stack on two lines, so they never overlap the figures.
+
 ### 2026-10-15 — The line is a block
 
 The company line wraps into a block beside the square, instead of one line under the marker. The type is white or black, chosen against the ground behind the words.

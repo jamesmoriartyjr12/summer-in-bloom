@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
+import { defaultBlocks } from "@/lib/operate/blocks";
 import { listBaseRates } from "@/lib/operate/deals";
 import { Editor, type EditorDeal } from "../[dealId]/editor";
 
@@ -28,6 +29,7 @@ export default async function NewDealPage() {
     avatarUrl: null,
     companyLogoUrl: null,
     companyUrl: "",
+    letterBlocks: defaultBlocks(),
     equityEnabled: false,
     ratesOverridden: false,
     baseRates,

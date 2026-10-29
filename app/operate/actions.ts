@@ -15,6 +15,7 @@ import {
 } from "@/lib/operate/deals";
 import { contactFullName, readLinkedInProfile } from "@/lib/operate/linkedin";
 import { companyWebsiteUrl } from "@/lib/operate/website";
+import { parseBlocks } from "@/lib/operate/blocks";
 import { cascadeOffers, type TermLength } from "@/lib/operate/pricing";
 
 type SaveResult = { ok: true; notice?: string } | { ok: false; error: string };
@@ -84,6 +85,13 @@ function parseDraft(formData: FormData): DealDraft | { error: string } {
     return { error: "Company website must be a web address, like amplifier.health." };
   }
 
+  let letterBlocks: unknown = null;
+  try {
+    letterBlocks = JSON.parse(text(formData, "letterBlocks") || "null");
+  } catch {
+    return { error: "The letter blocks could not be read." };
+  }
+
   const packages: PackageDraft[] = [0, 1].map((index) => readPackage(formData, index));
 
   return {
@@ -94,6 +102,7 @@ function parseDraft(formData: FormData): DealDraft | { error: string } {
     avatarUrl: null,
     companyLogoUrl: null,
     companyUrl,
+    letterBlocks: parseBlocks(letterBlocks),
     equityEnabled: formData.get("equityEnabled") === "on",
     ratesOverridden: formData.get("ratesOverridden") === "on",
     termLength,
