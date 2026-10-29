@@ -25,7 +25,7 @@ const SORTS = ["company", "hours", "length", "rate", "equity", "value"] as const
 type Sort = (typeof SORTS)[number];
 type Direction = "asc" | "desc";
 
-const COLUMNS = "md:grid md:grid-cols-[minmax(0,1fr)_5.5rem_7rem_7rem_8.5rem_8.5rem] md:gap-6";
+const COLUMNS = "md:grid md:grid-cols-[minmax(0,1fr)_4.5rem_6rem_5.5rem_7rem_7rem] md:gap-4";
 
 function one(value: string | string[] | undefined): string {
   return Array.isArray(value) ? (value[0] ?? "") : (value ?? "");
@@ -95,17 +95,12 @@ function Contact({ deal }: { deal: DashboardDeal }) {
   );
 }
 
-function Money({ cents }: { cents: number | null }) {
-  if (cents === null) return <span className="text-right text-muted-foreground">—</span>;
-  return <span className="text-right text-base font-medium tabular-nums">{formatDollars(cents)}</span>;
-}
-
-function Rate({ cents, custom }: { cents: number | null; custom: boolean }) {
+function Money({ cents, suffix = "" }: { cents: number | null; suffix?: string }) {
   if (cents === null) return <span className="text-right text-muted-foreground">—</span>;
   return (
-    <span className="grid justify-items-end gap-0.5 text-right tabular-nums">
-      <span>{formatDollars(cents)}/hr</span>
-      {custom ? <span className="operate-label text-[10px] text-orange">Custom</span> : null}
+    <span className="text-right tabular-nums">
+      {formatDollars(cents)}
+      {suffix}
     </span>
   );
 }
@@ -236,7 +231,7 @@ export default async function OperatePage({
                     <DealAvatar companyName={deal.companyName} logoUrl={deal.companyLogoUrl} size="lg" />
                   </ItemMedia>
                   <ItemContent>
-                    <ItemTitle className="w-full text-base">
+                    <ItemTitle className="w-full">
                       <OutLink href={deal.companyUrl}>{deal.companyName}</OutLink>
                     </ItemTitle>
                     <Contact deal={deal} />
@@ -244,7 +239,7 @@ export default async function OperatePage({
                 </div>
                 <span className="text-right tabular-nums">{quoted ? quoted.hoursPerWeek : "—"}</span>
                 <span className="tabular-nums">{months === null ? termLabel(deal.termLength) : `${months} months`}</span>
-                <Rate cents={rateCents} custom={deal.ratesOverridden} />
+                <Money cents={rateCents} suffix="/hr" />
                 <Money cents={equityCents} />
                 <Money cents={valueCents} />
               </Item>
