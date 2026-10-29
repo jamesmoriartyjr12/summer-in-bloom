@@ -24,13 +24,13 @@
   --input: 40 12% 72%;
   --ring: 12 96% 55%;
   --radius: 0.25rem;
-  --sidebar: 40 22% 93%;
-  --sidebar-foreground: 212 55% 6%;
-  --sidebar-primary: 212 55% 6%;
+  --sidebar: 212 55% 6%;
+  --sidebar-foreground: 43 58% 95%;
+  --sidebar-primary: 12 96% 55%;
   --sidebar-primary-foreground: 43 58% 95%;
-  --sidebar-accent: 40 18% 88%;
-  --sidebar-accent-foreground: 12 96% 55%;
-  --sidebar-border: 40 16% 82%;
+  --sidebar-accent: 212 32% 12%;
+  --sidebar-accent-foreground: 43 58% 95%;
+  --sidebar-border: 212 24% 18%;
   --sidebar-ring: 12 96% 55%;
 }
 

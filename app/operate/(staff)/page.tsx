@@ -3,9 +3,11 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Item, ItemActions, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from "@/components/ui/item";
 import { listDashboard } from "@/lib/operate/deals";
 import { averageBillableCents, termLabel } from "@/lib/operate/pricing";
 import { createDealAction } from "@/app/operate/actions";
+import { DealAvatar } from "./deal-avatar";
 import { DealDashboard, RateBadge } from "./dashboard";
 
 export const dynamic = "force-dynamic";
@@ -36,7 +38,7 @@ export default async function OperatePage({
   const billableCents = averageBillableCents(deals);
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-16">
+    <main className="mx-auto w-full max-w-4xl px-6 py-10">
       <p className="operate-label text-muted-foreground">Operate</p>
       <h1 className="mt-2 text-4xl font-medium tracking-tight">Deals</h1>
       {error === "company" ? <p className="mt-4 text-sm text-orange">Enter a company name.</p> : null}
@@ -56,28 +58,38 @@ export default async function OperatePage({
         <Button type="submit">Create</Button>
       </form>
 
+      <p className="operate-label mt-12 text-muted-foreground">Open deals</p>
       {deals.length === 0 ? (
-        <p className="mt-8 text-sm text-muted-foreground">No deals yet.</p>
+        <p className="mt-4 text-sm text-muted-foreground">No deals yet.</p>
       ) : (
-        <ul className="mt-8 border-t border-border">
+        <ItemGroup className="mt-4 gap-3">
           {deals.map((deal) => (
-            <li key={deal.id} className="flex flex-wrap items-baseline justify-between gap-4 border-b border-border py-4">
-              <Link href={`/operate/${deal.id}`} className="text-lg font-medium hover:text-orange">
-                {deal.companyName}
-                {deal.contactName ? (
-                  <span className="font-normal text-muted-foreground"> · {deal.contactName}</span>
-                ) : null}
-              </Link>
-              <span className="flex items-center gap-4 text-sm">
+            <Item key={deal.id} variant="outline" className="relative bg-card transition-colors hover:border-orange">
+              <ItemMedia>
+                <DealAvatar companyName={deal.companyName} logoUrl={deal.companyLogoUrl} size="lg" />
+              </ItemMedia>
+              <ItemContent>
+                <ItemTitle className="text-base">
+                  <Link href={`/operate/${deal.id}`} className="after:absolute after:inset-0 focus-visible:outline-none">
+                    {deal.companyName}
+                  </Link>
+                </ItemTitle>
+                <ItemDescription className="line-clamp-1">
+                  {[deal.contactName, deal.contactRole].filter(Boolean).join(" · ") || "No contact yet"}
+                </ItemDescription>
+              </ItemContent>
+              <ItemActions className="relative z-10 flex-wrap gap-3">
                 <RateBadge custom={deal.ratesOverridden} />
-                <span className="text-muted-foreground">{termLabel(deal.termLength)}</span>
-                <a href={`/operate/d/${deal.token}`} target="_blank" rel="noreferrer" className="hover:text-orange">
-                  Client page
-                </a>
-              </span>
-            </li>
+                <span className="operate-label text-muted-foreground">{termLabel(deal.termLength)}</span>
+                <Button asChild variant="outline" size="sm">
+                  <a href={`/operate/d/${deal.token}`} target="_blank" rel="noreferrer">
+                    Client page
+                  </a>
+                </Button>
+              </ItemActions>
+            </Item>
           ))}
-        </ul>
+        </ItemGroup>
       )}
     </main>
   );

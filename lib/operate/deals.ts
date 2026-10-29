@@ -79,6 +79,8 @@ export type DealListItem = {
   companyName: string;
   contactName: string;
   contactRole: string;
+  companyLogoUrl: string | null;
+  avatarUrl: string | null;
   termLength: TermLength;
   ratesOverridden: boolean;
 };
@@ -337,6 +339,8 @@ export async function listDashboard(): Promise<{ rates: OfferRate[]; deals: Dash
       companyName: deals.companyName,
       contactName: deals.contactName,
       contactRole: deals.contactRole,
+      companyLogoUrl: deals.companyLogoUrl,
+      avatarUrl: deals.avatarUrl,
       termLength: deals.termLength,
       ratesOverridden: deals.ratesOverridden,
       equityEnabled: deals.equityEnabled,
@@ -357,6 +361,8 @@ export async function listDashboard(): Promise<{ rates: OfferRate[]; deals: Dash
         companyName: row.companyName,
         contactName: row.contactName,
         contactRole: row.contactRole,
+        companyLogoUrl: row.companyLogoUrl,
+        avatarUrl: row.avatarUrl,
         termLength: termFromColumn(row.termLength),
         ratesOverridden: row.ratesOverridden,
         equityEnabled: row.equityEnabled,
@@ -384,6 +390,8 @@ export async function listDeals(): Promise<DealListItem[]> {
       companyName: deals.companyName,
       contactName: deals.contactName,
       contactRole: deals.contactRole,
+      companyLogoUrl: deals.companyLogoUrl,
+      avatarUrl: deals.avatarUrl,
       termLength: deals.termLength,
       ratesOverridden: deals.ratesOverridden,
     })
@@ -395,6 +403,8 @@ export async function listDeals(): Promise<DealListItem[]> {
     companyName: row.companyName,
     contactName: row.contactName,
     contactRole: row.contactRole,
+    companyLogoUrl: row.companyLogoUrl,
+    avatarUrl: row.avatarUrl,
     termLength: termFromColumn(row.termLength),
     ratesOverridden: row.ratesOverridden,
   }));
