@@ -13,7 +13,8 @@ export function getDb(): Db {
   if (!url) throw new Error("DATABASE_URL is not set.");
   if (!globalForDb.operateSql) {
     // prepare: false is required by Supabase's transaction pooler.
-    globalForDb.operateSql = postgres(url, { prepare: false, max: 1 });
+    // The staff layout and page query at the same time; one connection stalls them both.
+    globalForDb.operateSql = postgres(url, { prepare: false, max: 4 });
   }
   return drizzle(globalForDb.operateSql, { schema });
 }
