@@ -55,7 +55,7 @@ export default function SignInPage({
         className="pointer-events-none absolute left-1/2 top-[14%] w-[min(880px,86vw)] -translate-x-1/2 select-none opacity-10 brightness-0"
       />
       <div className="relative mx-auto flex w-full max-w-[420px] flex-1 flex-col justify-center px-6 py-24">
-        <img src="/bloom-mark.svg" alt="" className="h-10 w-10" />
+        <img src="/bloom-mark.svg" alt="" className="h-[60px] w-[60px]" />
         <p className="mt-10 text-xs uppercase tracking-[0.2em]">Bloom</p>
         <h1 className="mt-3 text-4xl font-medium tracking-tight">Operate</h1>
         <p className="mt-4 text-base leading-7">

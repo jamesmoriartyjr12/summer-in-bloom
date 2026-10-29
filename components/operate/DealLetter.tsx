@@ -17,15 +17,15 @@ const letterStyles = `
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 64px;
+  height: 96px;
   padding: 0 24px;
   background: #FAF6EC;
   border-bottom: 1px solid rgba(7, 15, 24, 0.12);
 }
 .operate-letter__brand {
   display: block;
-  height: 22px;
-  width: auto;
+  width: 60px;
+  height: 60px;
 }
 .operate-letter__logo {
   display: block;
@@ -34,44 +34,11 @@ const letterStyles = `
   max-width: 140px;
   object-fit: contain;
 }
-.operate-letter__identity {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-}
-.operate-letter__avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  object-fit: cover;
-  object-position: center 18%;
-  flex: none;
-}
-.operate-letter__avatar--initials {
-  display: grid;
-  place-items: center;
-  background: #070F18;
-  color: #FAF6EC;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
-.operate-letter__recipient {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 1.3;
-  white-space: nowrap;
-}
 .operate-letter__wordmark {
-  position: absolute;
-  z-index: 0;
-  top: 10%;
-  left: 50%;
+  display: block;
   width: min(1100px, 88vw);
   height: auto;
-  transform: translateX(-50%);
+  margin: clamp(40px, 6vh, 72px) auto 0;
   opacity: 0.1;
   filter: brightness(0);
   pointer-events: none;
@@ -193,6 +160,8 @@ button.operate-letter__row:focus-visible {
 }
 .operate-letter__mark {
   display: block;
+  width: 60px;
+  height: 60px;
 }
 .operate-letter__address {
   margin: 0;
@@ -315,13 +284,6 @@ export function DealLetter({
     deal.packages.find((pkg) => pkg.id === deal.selectedPackageId) ?? deal.packages[0];
   const sentence = equitySentence(deal.equityEnabled, quoted);
 
-  const recipient = deal.contactName.trim();
-  const initials = recipient
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
-
   return (
     <article className="operate-letter">
       <style>{letterStyles}</style>
@@ -331,18 +293,6 @@ export function DealLetter({
         ) : (
           <img className="operate-letter__brand" src="/bloom-mark.svg" alt="Bloom" />
         )}
-        {recipient ? (
-          <div className="operate-letter__identity">
-            {deal.avatarUrl ? (
-              <img className="operate-letter__avatar" src={deal.avatarUrl} alt="" />
-            ) : (
-              <span className="operate-letter__avatar operate-letter__avatar--initials" aria-hidden>
-                {initials}
-              </span>
-            )}
-            <p className="operate-letter__recipient">{recipient}</p>
-          </div>
-        ) : null}
       </header>
       <img
         className="operate-letter__wordmark"

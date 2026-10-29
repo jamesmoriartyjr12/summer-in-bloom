@@ -33,12 +33,24 @@ Voice for any new line: "Create great company." Direct, confident, warm, sharp.
 - Which ink hex is the one we ship.
 - When the page moves from Mincho and Helvetica on chalk to Manifold, Archivo, JetBrains Mono, and Paper.
 - How Kayla's motion plan and Marco's samples land on Hero and Team without changing timing in an unattended edit.
+- Whether the Operate letter keeps an Archivo, sentence-case greeting and its softer line, or takes the Manifold headline and “Create great company.”
+- The 60px mark sits in a 96px letter header, so it does not have the full clearspace the brand asks for.
 
 ## Motion
 
 Reviews use `design/MOTION.md`. That file is the Motion install from Double Dutch Auctions: `motion/react`, shared duration and spring tokens, and the primitives `FadeUp`, `Press`, `SectionReveal`, and `TextRise`. Bloom still runs `framer-motion` 11. Switching packages is a reviewed change. Double Dutch's auction character stays on that site.
 
 ## Log
+
+### 2026-10-29 — Operate, the staff deals tool and the client letter
+
+Operate lives at `/operate`. It is not linked from the public page. Staff sign in with Google. A client opens a private letter at `/operate/d/[token]`.
+
+The staff pages sit in an Ink `#070F18` rail with Paper type. The Paper wordmark is at its drawn 123px width. Labels are JetBrains Mono, uppercase. The current page is Orange, with a 2px orange rule. Deals are rows with the company logo, the contact, the rate, the term, and the client link. The rail slides fully away, rather than shrinking to icons, so the mark is never drawn under 60px.
+
+The letter is Paper, Ink, and Orange on the company name. Lime stays off. The header carries the company logo, or the Bloom mark when there is none. The recipient is not in the header. The faint wordmark has its own band above the greeting and does not run through it. Every Bloom mark on Operate is at least 60px: the letter header, the letter footer, and sign-in. The mark file is filled with Ink `#070F18`. Its color in the top nav is unchanged, because the nav uses the file only as a mask.
+
+The greeting is Archivo, sentence case, at display size: “Hello [company], so nice to see you again.” The brand headline is Manifold Extended Heavy, all caps, and the voice line is “Create great company.” The letter as a document, not a poster, is an open question for James. It is not yet a direction.
 
 ### 2026-10-15 — The line is a block
 
