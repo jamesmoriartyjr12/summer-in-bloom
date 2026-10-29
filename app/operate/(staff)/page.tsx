@@ -17,6 +17,7 @@ import {
   type OfferRate,
 } from "@/lib/operate/pricing";
 import { DealAvatar } from "./deal-avatar";
+import { DealMenu } from "./deal-menu";
 import { DealDashboard } from "./dashboard";
 
 export const dynamic = "force-dynamic";
@@ -25,7 +26,7 @@ const SORTS = ["company", "hours", "length", "rate", "equity", "value"] as const
 type Sort = (typeof SORTS)[number];
 type Direction = "asc" | "desc";
 
-const COLUMNS = "md:grid md:grid-cols-[minmax(0,1fr)_4.5rem_6rem_5.5rem_7rem_7rem] md:gap-4";
+const COLUMNS = "md:grid md:grid-cols-[minmax(0,1fr)_4.5rem_6rem_5.5rem_7rem_7rem_2rem] md:gap-4";
 
 function one(value: string | string[] | undefined): string {
   return Array.isArray(value) ? (value[0] ?? "") : (value ?? "");
@@ -213,6 +214,7 @@ export default async function OperatePage({
             <SortHeader column="rate" label="Rate" sort={sort} direction={direction} align="right" />
             <SortHeader column="equity" label="Equity" sort={sort} direction={direction} align="right" />
             <SortHeader column="value" label="Value" sort={sort} direction={direction} align="right" />
+            <span aria-hidden="true" />
           </div>
           <ItemGroup className="mt-3 gap-3">
             {rows.map(({ deal, quoted, months, rateCents, valueCents, equityCents }) => (
@@ -242,6 +244,7 @@ export default async function OperatePage({
                 <Money cents={rateCents} suffix="/hr" />
                 <Money cents={equityCents} />
                 <Money cents={valueCents} />
+                <DealMenu dealId={deal.id} token={deal.token} companyName={deal.companyName} />
               </Item>
             ))}
           </ItemGroup>
