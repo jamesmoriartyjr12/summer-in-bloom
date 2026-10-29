@@ -13,7 +13,8 @@ import {
   type DealRecord,
   type PackageDraft,
 } from "@/lib/operate/deals";
-import { readLinkedInProfile } from "@/lib/operate/linkedin";
+import { contactFullName, readLinkedInProfile } from "@/lib/operate/linkedin";
+import { companyWebsiteUrl } from "@/lib/operate/website";
 import { cascadeOffers, type TermLength } from "@/lib/operate/pricing";
 
 type SaveResult = { ok: true; notice?: string } | { ok: false; error: string };
@@ -77,6 +78,12 @@ function parseDraft(formData: FormData): DealDraft | { error: string } {
     return { error: "Hourly cost must be zero or more." };
   }
 
+  const websiteRaw = text(formData, "companyUrl");
+  const companyUrl = companyWebsiteUrl(websiteRaw);
+  if (websiteRaw.trim() !== "" && companyUrl === null) {
+    return { error: "Company website must be a web address, like amplifier.health." };
+  }
+
   const packages: PackageDraft[] = [0, 1].map((index) => readPackage(formData, index));
 
   return {
@@ -86,6 +93,7 @@ function parseDraft(formData: FormData): DealDraft | { error: string } {
     linkedinUrl: text(formData, "linkedinUrl").trim() || null,
     avatarUrl: null,
     companyLogoUrl: null,
+    companyUrl,
     equityEnabled: formData.get("equityEnabled") === "on",
     ratesOverridden: formData.get("ratesOverridden") === "on",
     termLength,
@@ -123,7 +131,7 @@ async function completeDraft(
     if (!profile.ok) return profile;
     draft.linkedinUrl = profile.url;
     if (profile.limited) {
-      if (draft.contactName.trim() === "") draft.contactName = profile.profile.name;
+      draft.contactName = contactFullName(draft.contactName, profile.url);
       const sameLink = existing?.linkedinUrl === profile.url;
       draft.avatarUrl = sameLink ? (existing?.avatarUrl ?? null) : null;
       draft.companyLogoUrl = sameLink ? (existing?.companyLogoUrl ?? null) : null;

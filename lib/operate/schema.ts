@@ -9,6 +9,7 @@ export const deals = pgTable("deals", {
   linkedinUrl: text("linkedin_url"),
   avatarUrl: text("avatar_url"),
   companyLogoUrl: text("company_logo_url"),
+  companyUrl: text("company_url"),
   equityEnabled: boolean("equity_enabled").notNull().default(false),
   ratesOverridden: boolean("rates_overridden").notNull().default(false),
   termLength: text("term_length").notNull().default("six-month"),

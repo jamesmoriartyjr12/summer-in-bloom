@@ -27,6 +27,7 @@ export default async function NewDealPage() {
     linkedinUrl: "",
     avatarUrl: null,
     companyLogoUrl: null,
+    companyUrl: "",
     equityEnabled: false,
     ratesOverridden: false,
     baseRates,

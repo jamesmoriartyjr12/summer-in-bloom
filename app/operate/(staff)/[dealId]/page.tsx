@@ -36,6 +36,7 @@ export default async function DealEditorPage({ params }: { params: { dealId: str
     linkedinUrl: deal.linkedinUrl ?? "",
     avatarUrl: deal.avatarUrl,
     companyLogoUrl: deal.companyLogoUrl,
+    companyUrl: deal.companyUrl ?? "",
     equityEnabled: deal.equityEnabled,
     ratesOverridden: deal.ratesOverridden,
     baseRates,

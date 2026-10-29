@@ -19,6 +19,17 @@ export function nameFromLinkedInSlug(slug: string): string {
   return parts.map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(" ");
 }
 
+// A first name typed by hand gives way to the full name in the profile link.
+export function contactFullName(contactName: string, linkedinUrl: string | null): string {
+  const typed = contactName.trim();
+  const profile = linkedinUrl ? linkedInProfileUrl(linkedinUrl) : null;
+  if (!profile) return typed;
+  const fromLink = nameFromLinkedInSlug(profile.slice("https://www.linkedin.com/in/".length));
+  if (typed === "") return fromLink;
+  if (typed.includes(" ")) return typed;
+  return fromLink.toLowerCase().startsWith(`${typed.toLowerCase()} `) ? fromLink : typed;
+}
+
 export function linkedInProfileUrl(raw: string): string | null {
   let url: URL;
   try {

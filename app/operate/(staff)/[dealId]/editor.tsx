@@ -23,6 +23,7 @@ export type EditorDeal = {
   linkedinUrl: string;
   avatarUrl: string | null;
   companyLogoUrl: string | null;
+  companyUrl: string;
   equityEnabled: boolean;
   ratesOverridden: boolean;
   baseRates: { serviceName: string; hoursPerWeek: number; listRateCents: number; cashRateCents: number }[];
@@ -57,6 +58,7 @@ type Fields = {
   linkedinUrl: string;
   avatarUrl: string | null;
   companyLogoUrl: string | null;
+  companyUrl: string;
   equityEnabled: boolean;
   ratesOverridden: boolean;
   termLength: TermLength;
@@ -99,6 +101,7 @@ function initialFields(deal: EditorDeal): Fields {
     linkedinUrl: deal.linkedinUrl,
     avatarUrl: deal.avatarUrl,
     companyLogoUrl: deal.companyLogoUrl,
+    companyUrl: deal.companyUrl,
     equityEnabled: deal.equityEnabled,
     ratesOverridden: deal.ratesOverridden,
     termLength: deal.termLength,
@@ -392,6 +395,18 @@ export function Editor({ deal }: { deal: EditorDeal }) {
                 onChange={(event) => patch({ companyName: event.target.value })}
               />
             </span>
+          </label>
+          <label>
+            <span>Company website</span>
+            <input
+              type="text"
+              inputMode="url"
+              name="companyUrl"
+              placeholder="amplifier.health"
+              value={fields.companyUrl}
+              onChange={(event) => patch({ companyUrl: event.target.value })}
+            />
+            <small className="operate-editor__note">The company name in the pipeline opens this.</small>
           </label>
           <label>
             <span>Term</span>

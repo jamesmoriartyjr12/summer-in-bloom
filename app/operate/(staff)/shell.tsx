@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, LogOut } from "lucide-react";
 import { signOutAction } from "@/app/operate/actions";
+import { contactFullName } from "@/lib/operate/linkedin";
 import {
   Sidebar,
   SidebarContent,
@@ -25,6 +26,7 @@ type RailDeal = {
   id: string;
   companyName: string;
   contactName: string;
+  linkedinUrl: string | null;
   companyLogoUrl: string | null;
 };
 
@@ -103,8 +105,10 @@ export function OperateShell({
                       <DealAvatar companyName={deal.companyName} logoUrl={deal.companyLogoUrl} />
                       <span className="grid min-w-0 flex-1 leading-tight">
                         <span className="truncate">{deal.companyName}</span>
-                        {deal.contactName ? (
-                          <span className="truncate text-xs text-sidebar-foreground/50">{deal.contactName}</span>
+                        {deal.contactName || deal.linkedinUrl ? (
+                          <span className="truncate text-xs text-sidebar-foreground/50">
+                            {contactFullName(deal.contactName, deal.linkedinUrl)}
+                          </span>
                         ) : null}
                       </span>
                     </Link>

@@ -5,6 +5,7 @@ import { auth } from "@/auth";
 import { Button } from "@/components/ui/button";
 import { Item, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from "@/components/ui/item";
 import { listDashboard, type DashboardDeal } from "@/lib/operate/deals";
+import { contactFullName } from "@/lib/operate/linkedin";
 import {
   averageBillableCents,
   billableHourCents,
@@ -66,6 +67,32 @@ function sortKey(row: PipelineRow, sort: Exclude<Sort, "company">): number | nul
   if (sort === "rate") return row.rateCents;
   if (sort === "equity") return row.equityCents;
   return row.valueCents;
+}
+
+function OutLink({ href, children }: { href: string | null; children: React.ReactNode }) {
+  if (!href) return <span className="truncate">{children}</span>;
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className="relative z-10 truncate underline-offset-4 hover:text-orange hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      {children}
+    </a>
+  );
+}
+
+function Contact({ deal }: { deal: DashboardDeal }) {
+  const name = contactFullName(deal.contactName, deal.linkedinUrl);
+  if (!name && !deal.contactRole) return <ItemDescription className="line-clamp-1">No contact yet</ItemDescription>;
+  return (
+    <ItemDescription className="line-clamp-1">
+      {name ? <OutLink href={deal.linkedinUrl}>{name}</OutLink> : null}
+      {name && deal.contactRole ? " · " : null}
+      {deal.contactRole}
+    </ItemDescription>
+  );
 }
 
 function Money({ cents }: { cents: number | null }) {
@@ -199,22 +226,20 @@ export default async function OperatePage({
                 variant="outline"
                 className={`relative items-center bg-card transition-colors focus-within:border-orange hover:border-orange ${COLUMNS}`}
               >
+                <Link
+                  href={`/operate/${deal.id}`}
+                  aria-label={`Open ${deal.companyName}`}
+                  className="absolute inset-0 rounded-lg focus-visible:outline-none"
+                />
                 <div className="flex min-w-0 flex-1 items-center gap-4">
                   <ItemMedia>
                     <DealAvatar companyName={deal.companyName} logoUrl={deal.companyLogoUrl} size="lg" />
                   </ItemMedia>
                   <ItemContent>
                     <ItemTitle className="w-full text-base">
-                      <Link
-                        href={`/operate/${deal.id}`}
-                        className="truncate after:absolute after:inset-0 focus-visible:outline-none"
-                      >
-                        {deal.companyName}
-                      </Link>
+                      <OutLink href={deal.companyUrl}>{deal.companyName}</OutLink>
                     </ItemTitle>
-                    <ItemDescription className="line-clamp-1">
-                      {[deal.contactName, deal.contactRole].filter(Boolean).join(" · ") || "No contact yet"}
-                    </ItemDescription>
+                    <Contact deal={deal} />
                   </ItemContent>
                 </div>
                 <span className="text-right tabular-nums">{quoted ? quoted.hoursPerWeek : "—"}</span>

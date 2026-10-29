@@ -35,6 +35,7 @@ export type DealRecord = {
   linkedinUrl: string | null;
   avatarUrl: string | null;
   companyLogoUrl: string | null;
+  companyUrl: string | null;
   equityEnabled: boolean;
   ratesOverridden: boolean;
   termLength: TermLength;
@@ -64,6 +65,7 @@ export type DealDraft = {
   linkedinUrl: string | null;
   avatarUrl: string | null;
   companyLogoUrl: string | null;
+  companyUrl: string | null;
   equityEnabled: boolean;
   ratesOverridden: boolean;
   termLength: TermLength;
@@ -80,6 +82,8 @@ export type DealListItem = {
   contactName: string;
   contactRole: string;
   companyLogoUrl: string | null;
+  companyUrl: string | null;
+  linkedinUrl: string | null;
   avatarUrl: string | null;
   termLength: TermLength;
   ratesOverridden: boolean;
@@ -130,6 +134,7 @@ function toDealRecord(deal: DealRow, rows: PackageRow[]): DealRecord {
     linkedinUrl: deal.linkedinUrl,
     avatarUrl: deal.avatarUrl,
     companyLogoUrl: deal.companyLogoUrl,
+    companyUrl: deal.companyUrl,
     equityEnabled: deal.equityEnabled,
     ratesOverridden: deal.ratesOverridden,
     termLength: termFromColumn(deal.termLength),
@@ -341,6 +346,8 @@ export async function listDashboard(): Promise<{ rates: OfferRate[]; deals: Dash
       contactName: deals.contactName,
       contactRole: deals.contactRole,
       companyLogoUrl: deals.companyLogoUrl,
+      companyUrl: deals.companyUrl,
+      linkedinUrl: deals.linkedinUrl,
       avatarUrl: deals.avatarUrl,
       termLength: deals.termLength,
       ratesOverridden: deals.ratesOverridden,
@@ -364,6 +371,8 @@ export async function listDashboard(): Promise<{ rates: OfferRate[]; deals: Dash
         contactName: row.contactName,
         contactRole: row.contactRole,
         companyLogoUrl: row.companyLogoUrl,
+        companyUrl: row.companyUrl,
+        linkedinUrl: row.linkedinUrl,
         avatarUrl: row.avatarUrl,
         termLength: termFromColumn(row.termLength),
         ratesOverridden: row.ratesOverridden,
@@ -394,6 +403,8 @@ export async function listDeals(): Promise<DealListItem[]> {
       contactName: deals.contactName,
       contactRole: deals.contactRole,
       companyLogoUrl: deals.companyLogoUrl,
+      companyUrl: deals.companyUrl,
+      linkedinUrl: deals.linkedinUrl,
       avatarUrl: deals.avatarUrl,
       termLength: deals.termLength,
       ratesOverridden: deals.ratesOverridden,
@@ -407,6 +418,8 @@ export async function listDeals(): Promise<DealListItem[]> {
     contactName: row.contactName,
     contactRole: row.contactRole,
     companyLogoUrl: row.companyLogoUrl,
+    companyUrl: row.companyUrl,
+    linkedinUrl: row.linkedinUrl,
     avatarUrl: row.avatarUrl,
     termLength: termFromColumn(row.termLength),
     ratesOverridden: row.ratesOverridden,
@@ -440,6 +453,7 @@ export async function createDeal(
       linkedinUrl: blankToNull(input.linkedinUrl),
       avatarUrl: input.avatarUrl,
       companyLogoUrl: input.companyLogoUrl,
+      companyUrl: input.companyUrl,
       equityEnabled: input.equityEnabled,
       ratesOverridden: input.ratesOverridden,
       termLength: input.termLength,
@@ -498,6 +512,7 @@ export async function saveDeal(
     linkedinUrl: blankToNull(input.linkedinUrl),
     avatarUrl: input.avatarUrl,
     companyLogoUrl: input.companyLogoUrl,
+    companyUrl: input.companyUrl,
     equityEnabled: input.equityEnabled,
     ratesOverridden: input.ratesOverridden,
     termLength: input.termLength,
