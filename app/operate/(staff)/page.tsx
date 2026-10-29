@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { listDashboard } from "@/lib/operate/deals";
 import { averageBillableCents, termLabel } from "@/lib/operate/pricing";
-import { createDealAction } from "./actions";
+import { createDealAction } from "@/app/operate/actions";
 import { DealDashboard, RateBadge } from "./dashboard";
 
 export const dynamic = "force-dynamic";

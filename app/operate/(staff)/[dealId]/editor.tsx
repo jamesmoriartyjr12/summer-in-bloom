@@ -10,7 +10,7 @@ import {
   type LetterDeal,
   type TermLength,
 } from "@/lib/operate/pricing";
-import { lookupLinkedInAction, saveDealAction } from "../actions";
+import { lookupLinkedInAction, saveDealAction } from "@/app/operate/actions";
 
 export type EditorDeal = {
   id: string;
@@ -149,7 +149,7 @@ function previewLetter(fields: Fields, selectedPackageId: string | null): Letter
 const css = `
 .operate-editor { display: grid; grid-template-columns: minmax(320px, 440px) minmax(0, 1fr); align-items: start; }
 .operate-editor__form { padding: 32px 24px 64px; }
-.operate-editor__preview { position: sticky; top: 0; height: 100vh; overflow: auto; border-left: 1px solid rgba(7, 15, 24, 0.14); }
+.operate-editor__preview { position: sticky; top: 3rem; height: calc(100vh - 3rem); overflow: auto; border-left: 1px solid rgba(7, 15, 24, 0.14); }
 .operate-editor__preview-bar { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; padding: 16px 24px; border-bottom: 1px solid rgba(7, 15, 24, 0.14); font-size: 14px; }
 .operate-editor__preview-bar a { color: inherit; }
 .operate-editor h1 { margin: 12px 0 24px; font-size: 28px; font-weight: 500; }

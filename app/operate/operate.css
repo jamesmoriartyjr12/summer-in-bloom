@@ -24,6 +24,14 @@
   --input: 40 12% 72%;
   --ring: 12 96% 55%;
   --radius: 0.25rem;
+  --sidebar: 40 22% 93%;
+  --sidebar-foreground: 212 55% 6%;
+  --sidebar-primary: 212 55% 6%;
+  --sidebar-primary-foreground: 43 58% 95%;
+  --sidebar-accent: 40 18% 88%;
+  --sidebar-accent-foreground: 12 96% 55%;
+  --sidebar-border: 40 16% 82%;
+  --sidebar-ring: 12 96% 55%;
 }
 
 .operate {
@@ -31,6 +39,14 @@
   background: hsl(var(--background));
   color: hsl(var(--foreground));
   font-family: var(--font-archivo), sans-serif;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
 .operate-label {

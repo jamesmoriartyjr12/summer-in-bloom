@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { auth } from "@/auth";
+import { auth, signOut } from "@/auth";
 import { createDeal, getDeal, listBaseRates, saveBaseRates, saveDeal, type DealDraft, type PackageDraft } from "@/lib/operate/deals";
 import { readLinkedInProfile } from "@/lib/operate/linkedin";
 import { cascadeOffers, type TermLength } from "@/lib/operate/pricing";
@@ -191,4 +191,8 @@ export async function saveDealAction(dealId: string, formData: FormData): Promis
     if (notice) return { ok: true, notice };
   }
   return result;
+}
+
+export async function signOutAction(): Promise<void> {
+  await signOut({ redirectTo: "/operate/sign-in" });
 }

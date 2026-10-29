@@ -22,9 +22,11 @@
     "next": "14.2.15",
     "next-auth": "^5.0.0-beta.32",
     "postgres": "^3.4.9",
+    "radix-ui": "^1.8.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "tailwind-merge": "^3.7.0",
+    "tailwind-variants": "^3.3.1",
     "unicornstudio-react": "^2.1.9"
   },
   "devDependencies": {
