@@ -1,0 +1,58 @@
+/*
+  shadcn tokens for Operate. They sit on :root only while this stylesheet is loaded,
+  which is the operate layout. The marketing page does not import it.
+  Paper #FAF6EC, ink #070F18, orange #FA4C1F.
+*/
+:root {
+  --background: 43 58% 95%;
+  --foreground: 212 55% 6%;
+  --card: 43 58% 95%;
+  --card-foreground: 212 55% 6%;
+  --popover: 43 58% 95%;
+  --popover-foreground: 212 55% 6%;
+  --primary: 212 55% 6%;
+  --primary-foreground: 43 58% 95%;
+  --secondary: 40 28% 91%;
+  --secondary-foreground: 212 55% 6%;
+  --muted: 40 28% 91%;
+  --muted-foreground: 30 8% 38%;
+  --accent: 12 96% 55%;
+  --accent-foreground: 43 58% 95%;
+  --destructive: 12 96% 55%;
+  --destructive-foreground: 43 58% 95%;
+  --border: 40 16% 82%;
+  --input: 40 12% 72%;
+  --ring: 12 96% 55%;
+  --radius: 0.25rem;
+  --sidebar: 212 55% 6%;
+  --sidebar-foreground: 43 58% 95%;
+  --sidebar-primary: 12 96% 55%;
+  --sidebar-primary-foreground: 43 58% 95%;
+  --sidebar-accent: 212 32% 12%;
+  --sidebar-accent-foreground: 43 58% 95%;
+  --sidebar-border: 212 24% 18%;
+  --sidebar-ring: 12 96% 55%;
+}
+
+.operate {
+  min-height: 100vh;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-archivo), sans-serif;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.operate-label {
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
