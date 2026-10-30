@@ -26,9 +26,17 @@ export function nextMonday(now: Date): string {
   return addDays(today, ((8 - weekday) % 7) || 7);
 }
 
-// The last day of the term: 26 weeks from a Monday ends on the Sunday 26 weeks on.
+const FRIDAY = 5;
+
+// The Friday closest to a day: from Saturday to Monday it steps back, from Tuesday to Thursday forward.
+export function nearestFriday(iso: string): string {
+  const weekday = toDate(iso).getUTCDay();
+  return addDays(iso, (((FRIDAY - weekday + 3) % 7) + 7) % 7 - 3);
+}
+
+// A term ends on the Friday nearest its last day, so 26 weeks from a Monday ends on the Friday before.
 export function termEndDate(start: string, weeks: number): string {
-  return addDays(start, weeks * 7 - 1);
+  return nearestFriday(addDays(start, weeks * 7 - 1));
 }
 
 export function formatDate(iso: string): string {

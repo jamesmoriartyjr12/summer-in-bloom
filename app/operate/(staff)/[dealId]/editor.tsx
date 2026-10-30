@@ -662,36 +662,18 @@ export function Editor({ deal }: { deal: EditorDeal }) {
       const start = isIsoDate(fields.startDate) ? fields.startDate : deal.startDate;
       return (
         <div className="flex flex-col items-start gap-3">
-          <div className="flex flex-wrap items-center gap-4">
-            <div role="group" aria-label="Terms offered" className="operate-letter__terms">
-              {CLIENT_TERMS.map((term) => (
-                <button
-                  key={term}
-                  type="button"
-                  aria-pressed={offered.includes(term)}
-                  className="operate-letter__term-option"
-                  onClick={() => toggleTerm(term)}
-                >
-                  {termLabel(term)}
-                </button>
-              ))}
-            </div>
-            <label className="flex items-center gap-2">
-              <span className="operate-label text-[11px] text-muted-foreground">Starts</span>
-              <input
-                type="date"
-                required
-                value={fields.startDate}
-                onChange={(event) => patch({ startDate: event.target.value })}
-                className="h-9 rounded-md border border-input bg-transparent px-3 text-sm tabular-nums focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              />
-            </label>
-          </div>
+          <label className="flex items-center gap-2">
+            <span className="operate-label text-[11px] text-muted-foreground">Starts</span>
+            <input
+              type="date"
+              required
+              value={fields.startDate}
+              onChange={(event) => patch({ startDate: event.target.value })}
+              className="h-9 rounded-md border border-input bg-transparent px-3 text-sm tabular-nums focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            />
+          </label>
           <p className="text-xs text-muted-foreground">
-            {offered.length === 2
-              ? "Each term is its own block below. The client picks one."
-              : "Click the other term to offer both."}{" "}
-            Starts {formatDate(start)}. Only staff see this block.
+            Starts {formatDate(start)}. Each term ends on the nearest Friday. Only staff see this block.
           </p>
         </div>
       );
@@ -700,6 +682,22 @@ export function Editor({ deal }: { deal: EditorDeal }) {
       return (
         <>
           <div className="mb-4 flex flex-wrap items-center gap-2">
+            <div role="group" aria-label="Terms offered" className="mr-2 flex gap-1.5">
+              {CLIENT_TERMS.map((term) => {
+                const on = offered.includes(term);
+                return (
+                  <button
+                    key={term}
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() => toggleTerm(term)}
+                    className={`${chip} ${on ? "border-foreground bg-foreground text-background hover:border-foreground" : "text-muted-foreground"}`}
+                  >
+                    {termLabel(term)}
+                  </button>
+                );
+              })}
+            </div>
             <button
               type="button"
               aria-pressed={fields.ratesOverridden}
@@ -728,7 +726,8 @@ export function Editor({ deal }: { deal: EditorDeal }) {
           <p className="mt-3 text-xs text-muted-foreground">
             {fields.ratesOverridden
               ? "Custom rates for this deal. Services and hours are the same in every term."
-              : "Pricing sheet rates for each line's hours. Turn on custom rates to change them for this deal."}
+              : "Pricing sheet rates for each line's hours. Turn on custom rates to change them for this deal."}{" "}
+            {offered.length === 2 ? "The client picks one term." : "Click the other term to offer both."}
           </p>
         </>
       );

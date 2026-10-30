@@ -94,8 +94,8 @@ describe("amplifier pricing", () => {
     const built = buildLetterTerms(["six-month", "one-year"], [line], settings, "2026-11-02");
     assert.deepEqual(built.steps, [0, 1000, 2000, 3000, 4000]);
     const [six, year] = built.terms;
-    assert.equal(six?.endDate, "2027-05-02");
-    assert.equal(year?.endDate, "2027-10-31");
+    assert.equal(six?.endDate, "2027-04-30");
+    assert.equal(year?.endDate, "2027-10-29");
     assert.equal(six?.options[3]?.weeklyCashCents, 80 * 16000);
     assert.equal(year?.options[3]?.weeklyCashCents, 80 * 15000);
     assert.equal(year?.options[4]?.weeklyCashCents, 80 * 15000);

@@ -3,7 +3,7 @@
 When both terms are on, James wants the letter to show each one as its own block: a header with the term, the weeks, and the start and end dates, and the deal's services priced for that term. The client picks one whole block. Services will be added into the blocks. On 2026-10-29 he chose:
 
 - A block is one bundle. Every service line in it is included; the client picks a block, not a row. Staff set the hours per service.
-- Staff set one start date per deal, defaulting to the next Monday. Six months ends 26 weeks later, one year 52.
+- Staff set one start date per deal, defaulting to the next Monday. Six months runs 26 weeks, one year 52, and each ends on the Friday nearest its last day.
 - The client no longer sees a Term toggle. The blocks replace it; staff keep the toggle in the editor.
 
 This replaces the hours decision in `2026-10-29-operate-equity-choice-design.md`. Equity stays first.
@@ -11,7 +11,7 @@ This replaces the hours decision in `2026-10-29-operate-equity-choice-design.md`
 ## Client letter
 
 1. **Equity block.** Unchanged: "All cash" or "Cash and equity", then the dollars per hour, in $10 steps. The steps run up to the most expensive line in any offered term above the floor.
-2. **Term blocks.** One per offered term, stacked. The header reads "Six months" and "26 weeks · Nov 2, 2026 – May 2, 2027". Each service line shows its rate and weekly amount, struck list and cash with equity. The totals show the weekly total (with more than one line), the cash over the term, and the equity dollars with the ownership percentage. A sentence follows.
+2. **Term blocks.** One per offered term, stacked. The header reads "Six months" and "26 weeks · Nov 2, 2026 – Apr 30, 2027". Each service line shows its rate and weekly amount, struck list and cash with equity. The totals show the weekly total (with more than one line), the cash over the term, and the equity dollars with the ownership percentage. A sentence follows.
 3. The Term block itself does not render for the client.
 
 Choosing a block saves `selected_term` and `selected_equity_cents`. `selected_package_id` is cleared. The server checks that the term is offered and the step is one the deal allows.
@@ -25,7 +25,7 @@ Choosing a block saves `selected_term` and `selected_equity_cents`. `selected_pa
 
 ## Editor
 
-- The Term block has the two term switches and a Starts date field.
+- The term switches are pills at the head of Offers, Ink when on, with no surrounding stroke. The Term block has only the Starts date field.
 - Offers shows every offered term's block. Service names and hours edit in place and carry to every block. Custom rates edit per term in place.
 - "Add service" adds a Design Engineering line at 40 hours on the sheet. Each line can be removed while more than one remains. A deal holds up to 12 lines.
 

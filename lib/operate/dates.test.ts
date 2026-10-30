@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { addDays, formatDate, isIsoDate, nextMonday, termEndDate } from "./dates";
+import { addDays, formatDate, isIsoDate, nearestFriday, nextMonday, termEndDate } from "./dates";
 
 describe("dates", () => {
   it("starts on the next Monday", () => {
@@ -9,9 +9,13 @@ describe("dates", () => {
     assert.equal(nextMonday(new Date("2026-11-01T09:00:00Z")), "2026-11-02");
   });
 
-  it("ends the term on its last day", () => {
-    assert.equal(termEndDate("2026-11-02", 26), "2027-05-02");
-    assert.equal(termEndDate("2026-11-02", 52), "2027-10-31");
+  it("ends the term on the nearest Friday", () => {
+    assert.equal(termEndDate("2026-11-02", 26), "2027-04-30");
+    assert.equal(termEndDate("2026-11-02", 52), "2027-10-29");
+    assert.equal(termEndDate("2026-11-16", 52), "2027-11-12");
+    assert.equal(nearestFriday("2027-11-08"), "2027-11-05");
+    assert.equal(nearestFriday("2027-11-09"), "2027-11-12");
+    assert.equal(nearestFriday("2027-11-12"), "2027-11-12");
     assert.equal(addDays("2026-12-31", 1), "2027-01-01");
   });
 
