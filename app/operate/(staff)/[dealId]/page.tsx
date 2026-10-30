@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { getDeal, listBaseRates } from "@/lib/operate/deals";
+import { dealStartDate, getDeal } from "@/lib/operate/deals";
 import { Editor, type EditorDeal } from "./editor";
 
 export const dynamic = "force-dynamic";
@@ -25,7 +25,6 @@ export default async function DealEditorPage({ params }: { params: { dealId: str
 
   const deal = await getDeal(params.dealId);
   if (!deal) notFound();
-  const baseRates = await listBaseRates();
 
   const editorDeal: EditorDeal = {
     id: deal.id,
@@ -40,8 +39,9 @@ export default async function DealEditorPage({ params }: { params: { dealId: str
     letterBlocks: deal.letterBlocks,
     equityEnabled: deal.equityEnabled,
     ratesOverridden: deal.ratesOverridden,
-    baseRates,
+    baseCents: deal.baseCents,
     termOffer: deal.termOffer,
+    startDate: dealStartDate(deal),
     round: deal.round ?? "",
     valuationDollars: deal.valuationDollars === null ? "" : deal.valuationDollars.toString(),
     valuationBasis: deal.valuationBasis,
@@ -49,20 +49,9 @@ export default async function DealEditorPage({ params }: { params: { dealId: str
     equityMultiplier: deal.equityMultiplier,
     cashFloorCents: deal.cashFloorCents,
     hourlyCostCents: deal.hourlyCostCents,
-    selectedPackageId: deal.selectedPackageId,
     selectedTerm: deal.selectedTerm,
     selectedEquityCents: deal.selectedEquityCents,
-    packages: deal.packages
-      .slice()
-      .sort((left, right) => left.sortOrder - right.sortOrder || left.id.localeCompare(right.id))
-      .map((pkg) => ({
-        id: pkg.id,
-        serviceName: pkg.serviceName,
-        hoursPerWeek: pkg.hoursPerWeek,
-        enabled: pkg.enabled,
-        listRateCents: pkg.listRateCents,
-        yearListRateCents: pkg.yearListRateCents,
-      })),
+    lines: deal.lines,
   };
 
   return <Editor deal={editorDeal} />;

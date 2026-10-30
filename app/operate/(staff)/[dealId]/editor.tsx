@@ -42,17 +42,23 @@ import {
   type ValuationBasis,
 } from "@/lib/operate/equity";
 import {
-  buildLetterTerm,
+  buildLetterTerms,
   CLIENT_TERMS,
   formatDollars,
-  letterTerm,
-  offeredTerms,
+  MAX_LINES,
+  SHEET_SERVICE,
+  sheetRateCents,
   termLabel,
+  offeredTerms,
   type ClientTerm,
   type LetterDeal,
-  type OfferRate,
+  type LetterLine,
+  type LetterTerm,
+  type LineOption,
+  type ServiceLine,
   type TermOffer,
 } from "@/lib/operate/pricing";
+import { formatDate, isIsoDate } from "@/lib/operate/dates";
 import { createDealAction, lookupLinkedInAction, saveDealAction } from "@/app/operate/actions";
 
 // A deal with an empty id and token has not been saved yet.
@@ -69,8 +75,9 @@ export type EditorDeal = {
   letterBlocks: LetterBlock[];
   equityEnabled: boolean;
   ratesOverridden: boolean;
-  baseRates: OfferRate[];
+  baseCents: number;
   termOffer: TermOffer;
+  startDate: string;
   round: string;
   valuationDollars: string;
   valuationBasis: ValuationBasis;
@@ -78,22 +85,15 @@ export type EditorDeal = {
   equityMultiplier: number;
   cashFloorCents: number;
   hourlyCostCents: number | null;
-  selectedPackageId: string | null;
   selectedTerm: ClientTerm | null;
   selectedEquityCents: number;
-  packages: {
-    id: string;
-    serviceName: string;
-    hoursPerWeek: number;
-    enabled: boolean;
-    listRateCents: number;
-    yearListRateCents: number;
-  }[];
+  lines: ServiceLine[];
 };
 
-type PackageFields = {
+// `key` stays put for React while `id` is empty until the line is saved.
+type LineFields = {
+  key: string;
   id: string;
-  enabled: boolean;
   serviceName: string;
   hours: string;
   listRate: string;
@@ -115,6 +115,7 @@ type Fields = {
   equityEnabled: boolean;
   ratesOverridden: boolean;
   termOffer: TermOffer;
+  startDate: string;
   round: string;
   valuationDollars: string;
   valuationBasis: ValuationBasis;
@@ -122,7 +123,7 @@ type Fields = {
   equityMultiplier: string;
   cashFloorDollars: string;
   hourlyCostDollars: string;
-  packages: PackageFields[];
+  lines: LineFields[];
 };
 
 function centsToDollars(cents: number): string {
@@ -134,24 +135,26 @@ function dollarsToCents(raw: string): number {
   return Number.isFinite(cents) ? cents : 0;
 }
 
-function baseRateFields(base: OfferRate) {
+function hoursValue(raw: string): number {
+  const value = Number(raw);
+  return Number.isInteger(value) && value > 0 ? value : 0;
+}
+
+function sheetRates(baseCents: number, hours: number): Pick<LineFields, "listRate" | "yearListRate"> {
   return {
-    serviceName: base.serviceName,
-    hours: String(base.hoursPerWeek),
-    listRate: centsToDollars(base.listRateCents),
-    yearListRate: centsToDollars(base.yearListRateCents),
+    listRate: centsToDollars(sheetRateCents(baseCents, hours, "six-month")),
+    yearListRate: centsToDollars(sheetRateCents(baseCents, hours, "one-year")),
   };
 }
 
-function packageFields(pkg: EditorDeal["packages"][number] | undefined, base: OfferRate): PackageFields {
-  if (!pkg) return { id: "", enabled: true, ...baseRateFields(base) };
+function lineFields(line: ServiceLine): LineFields {
   return {
-    id: pkg.id,
-    enabled: pkg.enabled,
-    serviceName: pkg.serviceName,
-    hours: String(pkg.hoursPerWeek),
-    listRate: centsToDollars(pkg.listRateCents),
-    yearListRate: centsToDollars(pkg.yearListRateCents),
+    key: line.id,
+    id: line.id,
+    serviceName: line.serviceName,
+    hours: String(line.hoursPerWeek),
+    listRate: centsToDollars(line.listRateCents),
+    yearListRate: centsToDollars(line.yearListRateCents),
   };
 }
 
@@ -167,6 +170,7 @@ function initialFields(deal: EditorDeal): Fields {
     equityEnabled: deal.equityEnabled,
     ratesOverridden: deal.ratesOverridden,
     termOffer: deal.termOffer,
+    startDate: deal.startDate,
     round: deal.round,
     valuationDollars: deal.valuationDollars,
     valuationBasis: deal.valuationBasis,
@@ -174,12 +178,8 @@ function initialFields(deal: EditorDeal): Fields {
     equityMultiplier: String(deal.equityMultiplier),
     cashFloorDollars: centsToDollars(deal.cashFloorCents),
     hourlyCostDollars: deal.hourlyCostCents === null ? "" : centsToDollars(deal.hourlyCostCents),
-    packages: deal.baseRates.map((base, index) => packageFields(deal.packages[index], base)),
+    lines: deal.lines.map(lineFields),
   };
-}
-
-function rowId(row: PackageFields, index: number): string {
-  return row.id || `new-${index}`;
 }
 
 function floorCents(fields: Fields): number {
@@ -190,15 +190,28 @@ function resolvedBasis(fields: Fields): EquityBasis {
   return fields.equityBasis === "" ? defaultEquityBasis(fields.round) : fields.equityBasis;
 }
 
+// Without custom rates, each line follows the pricing sheet for its hours.
+function previewLines(fields: Fields, baseCents: number): ServiceLine[] {
+  return fields.lines.map((row) => {
+    const hours = hoursValue(row.hours);
+    const rates = fields.ratesOverridden ? row : sheetRates(baseCents, hours);
+    return {
+      id: row.key,
+      serviceName: row.serviceName,
+      hoursPerWeek: hours,
+      listRateCents: dollarsToCents(rates.listRate),
+      yearListRateCents: dollarsToCents(rates.yearListRate),
+    };
+  });
+}
+
 function previewLetter(
   fields: Fields,
   blocks: LetterBlock[],
-  selected: { packageId: string | null; term: ClientTerm | null; equityCents: number },
+  selected: { term: ClientTerm | null; equityCents: number },
+  baseCents: number,
+  fallbackStart: string,
 ): LetterDeal {
-  const hours = (raw: string) => {
-    const value = Number(raw);
-    return Number.isInteger(value) && value > 0 ? value : 0;
-  };
   const valuation = Number(fields.valuationDollars.replace(/[$,\s]/g, ""));
   const multiplier = Number(fields.equityMultiplier);
   const settings = {
@@ -211,7 +224,12 @@ function previewLetter(
       multiplier: multiplier > 0 ? multiplier : DEFAULT_MULTIPLIER,
     },
   };
-  const rows = fields.packages.filter((row) => row.enabled);
+  const built = buildLetterTerms(
+    offeredTerms(fields.termOffer),
+    previewLines(fields, baseCents),
+    settings,
+    isIsoDate(fields.startDate) ? fields.startDate : fallbackStart,
+  );
   return {
     blocks,
     companyName: fields.companyName,
@@ -219,19 +237,8 @@ function previewLetter(
     contactName: fields.contactName,
     avatarUrl: fields.avatarUrl,
     equityEnabled: fields.equityEnabled,
-    terms: offeredTerms(fields.termOffer).map((term) =>
-      buildLetterTerm(
-        term,
-        rows.map((row, index) => ({
-          id: rowId(row, index),
-          serviceName: row.serviceName,
-          hoursPerWeek: hours(row.hours),
-          listRateCents: dollarsToCents(row[rateKey(term)]),
-        })),
-        settings,
-      ),
-    ),
-    selectedPackageId: rows.some((row) => row.id !== "" && row.id === selected.packageId) ? selected.packageId : null,
+    steps: built.steps,
+    terms: built.terms,
     selectedTerm: selected.term,
     selectedEquityCents: selected.equityCents,
   };
@@ -245,6 +252,7 @@ function toFormData(fields: Fields, blocks: LetterBlock[]): FormData {
   data.set("linkedinUrl", fields.linkedinUrl);
   data.set("companyUrl", fields.companyUrl);
   data.set("termOffer", fields.termOffer);
+  data.set("startDate", fields.startDate);
   data.set("round", fields.round);
   data.set("valuationDollars", fields.valuationDollars);
   data.set("valuationBasis", fields.valuationBasis);
@@ -254,10 +262,13 @@ function toFormData(fields: Fields, blocks: LetterBlock[]): FormData {
   data.set("hourlyCostDollars", fields.hourlyCostDollars);
   if (fields.equityEnabled) data.set("equityEnabled", "on");
   if (fields.ratesOverridden) data.set("ratesOverridden", "on");
-  fields.packages.forEach((row, index) => {
-    data.set(`package${index}Id`, row.id);
-    data.set(`package${index}ListRate`, row.listRate);
-    data.set(`package${index}YearListRate`, row.yearListRate);
+  data.set("lineCount", String(fields.lines.length));
+  fields.lines.forEach((row, index) => {
+    data.set(`line${index}Id`, row.id);
+    data.set(`line${index}Name`, row.serviceName);
+    data.set(`line${index}Hours`, row.hours);
+    data.set(`line${index}ListRate`, row.listRate);
+    data.set(`line${index}YearListRate`, row.yearListRate);
   });
   data.set("letterBlocks", JSON.stringify(blocks));
   return data;
@@ -399,10 +410,8 @@ export function Editor({ deal }: { deal: EditorDeal }) {
   const [pending, startTransition] = useTransition();
   const [origin, setOrigin] = useState("");
   const [copied, setCopied] = useState(false);
-  const [viewTerm, setViewTerm] = useState<ClientTerm>(() => deal.selectedTerm ?? offeredTerms(deal.termOffer)[0]!);
   const [previewStep, setPreviewStep] = useState(deal.selectedEquityCents);
   const offered = offeredTerms(fields.termOffer);
-  const shownTerm: ClientTerm = offered.includes(viewTerm) ? viewTerm : offered[0]!;
 
   useEffect(() => {
     setOrigin(window.location.origin);
@@ -410,14 +419,15 @@ export function Editor({ deal }: { deal: EditorDeal }) {
 
   const letter = useMemo(
     () =>
-      previewLetter(fields, blocks, {
-        packageId: deal.selectedPackageId,
-        term: deal.selectedTerm,
-        equityCents: deal.selectedEquityCents,
-      }),
-    [fields, blocks, deal.selectedPackageId, deal.selectedTerm, deal.selectedEquityCents],
+      previewLetter(
+        fields,
+        blocks,
+        { term: deal.selectedTerm, equityCents: deal.selectedEquityCents },
+        deal.baseCents,
+        deal.startDate,
+      ),
+    [fields, blocks, deal.selectedTerm, deal.selectedEquityCents, deal.baseCents, deal.startDate],
   );
-  const shownLetterTerm = letterTerm(letter, shownTerm);
   const floor = floorCents(fields);
   const dirty = JSON.stringify([fields, blocks]) !== saved;
   const link = `${origin}/operate/d/${deal.token}`;
@@ -432,12 +442,28 @@ export function Editor({ deal }: { deal: EditorDeal }) {
     setMessage(null);
   }
 
-  function patchPackage(index: number, next: Partial<PackageFields>) {
+  function patchLine(index: number, next: Partial<LineFields>) {
     setFields((current) => ({
       ...current,
-      packages: current.packages.map((row, i) => (i === index ? { ...row, ...next } : row)),
+      lines: current.lines.map((row, i) => (i === index ? { ...row, ...next } : row)),
     }));
     setMessage(null);
+  }
+
+  function addLine() {
+    if (fields.lines.length >= MAX_LINES) return;
+    const key = crypto.randomUUID();
+    patch({
+      lines: [
+        ...fields.lines,
+        { key, id: "", serviceName: SHEET_SERVICE, hours: "40", ...sheetRates(deal.baseCents, 40) },
+      ],
+    });
+  }
+
+  function removeLine(index: number) {
+    if (fields.lines.length <= 1) return;
+    patch({ lines: fields.lines.filter((_, i) => i !== index) });
   }
 
   // Each term switches on or off on its own; one always stays on.
@@ -451,19 +477,16 @@ export function Editor({ deal }: { deal: EditorDeal }) {
     }
     const next = CLIENT_TERMS.filter((item) => on.has(item));
     patch({ termOffer: next.length === 2 ? "both" : next[0]! });
-    setViewTerm(on.has(term) ? term : next[0]!);
   }
 
+  // Custom rates start from what the letter shows now, so nothing jumps.
   function setCustomRates(on: boolean) {
-    if (on) {
-      patch({ ratesOverridden: true });
+    if (!on) {
+      patch({ ratesOverridden: false });
       return;
     }
-    const packages = fields.packages.map((row, index) => {
-      const base = deal.baseRates[index];
-      return base ? { ...row, ...baseRateFields(base) } : row;
-    });
-    patch({ ratesOverridden: false, packages });
+    const lines = fields.lines.map((row) => ({ ...row, ...sheetRates(deal.baseCents, hoursValue(row.hours)) }));
+    patch({ ratesOverridden: true, lines: fields.ratesOverridden ? fields.lines : lines });
   }
 
   function addBlock(type: BlockType, at: number) {
@@ -540,6 +563,64 @@ export function Editor({ deal }: { deal: EditorDeal }) {
     }
   }
 
+  function renderLineName(line: LetterLine, index: number, term: LetterTerm) {
+    const row = fields.lines[index];
+    if (!row) return undefined;
+    const where = `${row.serviceName || "service"}, ${term.label.toLowerCase()}`;
+    return (
+      <span className="operate-letter__offer">
+        <input
+          aria-label={`Service name, line ${index + 1}, ${term.label.toLowerCase()}`}
+          value={row.serviceName}
+          placeholder="Service"
+          onChange={(event) => patchLine(index, { serviceName: event.target.value })}
+          className="operate-letter__service w-full min-w-0 border-0 border-b border-dashed border-transparent bg-transparent p-0 text-inherit outline-none hover:border-foreground/30 focus:border-orange"
+        />
+        <span className="operate-letter__hours flex items-center gap-1">
+          <input
+            inputMode="numeric"
+            aria-label={`Hours per week, ${where}`}
+            value={row.hours}
+            onChange={(event) => patchLine(index, { hours: event.target.value })}
+            className="w-10 border-0 border-b border-dashed border-foreground/40 bg-transparent p-0 text-right tabular-nums text-inherit outline-none focus:border-orange"
+          />
+          / week
+          {fields.lines.length > 1 ? (
+            <button
+              type="button"
+              aria-label={`Remove ${where}`}
+              onClick={() => removeLine(index)}
+              className="ml-2 flex size-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <Trash2 aria-hidden="true" className="size-3.5" />
+            </button>
+          ) : null}
+        </span>
+      </span>
+    );
+  }
+
+  function renderLineRate(line: LetterLine, option: LineOption, term: LetterTerm, index: number) {
+    if (!fields.ratesOverridden) return undefined;
+    const row = fields.lines[index];
+    if (!row) return undefined;
+    const key = rateKey(term.term);
+    const input = (
+      <RateInput
+        value={row[key]}
+        label={`Rate, ${row.serviceName || "service"} ${row.hours} hours, ${term.label.toLowerCase()}`}
+        onChange={(value) => patchLine(index, { [key]: value })}
+      />
+    );
+    if (option.cashRateCents >= line.listRateCents) return input;
+    return (
+      <span className="operate-letter__pair">
+        <span className="operate-letter__struck">{input}</span>
+        <span className="operate-letter__primary">{formatDollars(option.cashRateCents)}</span>
+      </span>
+    );
+  }
+
   function renderBlock(block: LetterBlock) {
     if (block.type === "greeting") {
       return (
@@ -551,7 +632,7 @@ export function Editor({ deal }: { deal: EditorDeal }) {
       );
     }
     if (block.type === "equity") {
-      const hasRoom = (shownLetterTerm?.steps.length ?? 0) > 1;
+      const hasRoom = letter.steps.length > 1;
       return (
         <>
           <div className="mb-4 flex flex-wrap gap-2">
@@ -565,7 +646,7 @@ export function Editor({ deal }: { deal: EditorDeal }) {
             </button>
           </div>
           {fields.equityEnabled && hasRoom ? (
-            <EquityView term={shownLetterTerm} step={previewStep} onStep={setPreviewStep} />
+            <EquityView steps={letter.steps} step={previewStep} onStep={setPreviewStep} />
           ) : null}
           <p className="mt-3 text-xs text-muted-foreground">
             {!fields.equityEnabled
@@ -578,25 +659,39 @@ export function Editor({ deal }: { deal: EditorDeal }) {
       );
     }
     if (block.type === "term") {
+      const start = isIsoDate(fields.startDate) ? fields.startDate : deal.startDate;
       return (
-        <div className="flex flex-col items-start gap-2">
-          <div role="group" aria-label="Terms offered" className="operate-letter__terms">
-            {CLIENT_TERMS.map((term) => (
-              <button
-                key={term}
-                type="button"
-                aria-pressed={offered.includes(term)}
-                className="operate-letter__term-option"
-                onClick={() => toggleTerm(term)}
-              >
-                {termLabel(term)}
-              </button>
-            ))}
+        <div className="flex flex-col items-start gap-3">
+          <div className="flex flex-wrap items-center gap-4">
+            <div role="group" aria-label="Terms offered" className="operate-letter__terms">
+              {CLIENT_TERMS.map((term) => (
+                <button
+                  key={term}
+                  type="button"
+                  aria-pressed={offered.includes(term)}
+                  className="operate-letter__term-option"
+                  onClick={() => toggleTerm(term)}
+                >
+                  {termLabel(term)}
+                </button>
+              ))}
+            </div>
+            <label className="flex items-center gap-2">
+              <span className="operate-label text-[11px] text-muted-foreground">Starts</span>
+              <input
+                type="date"
+                required
+                value={fields.startDate}
+                onChange={(event) => patch({ startDate: event.target.value })}
+                className="h-9 rounded-md border border-input bg-transparent px-3 text-sm tabular-nums focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              />
+            </label>
           </div>
           <p className="text-xs text-muted-foreground">
             {offered.length === 2
-              ? "Both terms are offered. The client picks one."
-              : "Click the other term to offer both."}
+              ? "Each term is its own block below. The client picks one."
+              : "Click the other term to offer both."}{" "}
+            Starts {formatDate(start)}. Only staff see this block.
           </p>
         </div>
       );
@@ -613,54 +708,27 @@ export function Editor({ deal }: { deal: EditorDeal }) {
             >
               Custom rates {fields.ratesOverridden ? "on" : "off"}
             </button>
-            {offered.length === 2 ? (
-              <>
-                <span className="operate-label ml-2 text-[11px] text-muted-foreground">Showing</span>
-                {offered.map((term) => (
-                  <button
-                    key={term}
-                    type="button"
-                    aria-pressed={term === shownTerm}
-                    onClick={() => setViewTerm(term)}
-                    className={`${chip} ${term === shownTerm ? "border-foreground text-foreground" : "text-muted-foreground"}`}
-                  >
-                    {termLabel(term)}
-                  </button>
-                ))}
-              </>
-            ) : null}
+            <button
+              type="button"
+              onClick={addLine}
+              disabled={fields.lines.length >= MAX_LINES}
+              className={`${chip} text-muted-foreground disabled:opacity-40`}
+            >
+              <Plus aria-hidden="true" className="size-3.5" />
+              Add service
+            </button>
           </div>
           <OffersView
             deal={letter}
-            term={shownTerm}
             step={previewStep}
             mode="preview"
-            renderRate={(pkg, option) => {
-              if (!fields.ratesOverridden) return undefined;
-              const index = fields.packages.findIndex((row, i) => rowId(row, i) === pkg.id);
-              if (index < 0) return undefined;
-              const row = fields.packages[index]!;
-              const key = rateKey(shownTerm);
-              const input = (
-                <RateInput
-                  value={row[key]}
-                  label={`Rate, ${row.hours} hours, ${termLabel(shownTerm).toLowerCase()}`}
-                  onChange={(value) => patchPackage(index, { [key]: value })}
-                />
-              );
-              if (option.cashRateCents >= pkg.listRateCents) return input;
-              return (
-                <span className="operate-letter__pair">
-                  <span className="operate-letter__struck">{input}</span>
-                  <span className="operate-letter__primary">{formatDollars(option.cashRateCents)}</span>
-                </span>
-              );
-            }}
+            renderName={(line, index, term) => renderLineName(line, index, term)}
+            renderRate={(line, option, term, index) => renderLineRate(line, option, term, index)}
           />
           <p className="mt-3 text-xs text-muted-foreground">
             {fields.ratesOverridden
-              ? `Custom ${termLabel(shownTerm).toLowerCase()} rates for this deal.`
-              : "Pricing sheet rates. Turn on custom rates to change them for this deal."}
+              ? "Custom rates for this deal. Services and hours are the same in every term."
+              : "Pricing sheet rates for each line's hours. Turn on custom rates to change them for this deal."}
           </p>
         </>
       );

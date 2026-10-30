@@ -7,18 +7,15 @@ import { Item, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } f
 import { listDashboard, type DashboardDeal } from "@/lib/operate/deals";
 import { contactFullName } from "@/lib/operate/linkedin";
 import {
-  averageBillableCents,
-  billableHourCents,
-  contractValueCents,
-  equityValueCents,
+  averageCents,
+  bundleQuote,
   formatDollars,
-  offerPrice,
+  lineRateCents,
   quotedTerm,
   termMonths,
+  termWeeks,
   type ClientTerm,
-  type OfferRate,
 } from "@/lib/operate/pricing";
-import { cashRateAt } from "@/lib/operate/equity";
 import { DealAvatar } from "./deal-avatar";
 import { DealMenu } from "./deal-menu";
 import { DealDashboard } from "./dashboard";
@@ -41,47 +38,45 @@ function isSort(value: string): value is Sort {
 
 type PipelineRow = {
   deal: DashboardDeal;
-  quoted: OfferRate | null;
   term: ClientTerm;
+  hours: number | null;
   months: number | null;
   rateCents: number | null;
   valueCents: number | null;
   equityCents: number | null;
 };
 
-// Until the client chooses, a deal is valued on its first offer and its first term, all cash.
+// Until the client chooses, a deal is valued on its first term, all cash.
 function dealTerm(deal: DashboardDeal): ClientTerm {
   return quotedTerm(deal.termOffer, deal.selectedTerm);
 }
 
-function quotedPrice(deal: DashboardDeal, offer: OfferRate, term: ClientTerm) {
-  const listRateCents = offerPrice(offer, term).listRateCents;
-  const step = deal.equityEnabled ? deal.selectedEquityCents : 0;
-  return { listRateCents, cashRateCents: cashRateAt(listRateCents, step, deal.cashFloorCents) };
-}
-
+// The billable rate is the bundle's cash per hour: what the client is billed, across every line.
 function toRow(deal: DashboardDeal): PipelineRow {
-  const quoted = deal.offers.find((offer) => offer.sortOrder === deal.selectedSortOrder) ?? deal.offers[0] ?? null;
   const term = dealTerm(deal);
   const months = termMonths(term);
-  if (!quoted) return { deal, quoted, term, months, rateCents: null, valueCents: null, equityCents: null };
-  const price = quotedPrice(deal, quoted, term);
-  const rate = billableHourCents(price.listRateCents, price.cashRateCents, deal.equityEnabled);
+  const quote = bundleQuote(
+    deal.lines.map((line) => ({ hoursPerWeek: line.hoursPerWeek, listRateCents: lineRateCents(line, term) })),
+    termWeeks(term) ?? 0,
+    deal.equityEnabled ? deal.selectedEquityCents : 0,
+    deal.cashFloorCents,
+  );
+  if (quote.hoursPerWeek === 0) {
+    return { deal, term, hours: null, months, rateCents: null, valueCents: null, equityCents: null };
+  }
   return {
     deal,
-    quoted,
     term,
+    hours: quote.hoursPerWeek,
     months,
-    rateCents: rate,
-    valueCents: contractValueCents(quoted.hoursPerWeek, rate, term),
-    equityCents: deal.equityEnabled
-      ? equityValueCents(quoted.hoursPerWeek, price.listRateCents, price.cashRateCents, term)
-      : null,
+    rateCents: Math.round(quote.weeklyCashCents / quote.hoursPerWeek),
+    valueCents: quote.totalCashCents,
+    equityCents: deal.equityEnabled ? quote.equityTotalCents : null,
   };
 }
 
 function sortKey(row: PipelineRow, sort: Exclude<Sort, "company">): number | null {
-  if (sort === "hours") return row.quoted?.hoursPerWeek ?? null;
+  if (sort === "hours") return row.hours;
   if (sort === "length") return row.months;
   if (sort === "rate") return row.rateCents;
   if (sort === "equity") return row.equityCents;
@@ -192,16 +187,12 @@ export default async function OperatePage({
   const { rates, deals } = await listDashboard();
   const error = one(searchParams.error);
   const notice = error === "rates" ? one(searchParams.message) : "";
-  const billableCents = averageBillableCents(
-    deals.map((deal) => ({
-      equityEnabled: deal.equityEnabled,
-      offers: deal.offers.map((offer) => quotedPrice(deal, offer, dealTerm(deal))),
-    })),
-  );
+  const rows = deals.map(toRow);
+  const billableCents = averageCents(rows.map((row) => row.rateCents));
   const requested = one(searchParams.sort);
   const sort: Sort = isSort(requested) ? requested : "company";
   const direction: Direction = one(searchParams.dir) === "desc" ? "desc" : "asc";
-  const rows = sortRows(deals.map(toRow), sort, direction);
+  const sorted = sortRows(rows, sort, direction);
 
   return (
     <main className="mx-auto w-full max-w-6xl px-6 py-10">
@@ -226,7 +217,7 @@ export default async function OperatePage({
       />
 
       <p className="operate-label mt-12 text-muted-foreground">Pipeline</p>
-      {rows.length === 0 ? (
+      {sorted.length === 0 ? (
         <p className="mt-4 text-sm text-muted-foreground">No deals yet.</p>
       ) : (
         <>
@@ -240,7 +231,7 @@ export default async function OperatePage({
             <span aria-hidden="true" />
           </div>
           <ItemGroup className="mt-3 gap-3">
-            {rows.map(({ deal, quoted, months, rateCents, valueCents, equityCents }) => (
+            {sorted.map(({ deal, hours, months, rateCents, valueCents, equityCents }) => (
               <Item
                 key={deal.id}
                 variant="outline"
@@ -262,7 +253,7 @@ export default async function OperatePage({
                     <Contact deal={deal} />
                   </ItemContent>
                 </div>
-                <span className="text-right tabular-nums">{quoted ? quoted.hoursPerWeek : "—"}</span>
+                <span className="text-right tabular-nums">{hours ?? "—"}</span>
                 <span className="tabular-nums">{months === null ? "—" : `${months} months`}</span>
                 <Money cents={rateCents} suffix="/hr" />
                 <Money cents={equityCents} />

@@ -5,18 +5,19 @@ import { redirect } from "next/navigation";
 import { auth, signOut } from "@/auth";
 import {
   createDeal,
+  currentBaseCents,
   getDeal,
-  listBaseRates,
   saveBaseRate,
   saveDeal,
   type DealDraft,
   type DealRecord,
-  type PackageDraft,
+  type LineDraft,
 } from "@/lib/operate/deals";
 import { contactFullName, readLinkedInProfile } from "@/lib/operate/linkedin";
 import { companyWebsiteUrl } from "@/lib/operate/website";
 import { parseBlocks } from "@/lib/operate/blocks";
-import { cascadeOffers, isTermOffer, type OfferRate } from "@/lib/operate/pricing";
+import { isTermOffer, MAX_LINES, sheetRateCents } from "@/lib/operate/pricing";
+import { isIsoDate } from "@/lib/operate/dates";
 import { isEquityBasis, isValuationBasis } from "@/lib/operate/equity";
 
 type SaveResult = { ok: true; notice?: string } | { ok: false; error: string };
@@ -43,28 +44,26 @@ function dollarsToCents(raw: string): number | null {
   return Math.round(Number(clean) * 100);
 }
 
-// Staff set the list rate. The cash rate comes from the client's equity choice and the floor.
-function readPackage(formData: FormData, index: number): PackageDraft {
-  const key = `package${index}`;
+// Staff set each line's rate per term. Cash comes from the client's equity choice and the floor.
+// Unreadable numbers stay NaN so the line validation reports them.
+function readLine(formData: FormData, index: number): LineDraft {
+  const key = `line${index}`;
   const id = text(formData, `${key}Id`);
-  const listRateCents = dollarsToCents(text(formData, `${key}ListRate`)) ?? 0;
-  const yearListRateCents = dollarsToCents(text(formData, `${key}YearListRate`)) ?? 0;
+  const hours = text(formData, `${key}Hours`).trim();
   return {
     ...(id ? { id } : {}),
-    serviceName: "",
-    hoursPerWeek: 0,
-    enabled: true,
-    listRateCents,
-    cashRateCents: listRateCents,
-    yearListRateCents,
-    yearCashRateCents: yearListRateCents,
-    sortOrder: index,
+    serviceName: text(formData, `${key}Name`),
+    hoursPerWeek: hours === "" ? Number.NaN : Number(hours),
+    listRateCents: dollarsToCents(text(formData, `${key}ListRate`)) ?? Number.NaN,
+    yearListRateCents: dollarsToCents(text(formData, `${key}YearListRate`)) ?? Number.NaN,
   };
 }
 
-function parseDraft(formData: FormData, base: OfferRate[]): DealDraft | { error: string } {
+function parseDraft(formData: FormData): DealDraft | { error: string } {
   const termOffer = text(formData, "termOffer");
   if (!isTermOffer(termOffer)) return { error: "Term length is not valid." };
+  const startRaw = text(formData, "startDate").trim();
+  if (startRaw !== "" && !isIsoDate(startRaw)) return { error: "The start date is not a real day." };
 
   const valuationRaw = dollarsText(text(formData, "valuationDollars"));
   let valuationDollars: bigint | null = null;
@@ -109,7 +108,11 @@ function parseDraft(formData: FormData, base: OfferRate[]): DealDraft | { error:
     return { error: "The letter blocks could not be read." };
   }
 
-  const packages: PackageDraft[] = base.map((offer) => readPackage(formData, offer.sortOrder));
+  const lineCount = Number(text(formData, "lineCount"));
+  if (!Number.isInteger(lineCount) || lineCount < 1 || lineCount > MAX_LINES) {
+    return { error: `A deal needs between 1 and ${MAX_LINES} services.` };
+  }
+  const lines = Array.from({ length: lineCount }, (_, index) => readLine(formData, index));
 
   return {
     companyName: text(formData, "companyName"),
@@ -123,6 +126,7 @@ function parseDraft(formData: FormData, base: OfferRate[]): DealDraft | { error:
     equityEnabled: formData.get("equityEnabled") === "on",
     ratesOverridden: formData.get("ratesOverridden") === "on",
     termOffer,
+    startDate: startRaw === "" ? null : startRaw,
     round: text(formData, "round"),
     valuationDollars,
     valuationBasis,
@@ -130,7 +134,7 @@ function parseDraft(formData: FormData, base: OfferRate[]): DealDraft | { error:
     equityMultiplierTenths,
     cashFloorCents,
     hourlyCostCents,
-    packages,
+    lines,
   };
 }
 
@@ -146,8 +150,7 @@ async function completeDraft(
   formData: FormData,
   existing: DealRecord | null,
 ): Promise<{ draft: DealDraft; notice?: string } | { ok: false; error: string }> {
-  const base = await listBaseRates();
-  const draft = parseDraft(formData, base);
+  const draft = parseDraft(formData);
   if ("error" in draft) return { ok: false, error: draft.error };
   let notice: string | undefined;
   if (draft.linkedinUrl) {
@@ -168,32 +171,14 @@ async function completeDraft(
       if (profile.profile.company) draft.companyName = profile.profile.company;
     }
   }
-  const offers = cascadeOffers(
-    base,
-    draft.ratesOverridden
-      ? draft.packages.map((pkg) => ({
-          sortOrder: pkg.sortOrder,
-          listRateCents: pkg.listRateCents,
-          cashRateCents: pkg.cashRateCents,
-          yearListRateCents: pkg.yearListRateCents,
-          yearCashRateCents: pkg.yearCashRateCents,
-        }))
-      : null,
-  );
-  draft.packages = offers.map((offer) => {
-    const current = draft.packages.find((pkg) => pkg.sortOrder === offer.sortOrder);
-    return {
-      ...(current?.id ? { id: current.id } : {}),
-      serviceName: offer.serviceName,
-      hoursPerWeek: offer.hoursPerWeek,
-      enabled: true,
-      listRateCents: offer.listRateCents,
-      cashRateCents: offer.cashRateCents,
-      yearListRateCents: offer.yearListRateCents,
-      yearCashRateCents: offer.yearCashRateCents,
-      sortOrder: offer.sortOrder,
-    };
-  });
+  if (!draft.ratesOverridden) {
+    const baseCents = await currentBaseCents();
+    draft.lines = draft.lines.map((line) => ({
+      ...line,
+      listRateCents: sheetRateCents(baseCents, line.hoursPerWeek, "six-month"),
+      yearListRateCents: sheetRateCents(baseCents, line.hoursPerWeek, "one-year"),
+    }));
+  }
   return { draft, notice };
 }
 

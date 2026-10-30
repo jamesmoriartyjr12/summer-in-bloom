@@ -15,12 +15,11 @@ const errorStyle = {
   textAlign: "center",
 } as const;
 
-type Choice = { packageId: string | null; term: ClientTerm | null; equityCents: number };
+type Choice = { term: ClientTerm | null; equityCents: number };
 
 export function CustomerLetter({ token, deal }: { token: string; deal: LetterDeal }) {
   const router = useRouter();
   const [choice, setChoice] = useState<Choice>({
-    packageId: deal.selectedPackageId,
     term: deal.selectedTerm,
     equityCents: deal.selectedEquityCents,
   });
@@ -28,10 +27,10 @@ export function CustomerLetter({ token, deal }: { token: string; deal: LetterDea
   const choiceRef = useRef(choice);
   const requestRef = useRef(0);
 
-  async function onSelect(packageId: string, term: ClientTerm, equityCents: number) {
+  async function onSelect(term: ClientTerm, equityCents: number) {
     const request = ++requestRef.current;
     const previous = choiceRef.current;
-    const next = { packageId, term, equityCents };
+    const next = { term, equityCents };
     choiceRef.current = next;
     setChoice(next);
     setError(null);
@@ -42,7 +41,7 @@ export function CustomerLetter({ token, deal }: { token: string; deal: LetterDea
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(next),
       });
-      // A slower response for a package the customer has left is ignored.
+      // A slower response for a choice the customer has left is ignored.
       if (requestRef.current !== request || choiceRef.current !== next) return;
       if (!response.ok) throw new Error("select failed");
       router.refresh();
@@ -64,7 +63,6 @@ export function CustomerLetter({ token, deal }: { token: string; deal: LetterDea
       <DealLetter
         deal={{
           ...deal,
-          selectedPackageId: choice.packageId,
           selectedTerm: choice.term,
           selectedEquityCents: choice.equityCents,
         }}

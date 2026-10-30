@@ -1,4 +1,4 @@
-import { bigint, boolean, integer, jsonb, pgTable, text, uuid } from "drizzle-orm/pg-core";
+import { bigint, boolean, date, integer, jsonb, pgTable, text, uuid } from "drizzle-orm/pg-core";
 
 export const deals = pgTable("deals", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -14,6 +14,7 @@ export const deals = pgTable("deals", {
   equityEnabled: boolean("equity_enabled").notNull().default(false),
   ratesOverridden: boolean("rates_overridden").notNull().default(false),
   termLength: text("term_length").notNull().default("six-month"),
+  startDate: date("start_date", { mode: "string" }),
   round: text("round"),
   valuationDollars: bigint("valuation_dollars", { mode: "bigint" }),
   valuationBasis: text("valuation_basis").notNull().default("post"),

@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { defaultBlocks } from "@/lib/operate/blocks";
-import { listBaseRates } from "@/lib/operate/deals";
+import { currentBaseCents, dealStartDate, defaultLine } from "@/lib/operate/deals";
 import { DEFAULT_MULTIPLIER, MIN_CASH_RATE_CENTS } from "@/lib/operate/equity";
 import { Editor, type EditorDeal } from "../[dealId]/editor";
 
@@ -19,7 +19,7 @@ export default async function NewDealPage() {
     );
   }
 
-  const baseRates = await listBaseRates();
+  const baseCents = await currentBaseCents();
   const blank: EditorDeal = {
     id: "",
     token: "",
@@ -33,8 +33,9 @@ export default async function NewDealPage() {
     letterBlocks: defaultBlocks(),
     equityEnabled: false,
     ratesOverridden: false,
-    baseRates,
+    baseCents,
     termOffer: "both",
+    startDate: dealStartDate({ startDate: null }),
     round: "",
     valuationDollars: "",
     valuationBasis: "post",
@@ -42,17 +43,9 @@ export default async function NewDealPage() {
     equityMultiplier: DEFAULT_MULTIPLIER,
     cashFloorCents: MIN_CASH_RATE_CENTS,
     hourlyCostCents: null,
-    selectedPackageId: null,
     selectedTerm: null,
     selectedEquityCents: 0,
-    packages: baseRates.map((rate) => ({
-      id: "",
-      serviceName: rate.serviceName,
-      hoursPerWeek: rate.hoursPerWeek,
-      enabled: true,
-      listRateCents: rate.listRateCents,
-      yearListRateCents: rate.yearListRateCents,
-    })),
+    lines: [defaultLine(baseCents, "")],
   };
 
   return <Editor deal={blank} />;

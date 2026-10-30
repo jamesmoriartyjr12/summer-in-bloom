@@ -1,23 +1,27 @@
 import crypto from "node:crypto";
-import { and, asc, eq, gte, inArray } from "drizzle-orm";
+import { asc, eq, gte, inArray } from "drizzle-orm";
 import { getDb } from "./db";
 import {
-  buildLetterTerm,
-  cascadeOffers,
+  baseRateCents,
+  buildLetterTerms,
   isClientTerm,
   isTermOffer,
   longTermCents,
+  MAX_LINES,
   offeredTerms,
-  offerPrice,
+  SHEET_SERVICE,
+  sheetLine,
   sheetOffers,
-  validatePackage,
+  validateLine,
   type ClientTerm,
   type EquitySettings,
   type LetterDeal,
   type OfferRate,
+  type ServiceLine,
   type TermOffer,
 } from "./pricing";
 import { parseBlocks, type LetterBlock } from "./blocks";
+import { isIsoDate, nextMonday } from "./dates";
 import {
   DEFAULT_MULTIPLIER,
   defaultEquityBasis,
@@ -31,19 +35,6 @@ import { baseRates, deals, packages } from "./schema";
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-export type DealPackage = {
-  id: string;
-  dealId: string;
-  serviceName: string;
-  hoursPerWeek: number;
-  enabled: boolean;
-  listRateCents: number;
-  cashRateCents: number;
-  yearListRateCents: number;
-  yearCashRateCents: number;
-  sortOrder: number;
-};
 
 export type DealRecord = {
   id: string;
@@ -59,6 +50,7 @@ export type DealRecord = {
   equityEnabled: boolean;
   ratesOverridden: boolean;
   termOffer: TermOffer;
+  startDate: string | null;
   round: string | null;
   valuationDollars: bigint | null;
   valuationBasis: ValuationBasis;
@@ -66,25 +58,15 @@ export type DealRecord = {
   equityMultiplier: number;
   cashFloorCents: number;
   hourlyCostCents: number | null;
-  selectedPackageId: string | null;
   selectedTerm: ClientTerm | null;
   selectedEquityCents: number;
   hubspotContactId: string | null;
   hubspotDealId: string | null;
-  packages: DealPackage[];
+  baseCents: number;
+  lines: ServiceLine[];
 };
 
-export type PackageDraft = {
-  id?: string;
-  serviceName: string;
-  hoursPerWeek: number;
-  enabled: boolean;
-  listRateCents: number;
-  cashRateCents: number;
-  yearListRateCents: number;
-  yearCashRateCents: number;
-  sortOrder: number;
-};
+export type LineDraft = Omit<ServiceLine, "id"> & { id?: string };
 
 export type DealDraft = {
   companyName: string;
@@ -98,6 +80,7 @@ export type DealDraft = {
   equityEnabled: boolean;
   ratesOverridden: boolean;
   termOffer: TermOffer;
+  startDate: string | null;
   round: string | null;
   valuationDollars: bigint | null;
   valuationBasis: ValuationBasis;
@@ -105,7 +88,7 @@ export type DealDraft = {
   equityMultiplierTenths: number | null;
   cashFloorCents: number | null;
   hourlyCostCents: number | null;
-  packages: PackageDraft[];
+  lines: LineDraft[];
 };
 
 export type DealListItem = {
@@ -151,22 +134,30 @@ function blankToNull(value: string | null): string | null {
   return trimmed === "" ? null : trimmed;
 }
 
-function toPackage(row: PackageRow): DealPackage {
-  return {
-    id: row.id,
-    dealId: row.dealId,
-    serviceName: row.serviceName,
-    hoursPerWeek: row.hoursPerWeek,
-    enabled: row.enabled,
-    listRateCents: row.listRateCents,
-    cashRateCents: row.cashRateCents,
-    yearListRateCents: row.yearListRateCents ?? longTermCents(row.listRateCents),
-    yearCashRateCents: row.yearCashRateCents ?? longTermCents(row.cashRateCents),
-    sortOrder: row.sortOrder,
-  };
+const DEFAULT_BASE_CENTS = 20000;
+
+export function defaultLine(baseCents: number, id: string): ServiceLine {
+  return sheetLine(baseCents, { id, serviceName: SHEET_SERVICE, hoursPerWeek: 40 });
 }
 
-function toDealRecord(deal: DealRow, rows: PackageRow[]): DealRecord {
+// The bundle is the deal's enabled rows. Without custom rates, each line follows the sheet for its hours.
+function dealLines(rows: PackageRow[], ratesOverridden: boolean, baseCents: number): ServiceLine[] {
+  const lines = rows
+    .filter((row) => row.enabled)
+    .sort((left, right) => left.sortOrder - right.sortOrder || left.id.localeCompare(right.id))
+    .map((row): ServiceLine => {
+      const line = { id: row.id, serviceName: row.serviceName, hoursPerWeek: row.hoursPerWeek };
+      if (!ratesOverridden) return sheetLine(baseCents, line);
+      return {
+        ...line,
+        listRateCents: row.listRateCents,
+        yearListRateCents: row.yearListRateCents ?? longTermCents(row.listRateCents),
+      };
+    });
+  return lines.length > 0 ? lines : [defaultLine(baseCents, crypto.randomUUID())];
+}
+
+function toDealRecord(deal: DealRow, rows: PackageRow[], baseCents: number): DealRecord {
   return {
     id: deal.id,
     token: deal.token,
@@ -181,6 +172,7 @@ function toDealRecord(deal: DealRow, rows: PackageRow[]): DealRecord {
     equityEnabled: deal.equityEnabled,
     ratesOverridden: deal.ratesOverridden,
     termOffer: offerFromColumn(deal.termLength),
+    startDate: deal.startDate,
     round: deal.round,
     valuationDollars: deal.valuationDollars,
     valuationBasis: isValuationBasis(deal.valuationBasis) ? deal.valuationBasis : "post",
@@ -188,16 +180,14 @@ function toDealRecord(deal: DealRow, rows: PackageRow[]): DealRecord {
     equityMultiplier: multiplierFromColumn(deal.equityMultiplierTenths),
     cashFloorCents: deal.cashFloorCents ?? MIN_CASH_RATE_CENTS,
     hourlyCostCents: deal.hourlyCostCents,
-    selectedPackageId: deal.selectedPackageId,
     selectedTerm: selectedTermFromColumn(deal.selectedTerm),
     selectedEquityCents: deal.selectedEquityCents ?? 0,
     hubspotContactId: deal.hubspotContactId,
     hubspotDealId: deal.hubspotDealId,
-    packages: rows.map(toPackage),
+    baseCents,
+    lines: dealLines(rows, deal.ratesOverridden, baseCents),
   };
 }
-
-const DEFAULT_BASE_CENTS = 20000;
 
 function toOffer(row: typeof baseRates.$inferSelect): OfferRate {
   return {
@@ -230,7 +220,11 @@ export async function listBaseRates(): Promise<OfferRate[]> {
   return offers;
 }
 
-// One base rate builds the whole sheet. Deals without custom rates follow it.
+export async function currentBaseCents(): Promise<number> {
+  return baseRateCents(await listBaseRates()) ?? DEFAULT_BASE_CENTS;
+}
+
+// One base rate builds the whole sheet. Deals without custom rates read their prices from it.
 export async function saveBaseRate(
   baseCents: number,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
@@ -240,12 +234,6 @@ export async function saveBaseRate(
   const offers = sheetOffers(baseCents);
   const db = getDb();
   const existing = await db.select().from(baseRates).orderBy(asc(baseRates.sortOrder));
-  const standardDeals = await db
-    .select({ id: deals.id })
-    .from(deals)
-    .where(eq(deals.ratesOverridden, false));
-  const standardIds = standardDeals.map((row) => row.id);
-
   await db.transaction(async (tx) => {
     for (const offer of offers) {
       const current = existing.find((row) => row.sortOrder === offer.sortOrder);
@@ -255,94 +243,24 @@ export async function saveBaseRate(
       } else {
         await tx.insert(baseRates).values(values);
       }
-      await tx
-        .update(packages)
-        .set({ serviceName: values.serviceName, hoursPerWeek: values.hoursPerWeek, enabled: true })
-        .where(eq(packages.sortOrder, offer.sortOrder));
-      if (standardIds.length > 0) {
-        await tx
-          .update(packages)
-          .set({
-            listRateCents: values.listRateCents,
-            cashRateCents: values.cashRateCents,
-            yearListRateCents: null,
-            yearCashRateCents: null,
-          })
-          .where(and(eq(packages.sortOrder, offer.sortOrder), inArray(packages.dealId, standardIds)));
-      }
     }
     await tx.delete(baseRates).where(gte(baseRates.sortOrder, offers.length));
   });
   return { ok: true };
 }
 
-function presentOffers(base: OfferRate[], rows: PackageRow[], ratesOverridden: boolean): PackageRow[] {
-  const overrides = ratesOverridden
-    ? rows.map((row) => ({
-        sortOrder: row.sortOrder,
-        listRateCents: row.listRateCents,
-        cashRateCents: row.cashRateCents,
-        yearListRateCents: row.yearListRateCents,
-        yearCashRateCents: row.yearCashRateCents,
-      }))
-    : null;
-  const offers = cascadeOffers(base, overrides);
-  return offers.map((offer) => {
-    const existing = rows.find((row) => row.sortOrder === offer.sortOrder);
-    return {
-      id: existing?.id ?? crypto.randomUUID(),
-      dealId: existing?.dealId ?? rows[0]?.dealId ?? "",
-      serviceName: offer.serviceName,
-      hoursPerWeek: offer.hoursPerWeek,
-      enabled: true,
-      listRateCents: offer.listRateCents,
-      cashRateCents: offer.cashRateCents,
-      yearListRateCents: offer.yearListRateCents,
-      yearCashRateCents: offer.yearCashRateCents,
-      sortOrder: offer.sortOrder,
-    };
-  });
-}
-
-async function ensureOfferRows(dealId: string, base: OfferRate[], rows: PackageRow[]): Promise<PackageRow[]> {
-  const missing = base.filter((offer) => !rows.some((row) => row.sortOrder === offer.sortOrder));
-  if (missing.length === 0) return rows;
-  const db = getDb();
-  const inserted = await db
-    .insert(packages)
-    .values(
-      missing.map((offer) => ({
-        id: crypto.randomUUID(),
-        dealId,
-        serviceName: offer.serviceName,
-        hoursPerWeek: offer.hoursPerWeek,
-        enabled: true,
-        listRateCents: offer.listRateCents,
-        cashRateCents: offer.cashRateCents,
-        sortOrder: offer.sortOrder,
-      })),
-    )
-    .returning();
-  return [...rows, ...inserted];
-}
-
 async function readDeal(where: ReturnType<typeof eq>): Promise<DealRecord | null> {
   const db = getDb();
   const [deal] = await db.select().from(deals).where(where).limit(1);
   if (!deal) return null;
-  const base = await listBaseRates();
-  const stored = await db
-    .select()
-    .from(packages)
-    .where(eq(packages.dealId, deal.id))
-    .orderBy(asc(packages.sortOrder), asc(packages.id));
-  const rows = await ensureOfferRows(deal.id, base, stored);
-  return toDealRecord(deal, presentOffers(base, rows, deal.ratesOverridden));
+  const rows = await db.select().from(packages).where(eq(packages.dealId, deal.id));
+  return toDealRecord(deal, rows, await currentBaseCents());
 }
 
 function draftError(input: DealDraft): string | null {
   if (input.companyName.trim() === "") return "Company name is required.";
   if (!isTermOffer(input.termOffer)) return "Term length is not valid.";
+  if (input.startDate !== null && !isIsoDate(input.startDate)) return "The start date is not a real day.";
   if (input.valuationDollars !== null && typeof input.valuationDollars !== "bigint") {
     return "Valuation must be whole dollars.";
   }
@@ -360,30 +278,38 @@ function draftError(input: DealDraft): string | null {
   if (input.cashFloorCents !== null && (!Number.isInteger(input.cashFloorCents) || input.cashFloorCents < 0)) {
     return "The cash floor must be zero or more.";
   }
-  const seen = new Set<string>();
-  for (const pkg of input.packages) {
-    for (const term of offeredTerms(input.termOffer)) {
-      const error = validatePackage({
-        serviceName: pkg.serviceName,
-        hoursPerWeek: pkg.hoursPerWeek,
-        enabled: pkg.enabled,
-        ...offerPrice(pkg, term),
-        equityEnabled: input.equityEnabled,
-      });
-      if (error) return error;
-    }
-    if (!Number.isInteger(pkg.sortOrder)) return "Sort order must be a whole number.";
-    if (!pkg.id) continue;
-    if (!isUuid(pkg.id) || seen.has(pkg.id)) return "Package not found.";
-    seen.add(pkg.id);
+  if (input.lines.length === 0) return "Add at least one service.";
+  if (input.lines.length > MAX_LINES) return `A deal can have up to ${MAX_LINES} services.`;
+  for (const line of input.lines) {
+    const error = validateLine(line);
+    if (error) return error;
   }
   return null;
 }
 
+function lineRows(dealId: string, lines: LineDraft[], knownIds: Set<string>) {
+  const used = new Set<string>();
+  return lines.map((line, sortOrder) => {
+    const id = line.id && knownIds.has(line.id) && !used.has(line.id) ? line.id : crypto.randomUUID();
+    used.add(id);
+    return {
+      id,
+      dealId,
+      serviceName: line.serviceName.trim(),
+      hoursPerWeek: line.hoursPerWeek,
+      enabled: true,
+      listRateCents: line.listRateCents,
+      cashRateCents: line.listRateCents,
+      yearListRateCents: line.yearListRateCents,
+      yearCashRateCents: line.yearListRateCents,
+      sortOrder,
+    };
+  });
+}
+
 export type DashboardDeal = DealListItem & {
   equityEnabled: boolean;
-  offers: OfferRate[];
-  selectedSortOrder: number | null;
+  lines: ServiceLine[];
   selectedEquityCents: number;
   cashFloorCents: number;
 };
@@ -391,6 +317,7 @@ export type DashboardDeal = DealListItem & {
 export async function listDashboard(): Promise<{ rates: OfferRate[]; deals: DashboardDeal[] }> {
   const db = getDb();
   const rates = await listBaseRates();
+  const baseCents = baseRateCents(rates) ?? DEFAULT_BASE_CENTS;
   const rows = await db
     .select({
       id: deals.id,
@@ -406,51 +333,39 @@ export async function listDashboard(): Promise<{ rates: OfferRate[]; deals: Dash
       selectedTerm: deals.selectedTerm,
       ratesOverridden: deals.ratesOverridden,
       equityEnabled: deals.equityEnabled,
-      selectedPackageId: deals.selectedPackageId,
       selectedEquityCents: deals.selectedEquityCents,
       cashFloorCents: deals.cashFloorCents,
     })
     .from(deals)
     .orderBy(asc(deals.companyName), asc(deals.id));
   const ids = rows.map((row) => row.id);
-  const offerRows =
+  const lineRowsFound =
     ids.length === 0 ? [] : await db.select().from(packages).where(inArray(packages.dealId, ids));
 
   return {
     rates,
-    deals: rows.map((row) => {
-      const mine = offerRows.filter((pkg) => pkg.dealId === row.id);
-      return {
-        id: row.id,
-        token: row.token,
-        companyName: row.companyName,
-        contactName: row.contactName,
-        contactRole: row.contactRole,
-        companyLogoUrl: row.companyLogoUrl,
-        companyUrl: row.companyUrl,
-        linkedinUrl: row.linkedinUrl,
-        avatarUrl: row.avatarUrl,
-        termOffer: offerFromColumn(row.termLength),
-        selectedTerm: selectedTermFromColumn(row.selectedTerm),
-        ratesOverridden: row.ratesOverridden,
-        equityEnabled: row.equityEnabled,
-        offers: cascadeOffers(
-          rates,
-          row.ratesOverridden
-            ? mine.map((pkg) => ({
-                sortOrder: pkg.sortOrder,
-                listRateCents: pkg.listRateCents,
-                cashRateCents: pkg.cashRateCents,
-                yearListRateCents: pkg.yearListRateCents,
-                yearCashRateCents: pkg.yearCashRateCents,
-              }))
-            : null,
-        ),
-        selectedSortOrder: mine.find((pkg) => pkg.id === row.selectedPackageId)?.sortOrder ?? null,
-        selectedEquityCents: row.selectedEquityCents ?? 0,
-        cashFloorCents: row.cashFloorCents ?? MIN_CASH_RATE_CENTS,
-      };
-    }),
+    deals: rows.map((row) => ({
+      id: row.id,
+      token: row.token,
+      companyName: row.companyName,
+      contactName: row.contactName,
+      contactRole: row.contactRole,
+      companyLogoUrl: row.companyLogoUrl,
+      companyUrl: row.companyUrl,
+      linkedinUrl: row.linkedinUrl,
+      avatarUrl: row.avatarUrl,
+      termOffer: offerFromColumn(row.termLength),
+      selectedTerm: selectedTermFromColumn(row.selectedTerm),
+      ratesOverridden: row.ratesOverridden,
+      equityEnabled: row.equityEnabled,
+      lines: dealLines(
+        lineRowsFound.filter((pkg) => pkg.dealId === row.id),
+        row.ratesOverridden,
+        baseCents,
+      ),
+      selectedEquityCents: row.selectedEquityCents ?? 0,
+      cashFloorCents: row.cashFloorCents ?? MIN_CASH_RATE_CENTS,
+    })),
   };
 }
 
@@ -521,6 +436,7 @@ export async function createDeal(
       equityEnabled: input.equityEnabled,
       ratesOverridden: input.ratesOverridden,
       termLength: input.termOffer,
+      startDate: input.startDate,
       round: blankToNull(input.round),
       valuationDollars: input.valuationDollars,
       valuationBasis: input.valuationBasis,
@@ -529,22 +445,7 @@ export async function createDeal(
       cashFloorCents: input.cashFloorCents,
       hourlyCostCents: input.hourlyCostCents,
     });
-    if (input.packages.length > 0) {
-      await tx.insert(packages).values(
-        input.packages.map((pkg) => ({
-          id: crypto.randomUUID(),
-          dealId: id,
-          serviceName: pkg.serviceName,
-          hoursPerWeek: pkg.hoursPerWeek,
-          enabled: pkg.enabled,
-          listRateCents: pkg.listRateCents,
-          cashRateCents: pkg.cashRateCents,
-          yearListRateCents: pkg.yearListRateCents,
-          yearCashRateCents: pkg.yearCashRateCents,
-          sortOrder: pkg.sortOrder,
-        })),
-      );
-    }
+    await tx.insert(packages).values(lineRows(id, input.lines, new Set()));
   });
   return { ok: true, id };
 }
@@ -557,27 +458,21 @@ export async function saveDeal(
   if (error) return { ok: false, error };
   if (!isUuid(id)) return { ok: false, error: "Deal not found." };
 
-  const existing = await getDeal(id);
-  if (!existing) return { ok: false, error: "Deal not found." };
-
-  const knownIds = new Set(existing.packages.map((pkg) => pkg.id));
-  for (const pkg of input.packages) {
-    if (pkg.id && !knownIds.has(pkg.id)) return { ok: false, error: "Package not found." };
-  }
-
-  const enabledIds = new Set<string>();
-  for (const pkg of input.packages) {
-    if (pkg.enabled && pkg.id) enabledIds.add(pkg.id);
-  }
-  // A choice made on a term that is no longer offered is cleared with it.
-  const termKept =
-    existing.selectedTerm === null || offeredTerms(input.termOffer).includes(existing.selectedTerm);
-  const packageKept = existing.selectedPackageId !== null && enabledIds.has(existing.selectedPackageId);
-  const selectedPackageId = termKept && packageKept ? existing.selectedPackageId : null;
-  const selectedTerm = selectedPackageId === null ? null : existing.selectedTerm;
-  const selectedEquityCents = selectedPackageId === null || !input.equityEnabled ? null : existing.selectedEquityCents;
-
   const db = getDb();
+  const [existing] = await db
+    .select({ selectedTerm: deals.selectedTerm, selectedEquityCents: deals.selectedEquityCents })
+    .from(deals)
+    .where(eq(deals.id, id))
+    .limit(1);
+  if (!existing) return { ok: false, error: "Deal not found." };
+  const stored = await db.select({ id: packages.id }).from(packages).where(eq(packages.dealId, id));
+  const knownIds = new Set(stored.map((row) => row.id));
+
+  // A choice made on a term that is no longer offered is cleared with it.
+  const chosen = selectedTermFromColumn(existing.selectedTerm);
+  const selectedTerm = chosen !== null && offeredTerms(input.termOffer).includes(chosen) ? chosen : null;
+  const selectedEquityCents = selectedTerm === null || !input.equityEnabled ? null : existing.selectedEquityCents;
+
   const dealUpdate = {
     companyName: input.companyName.trim(),
     contactName: input.contactName,
@@ -590,6 +485,7 @@ export async function saveDeal(
     equityEnabled: input.equityEnabled,
     ratesOverridden: input.ratesOverridden,
     termLength: input.termOffer,
+    startDate: input.startDate,
     round: blankToNull(input.round),
     valuationDollars: input.valuationDollars,
     valuationBasis: input.valuationBasis,
@@ -597,50 +493,34 @@ export async function saveDeal(
     equityMultiplierTenths: input.equityMultiplierTenths,
     cashFloorCents: input.cashFloorCents,
     hourlyCostCents: input.hourlyCostCents,
-    selectedPackageId,
+    selectedPackageId: null,
     selectedTerm,
     selectedEquityCents,
   };
   await db.transaction(async (tx) => {
     await tx.delete(packages).where(eq(packages.dealId, id));
-    if (input.packages.length > 0) {
-      await tx.insert(packages).values(
-        input.packages.map((pkg) => ({
-          ...(pkg.id ? { id: pkg.id } : {}),
-          dealId: id,
-          serviceName: pkg.serviceName,
-          hoursPerWeek: pkg.hoursPerWeek,
-          enabled: pkg.enabled,
-          listRateCents: pkg.listRateCents,
-          cashRateCents: pkg.cashRateCents,
-          yearListRateCents: pkg.yearListRateCents,
-          yearCashRateCents: pkg.yearCashRateCents,
-          sortOrder: pkg.sortOrder,
-        })),
-      );
-    }
+    await tx.insert(packages).values(lineRows(id, input.lines, knownIds));
     await tx.update(deals).set(dealUpdate).where(eq(deals.id, id));
   });
   return { ok: true };
 }
 
-export async function selectPackage(
+// The client picks a whole term block, with how much of each hour goes into equity.
+export async function selectTerm(
   token: string,
-  packageId: string,
   term: string,
   equityCents: number,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
-  if (!isUuid(packageId) || !isClientTerm(term)) return { ok: false, error: "Package not found." };
+  if (!isClientTerm(term)) return { ok: false, error: "That term is not offered." };
   const deal = await getDealByToken(token);
-  if (!deal) return { ok: false, error: "Package not found." };
-  const match = deal.packages.find((pkg) => pkg.id === packageId && pkg.enabled);
-  const offered = dealToLetter(deal).terms.find((item) => item.term === term);
-  if (!match || !offered) return { ok: false, error: "Package not found." };
-  if (!offered.steps.includes(equityCents)) return { ok: false, error: "That equity amount is not offered." };
+  if (!deal) return { ok: false, error: "That term is not offered." };
+  const letter = dealToLetter(deal);
+  if (!letter.terms.some((item) => item.term === term)) return { ok: false, error: "That term is not offered." };
+  if (!letter.steps.includes(equityCents)) return { ok: false, error: "That equity amount is not offered." };
   const db = getDb();
   await db
     .update(deals)
-    .set({ selectedPackageId: packageId, selectedTerm: term, selectedEquityCents: equityCents })
+    .set({ selectedPackageId: null, selectedTerm: term, selectedEquityCents: equityCents })
     .where(eq(deals.id, deal.id));
   return { ok: true };
 }
@@ -666,10 +546,18 @@ export function dealEquitySettings(deal: {
   };
 }
 
+// Until staff set a start date, the letter starts on the next Monday.
+export function dealStartDate(deal: { startDate: string | null }, now = new Date()): string {
+  return deal.startDate ?? nextMonday(now);
+}
+
 export function dealToLetter(deal: DealRecord): LetterDeal {
-  const visible = deal.packages
-    .filter((pkg) => pkg.enabled)
-    .sort((left, right) => left.sortOrder - right.sortOrder || left.id.localeCompare(right.id));
+  const built = buildLetterTerms(
+    offeredTerms(deal.termOffer),
+    deal.lines,
+    dealEquitySettings(deal),
+    dealStartDate(deal),
+  );
   return {
     blocks: deal.letterBlocks,
     companyName: deal.companyName,
@@ -677,14 +565,8 @@ export function dealToLetter(deal: DealRecord): LetterDeal {
     contactName: deal.contactName,
     avatarUrl: deal.avatarUrl,
     equityEnabled: deal.equityEnabled,
-    terms: offeredTerms(deal.termOffer).map((term) =>
-      buildLetterTerm(
-        term,
-        visible.map((pkg) => ({ ...pkg, listRateCents: offerPrice(pkg, term).listRateCents })),
-        dealEquitySettings(deal),
-      ),
-    ),
-    selectedPackageId: deal.selectedPackageId,
+    steps: built.steps,
+    terms: built.terms,
     selectedTerm: deal.selectedTerm,
     selectedEquityCents: deal.equityEnabled ? deal.selectedEquityCents : 0,
   };

@@ -2,16 +2,17 @@
 
 import { useState, type ReactNode } from "react";
 import { greetingParts, type LetterBlock } from "@/lib/operate/blocks";
+import { formatDate } from "@/lib/operate/dates";
 import { formatPercent } from "@/lib/operate/equity";
 import {
   formatDollars,
-  letterTerm,
   stepIndex,
+  type BundleOption,
   type ClientTerm,
-  type EquityOption,
   type LetterDeal,
-  type LetterPackage,
+  type LetterLine,
   type LetterTerm,
+  type LineOption,
 } from "@/lib/operate/pricing";
 
 export const letterStyles = `
@@ -78,6 +79,10 @@ export const letterStyles = `
 }
 .operate-letter__block--equity + .operate-letter__block--term {
   margin-top: 20px;
+}
+.operate-letter__block--equity + .operate-letter__block--offers,
+.operate-letter__block--greeting + .operate-letter__block--offers {
+  margin-top: 32px;
 }
 .operate-letter__greeting {
   margin: 0;
@@ -173,33 +178,83 @@ export const letterStyles = `
   border: 0;
   border-top: 1px solid rgba(7, 15, 24, 0.14);
 }
-.operate-letter__packages {
+.operate-letter__options {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 24px;
 }
-.operate-letter__row {
+.operate-letter__option {
   display: block;
   width: 100%;
   margin: 0;
-  padding: 20px 10px;
-  border: 0;
-  border-bottom: 1px solid rgba(7, 15, 24, 0.14);
+  padding: 24px 24px 22px;
+  border: 1px solid rgba(7, 15, 24, 0.16);
+  border-radius: 6px;
   background: transparent;
   color: inherit;
   font: inherit;
   text-align: left;
-  outline: none;
   box-sizing: border-box;
   appearance: none;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
 }
-button.operate-letter__row {
+button.operate-letter__option {
   cursor: pointer;
 }
-.operate-letter__row--selected,
-button.operate-letter__row:focus-visible {
+button.operate-letter__option:hover {
+  border-color: rgba(7, 15, 24, 0.5);
+}
+.operate-letter__option--selected,
+button.operate-letter__option--selected:hover {
+  border-color: #070F18;
+  box-shadow: inset 0 0 0 1px #070F18;
+}
+button.operate-letter__option:focus-visible {
   outline: 2px solid #070F18;
   outline-offset: 3px;
+}
+.operate-letter__option-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 24px;
+  padding: 0 10px 18px;
+  border-bottom: 1px solid rgba(7, 15, 24, 0.14);
+}
+.operate-letter__option-title {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 14px;
+}
+.operate-letter__option-term {
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+.operate-letter__mono {
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-size: 12px;
+  line-height: 1.4;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(7, 15, 24, 0.6);
+}
+.operate-letter__picked {
+  color: #FA4C1F;
+}
+.operate-letter__row {
+  display: block;
+  padding: 20px 10px;
+  border-bottom: 1px solid rgba(7, 15, 24, 0.14);
+}
+.operate-letter__totals {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px 32px;
+  padding: 18px 10px 0;
 }
 .operate-letter__grid {
   display: grid;
@@ -208,9 +263,6 @@ button.operate-letter__row:focus-visible {
   row-gap: 8px;
   align-items: end;
   width: 100%;
-}
-.operate-letter__grid--equity {
-  grid-template-columns: minmax(0, 1fr) auto auto auto;
 }
 .operate-letter__offer {
   display: flex;
@@ -260,7 +312,8 @@ button.operate-letter__row:focus-visible {
   font-variant-numeric: tabular-nums;
 }
 .operate-letter__equity {
-  margin: 28px 0 0;
+  display: block;
+  margin: 16px 10px 0;
   max-width: 40rem;
   font-size: 16px;
   line-height: 1.45;
@@ -283,9 +336,14 @@ button.operate-letter__row:focus-visible {
   line-height: 1.4;
 }
 @media (max-width: 700px) {
-  .operate-letter__grid,
-  .operate-letter__grid--equity {
+  .operate-letter__grid {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .operate-letter__option {
+    padding: 20px 14px 18px;
+  }
+  .operate-letter__totals {
+    justify-content: flex-start;
   }
   .operate-letter__offer {
     grid-column: 1 / -1;
@@ -300,10 +358,10 @@ button.operate-letter__row:focus-visible {
 }
 `;
 
-export function equitySentence(option: EquityOption | undefined, months: number): string | null {
-  if (!option || option.equityPerHourCents <= 0) return null;
+export function equitySentence(option: BundleOption | undefined, months: number): string | null {
+  if (!option || option.equityPerWeekCents <= 0) return null;
   const ownership = option.ownershipPercent === null ? "" : `, for ${formatPercent(option.ownershipPercent)} of the company`;
-  return `${formatDollars(option.equityPerHourCents)}/hour (${formatDollars(option.equityPerWeekCents)}/week) goes toward equity: ${formatDollars(option.equityTotalCents)} over ${months} months${ownership}.`;
+  return `${formatDollars(option.equityPerWeekCents)}/week goes toward equity: ${formatDollars(option.equityTotalCents)} over ${months} months${ownership}.`;
 }
 
 export function Figures({
@@ -327,63 +385,46 @@ export function Figures({
   );
 }
 
-function PackageRow({
-  pkg,
-  option,
-  withEquity,
-  mode,
-  selected,
-  onSelect,
-  rate,
-}: {
-  pkg: LetterPackage;
-  option: EquityOption;
-  withEquity: boolean;
-  mode: "customer" | "preview";
-  selected: boolean;
-  onSelect?: (packageId: string) => void;
-  rate?: ReactNode;
-}) {
-  const className = selected
-    ? "operate-letter__row operate-letter__row--selected"
-    : "operate-letter__row";
-  const body = (
-    <span className={withEquity ? "operate-letter__grid operate-letter__grid--equity" : "operate-letter__grid"}>
-      <span className="operate-letter__offer">
-        <span className="operate-letter__service">{pkg.serviceName}</span>
-        <span className="operate-letter__hours">{pkg.hoursPerWeek} / week</span>
-      </span>
-      <span className="operate-letter__figure">
-        <span className="operate-letter__figure-label">Rate</span>
-        {rate ?? <Figures equityEnabled={withEquity} listCents={pkg.listRateCents} cashCents={option.cashRateCents} />}
-      </span>
-      <span className="operate-letter__figure">
-        <span className="operate-letter__figure-label">Weekly</span>
-        <Figures equityEnabled={withEquity} listCents={pkg.weeklyListCents} cashCents={option.weeklyCashCents} />
-      </span>
-      {withEquity ? (
-        <span className="operate-letter__figure">
-          <span className="operate-letter__figure-label">Equity</span>
-          <span className="operate-letter__primary">
-            {option.equityTotalCents > 0 ? formatDollars(option.equityTotalCents) : "—"}
-          </span>
-          {option.ownershipPercent !== null ? (
-            <span className="operate-letter__percent">{formatPercent(option.ownershipPercent)}</span>
-          ) : null}
-        </span>
-      ) : null}
+function Figure({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <span className="operate-letter__figure">
+      <span className="operate-letter__figure-label">{label}</span>
+      {children}
     </span>
   );
+}
 
-  if (mode === "customer") {
-    return (
-      <button type="button" className={className} aria-pressed={selected} onClick={() => onSelect?.(pkg.id)}>
-        {body}
-      </button>
-    );
-  }
-
-  return <div className={className}>{body}</div>;
+function LineRow({
+  line,
+  option,
+  withEquity,
+  name,
+  rate,
+}: {
+  line: LetterLine;
+  option: LineOption;
+  withEquity: boolean;
+  name?: ReactNode;
+  rate?: ReactNode;
+}) {
+  return (
+    <span className="operate-letter__row">
+      <span className="operate-letter__grid">
+        {name ?? (
+          <span className="operate-letter__offer">
+            <span className="operate-letter__service">{line.serviceName}</span>
+            <span className="operate-letter__hours">{line.hoursPerWeek} / week</span>
+          </span>
+        )}
+        <Figure label="Rate">
+          {rate ?? <Figures equityEnabled={withEquity} listCents={line.listRateCents} cashCents={option.cashRateCents} />}
+        </Figure>
+        <Figure label="Weekly">
+          <Figures equityEnabled={withEquity} listCents={line.weeklyListCents} cashCents={option.weeklyCashCents} />
+        </Figure>
+      </span>
+    </span>
+  );
 }
 
 export function GreetingView({ text, companyName }: { text: string; companyName: string }) {
@@ -431,28 +472,6 @@ export function LetterToggle<T extends string>({
   );
 }
 
-export function TermView({
-  deal,
-  term,
-  onTerm,
-}: {
-  deal: LetterDeal;
-  term: ClientTerm;
-  onTerm: (term: ClientTerm) => void;
-}) {
-  if (deal.terms.length > 1) {
-    return (
-      <LetterToggle
-        label="Term"
-        options={deal.terms.map((item) => ({ value: item.term, label: item.label }))}
-        value={term}
-        onChange={onTerm}
-      />
-    );
-  }
-  return <p className="operate-letter__term">{deal.terms[0]?.label}</p>;
-}
-
 type Payment = "cash" | "equity";
 
 const PAYMENT_OPTIONS: { value: Payment; label: string }[] = [
@@ -462,29 +481,29 @@ const PAYMENT_OPTIONS: { value: Payment; label: string }[] = [
 
 // The first decision: pay all cash, or move part of each hour into equity.
 export function EquityView({
-  term,
+  steps,
   step,
   onStep,
 }: {
-  term: LetterTerm | undefined;
+  steps: number[];
   step: number;
   onStep: (stepCents: number) => void;
 }) {
-  const steps = term?.steps.filter((value) => value > 0) ?? [];
-  if (steps.length === 0) return null;
-  const current = term ? term.steps[stepIndex(term.steps, step)]! : 0;
+  const offered = steps.filter((value) => value > 0);
+  if (offered.length === 0) return null;
+  const current = steps[stepIndex(steps, step)] ?? 0;
   return (
     <div className="operate-letter__choice">
       <LetterToggle
         label="Payment"
         options={PAYMENT_OPTIONS}
         value={current > 0 ? "equity" : "cash"}
-        onChange={(payment) => onStep(payment === "cash" ? 0 : (steps[0] ?? 0))}
+        onChange={(payment) => onStep(payment === "cash" ? 0 : (offered[0] ?? 0))}
       />
       {current > 0 ? (
         <div className="operate-letter__steps" role="radiogroup" aria-label="Per hour into equity">
           <span className="operate-letter__figure-label">Per hour into equity</span>
-          {steps.map((value) => (
+          {offered.map((value) => (
             <button
               key={value}
               type="button"
@@ -502,53 +521,122 @@ export function EquityView({
   );
 }
 
-function chosenTerm(deal: LetterDeal): ClientTerm | undefined {
-  return deal.selectedTerm ?? deal.terms[0]?.term;
+export function termDates(term: LetterTerm): string {
+  return `${term.weeks} weeks · ${formatDate(term.startDate)} – ${formatDate(term.endDate)}`;
+}
+
+// One term is one whole offer: every service line, priced for that term.
+function TermOption({
+  term,
+  index,
+  withEquity,
+  mode,
+  selected,
+  onSelect,
+  renderName,
+  renderRate,
+}: {
+  term: LetterTerm;
+  index: number;
+  withEquity: boolean;
+  mode: "customer" | "preview";
+  selected: boolean;
+  onSelect?: (term: ClientTerm) => void;
+  renderName?: (line: LetterLine, index: number, term: LetterTerm) => ReactNode;
+  renderRate?: (line: LetterLine, option: LineOption, term: LetterTerm, index: number) => ReactNode;
+}) {
+  const bundle = term.options[index];
+  const sentence = withEquity ? equitySentence(bundle, term.months) : null;
+  const className = selected ? "operate-letter__option operate-letter__option--selected" : "operate-letter__option";
+  const body = (
+    <>
+      <span className="operate-letter__option-head">
+        <span className="operate-letter__option-title">
+          <span className="operate-letter__option-term">{term.label}</span>
+          {selected ? <span className="operate-letter__mono operate-letter__picked">Selected</span> : null}
+        </span>
+        <span className="operate-letter__mono">{termDates(term)}</span>
+      </span>
+      {term.lines.map((line, i) => (
+        <LineRow
+          key={line.id}
+          line={line}
+          option={line.options[index]!}
+          withEquity={withEquity}
+          name={renderName?.(line, i, term)}
+          rate={renderRate?.(line, line.options[index]!, term, i)}
+        />
+      ))}
+      {bundle ? (
+        <span className="operate-letter__totals">
+          {term.lines.length > 1 ? (
+            <Figure label="Weekly total">
+              <Figures equityEnabled={withEquity} listCents={bundle.weeklyListCents} cashCents={bundle.weeklyCashCents} />
+            </Figure>
+          ) : null}
+          <Figure label={`Over ${term.weeks} weeks`}>
+            <span className="operate-letter__primary">{formatDollars(bundle.totalCashCents)}</span>
+          </Figure>
+          {withEquity ? (
+            <Figure label="Equity">
+              <span className="operate-letter__primary">
+                {bundle.equityTotalCents > 0 ? formatDollars(bundle.equityTotalCents) : "—"}
+              </span>
+              {bundle.ownershipPercent !== null ? (
+                <span className="operate-letter__percent">{formatPercent(bundle.ownershipPercent)}</span>
+              ) : null}
+            </Figure>
+          ) : null}
+        </span>
+      ) : null}
+      {sentence ? <span className="operate-letter__equity">{sentence}</span> : null}
+    </>
+  );
+
+  if (mode === "customer") {
+    return (
+      <button type="button" className={className} aria-pressed={selected} onClick={() => onSelect?.(term.term)}>
+        {body}
+      </button>
+    );
+  }
+  return <div className={className}>{body}</div>;
 }
 
 export function OffersView({
   deal,
-  term,
   step,
   mode,
   onSelect,
+  renderName,
   renderRate,
 }: {
   deal: LetterDeal;
-  term: ClientTerm;
   step: number;
   mode: "customer" | "preview";
-  onSelect?: (packageId: string) => void;
-  renderRate?: (pkg: LetterPackage, option: EquityOption, index: number) => ReactNode;
+  onSelect?: (term: ClientTerm) => void;
+  renderName?: (line: LetterLine, index: number, term: LetterTerm) => ReactNode;
+  renderRate?: (line: LetterLine, option: LineOption, term: LetterTerm, index: number) => ReactNode;
 }) {
-  const current = letterTerm(deal, term);
-  const packages = current?.packages ?? [];
-  const index = current ? stepIndex(current.steps, step) : 0;
-  const withEquity = (current?.steps[index] ?? 0) > 0;
-  const chosenHere =
-    current !== undefined &&
-    chosenTerm(deal) === current.term &&
-    stepIndex(current.steps, deal.selectedEquityCents) === index;
-  const quoted = (chosenHere ? packages.find((pkg) => pkg.id === deal.selectedPackageId) : undefined) ?? packages[0];
-  const sentence = withEquity && current ? equitySentence(quoted?.options[index], current.months) : null;
+  const index = stepIndex(deal.steps, step);
+  const withEquity = (deal.steps[index] ?? 0) > 0;
+  const chosenHere = stepIndex(deal.steps, deal.selectedEquityCents) === index;
   return (
-    <>
-      <div className="operate-letter__packages">
-        {packages.map((pkg, i) => (
-          <PackageRow
-            key={pkg.id}
-            pkg={pkg}
-            option={pkg.options[index]!}
-            withEquity={withEquity}
-            mode={mode}
-            selected={chosenHere && pkg.id === deal.selectedPackageId}
-            onSelect={onSelect}
-            rate={renderRate?.(pkg, pkg.options[index]!, i)}
-          />
-        ))}
-      </div>
-      {sentence ? <p className="operate-letter__equity">{sentence}</p> : null}
-    </>
+    <div className="operate-letter__options">
+      {deal.terms.map((term) => (
+        <TermOption
+          key={term.term}
+          term={term}
+          index={index}
+          withEquity={withEquity}
+          mode={mode}
+          selected={chosenHere && deal.selectedTerm === term.term}
+          onSelect={onSelect}
+          renderName={renderName}
+          renderRate={renderRate}
+        />
+      ))}
+    </div>
   );
 }
 
@@ -587,6 +675,13 @@ export function LetterFrame({
   );
 }
 
+// The client sees each offered term as its own block, so the Term block only matters to staff.
+function showsToClient(block: LetterBlock, deal: LetterDeal): boolean {
+  if (block.type === "term") return false;
+  if (block.type === "equity") return deal.steps.some((step) => step > 0);
+  return true;
+}
+
 export function DealLetter({
   deal,
   mode,
@@ -594,31 +689,24 @@ export function DealLetter({
 }: {
   deal: LetterDeal;
   mode: "customer" | "preview";
-  onSelect?: (packageId: string, term: ClientTerm, equityCents: number) => void;
+  onSelect?: (term: ClientTerm, equityCents: number) => void;
 }) {
-  const [term, setTerm] = useState<ClientTerm>(() => letterTerm(deal, deal.selectedTerm)?.term ?? "six-month");
   const [step, setStep] = useState(deal.selectedEquityCents);
-  const current = letterTerm(deal, term);
-  const stepCents = current ? (current.steps[stepIndex(current.steps, step)] ?? 0) : 0;
+  const stepCents = deal.steps[stepIndex(deal.steps, step)] ?? 0;
   return (
     <LetterFrame companyName={deal.companyName} companyLogoUrl={deal.companyLogoUrl}>
-      {deal.blocks.map((block) => (
-        <section key={block.id} className={blockClassName(block)}>
-          {block.type === "greeting" ? <GreetingView text={block.text} companyName={deal.companyName} /> : null}
-          {block.type === "equity" ? <EquityView term={current} step={step} onStep={setStep} /> : null}
-          {block.type === "term" ? <TermView deal={deal} term={term} onTerm={setTerm} /> : null}
-          {block.type === "offers" ? (
-            <OffersView
-              deal={deal}
-              term={term}
-              step={step}
-              mode={mode}
-              onSelect={(packageId) => onSelect?.(packageId, term, stepCents)}
-            />
-          ) : null}
-          {block.type === "divider" ? <hr className="operate-letter__divider" /> : null}
-        </section>
-      ))}
+      {deal.blocks
+        .filter((block) => showsToClient(block, deal))
+        .map((block) => (
+          <section key={block.id} className={blockClassName(block)}>
+            {block.type === "greeting" ? <GreetingView text={block.text} companyName={deal.companyName} /> : null}
+            {block.type === "equity" ? <EquityView steps={deal.steps} step={step} onStep={setStep} /> : null}
+            {block.type === "offers" ? (
+              <OffersView deal={deal} step={step} mode={mode} onSelect={(term) => onSelect?.(term, stepCents)} />
+            ) : null}
+            {block.type === "divider" ? <hr className="operate-letter__divider" /> : null}
+          </section>
+        ))}
     </LetterFrame>
   );
 }
