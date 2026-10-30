@@ -664,53 +664,6 @@ export function Editor({ deal }: { deal: EditorDeal }) {
     if (block.type === "offers") {
       return (
         <>
-          <div className="mb-6 flex w-full flex-wrap items-center gap-x-3 gap-y-2 rounded-md border border-border bg-background px-2 py-1.5">
-            <div role="group" aria-label="Terms offered" className="flex gap-1.5">
-              {CLIENT_TERMS.map((term) => {
-                const on = offered.includes(term);
-                return (
-                  <button
-                    key={term}
-                    type="button"
-                    aria-pressed={on}
-                    onClick={() => toggleTerm(term)}
-                    className={`${chip} ${on ? "border-foreground bg-foreground text-background hover:border-foreground" : "text-muted-foreground"}`}
-                  >
-                    {termLabel(term)}
-                  </button>
-                );
-              })}
-            </div>
-            <span aria-hidden="true" className="h-5 w-px bg-border" />
-            <label className="flex items-center gap-2">
-              <span className="operate-label text-[11px] text-muted-foreground">Starts</span>
-              <input
-                type="date"
-                required
-                value={fields.startDate}
-                onChange={(event) => patch({ startDate: event.target.value })}
-                className="h-7 rounded-full border border-border bg-background px-3 text-xs tabular-nums transition-colors hover:border-foreground/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              />
-            </label>
-            <span aria-hidden="true" className="h-5 w-px bg-border" />
-            <button
-              type="button"
-              aria-pressed={fields.ratesOverridden}
-              onClick={() => setCustomRates(!fields.ratesOverridden)}
-              className={`${chip} ${fields.ratesOverridden ? "border-orange text-orange" : "text-muted-foreground"}`}
-            >
-              Custom rates {fields.ratesOverridden ? "on" : "off"}
-            </button>
-            <button
-              type="button"
-              onClick={addLine}
-              disabled={fields.lines.length >= MAX_LINES}
-              className={`${chip} ml-auto text-muted-foreground disabled:opacity-40`}
-            >
-              <Plus aria-hidden="true" className="size-3.5" />
-              Add service
-            </button>
-          </div>
           <OffersView
             deal={letter}
             step={previewStep}
@@ -900,6 +853,53 @@ export function Editor({ deal }: { deal: EditorDeal }) {
   return (
     <div className="min-h-full">
       {slot ? createPortal(<>{toolbar}</>, slot) : null}
+      <div className="sticky top-12 z-10 flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-border bg-background/95 px-4 py-2 backdrop-blur">
+        <div role="group" aria-label="Terms offered" className="flex gap-1.5">
+          {CLIENT_TERMS.map((term) => {
+            const on = offered.includes(term);
+            return (
+              <button
+                key={term}
+                type="button"
+                aria-pressed={on}
+                onClick={() => toggleTerm(term)}
+                className={`${chip} ${on ? "border-foreground bg-foreground text-background hover:border-foreground" : "text-muted-foreground"}`}
+              >
+                {termLabel(term)}
+              </button>
+            );
+          })}
+        </div>
+        <span aria-hidden="true" className="h-5 w-px bg-border" />
+        <label className="flex items-center gap-2">
+          <span className="operate-label text-[11px] text-muted-foreground">Starts</span>
+          <input
+            type="date"
+            required
+            value={fields.startDate}
+            onChange={(event) => patch({ startDate: event.target.value })}
+            className="h-7 rounded-full border border-border bg-background px-3 text-xs tabular-nums transition-colors hover:border-foreground/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          />
+        </label>
+        <span aria-hidden="true" className="h-5 w-px bg-border" />
+        <button
+          type="button"
+          aria-pressed={fields.ratesOverridden}
+          onClick={() => setCustomRates(!fields.ratesOverridden)}
+          className={`${chip} ${fields.ratesOverridden ? "border-orange text-orange" : "text-muted-foreground"}`}
+        >
+          Custom rates {fields.ratesOverridden ? "on" : "off"}
+        </button>
+        <button
+          type="button"
+          onClick={addLine}
+          disabled={fields.lines.length >= MAX_LINES}
+          className={`${chip} ml-auto text-muted-foreground disabled:opacity-40`}
+        >
+          <Plus aria-hidden="true" className="size-3.5" />
+          Add service
+        </button>
+      </div>
 
       <LetterFrame companyName={fields.companyName} companyLogoUrl={fields.companyLogoUrl} canvas>
         {blocks.length === 0 ? (

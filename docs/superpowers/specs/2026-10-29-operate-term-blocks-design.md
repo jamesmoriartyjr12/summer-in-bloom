@@ -25,7 +25,7 @@ Choosing a block saves `selected_term` and `selected_equity_cents`. `selected_pa
 
 ## Editor
 
-- Offers opens with a full-width menu bar: the term pills (Ink when on, no surrounding stroke), the Starts date, Custom rates, and Add service on the right.
+- A full-width offer bar sticks under the top bar, above the letter: the term pills (Ink when on, no surrounding stroke), the Starts date, Custom rates, and Add service on the right.
 - The deal controls (Details, Staff only, Copy link, Open as client, Save) sit in the top bar after the breadcrumb, through a slot in the staff shell.
 - Offers shows every offered term's block. Service names and hours edit in place and carry to every block. Custom rates edit per term in place.
 - "Add service" adds a Design Engineering line at 40 hours on the sheet. Each line can be removed while more than one remains. A deal holds up to 12 lines.
