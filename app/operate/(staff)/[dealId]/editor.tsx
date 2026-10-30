@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, useTransition } from "react";
+import { createPortal } from "react-dom";
 import { ArrowDown, ArrowUp, ExternalLink, Link2, Lock, Plus, Trash2, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -60,6 +60,7 @@ import {
 } from "@/lib/operate/pricing";
 import { formatDate, isIsoDate } from "@/lib/operate/dates";
 import { createDealAction, lookupLinkedInAction, saveDealAction } from "@/app/operate/actions";
+import { HEADER_ACTIONS_ID } from "../shell";
 
 // A deal with an empty id and token has not been saved yet.
 export type EditorDeal = {
@@ -411,10 +412,12 @@ export function Editor({ deal }: { deal: EditorDeal }) {
   const [origin, setOrigin] = useState("");
   const [copied, setCopied] = useState(false);
   const [previewStep, setPreviewStep] = useState(deal.selectedEquityCents);
+  const [slot, setSlot] = useState<HTMLElement | null>(null);
   const offered = offeredTerms(fields.termOffer);
 
   useEffect(() => {
     setOrigin(window.location.origin);
+    setSlot(document.getElementById(HEADER_ACTIONS_ID));
   }, []);
 
   const letter = useMemo(
@@ -658,31 +661,11 @@ export function Editor({ deal }: { deal: EditorDeal }) {
         </>
       );
     }
-    if (block.type === "term") {
-      const start = isIsoDate(fields.startDate) ? fields.startDate : deal.startDate;
-      return (
-        <div className="flex flex-col items-start gap-3">
-          <label className="flex items-center gap-2">
-            <span className="operate-label text-[11px] text-muted-foreground">Starts</span>
-            <input
-              type="date"
-              required
-              value={fields.startDate}
-              onChange={(event) => patch({ startDate: event.target.value })}
-              className="h-9 rounded-md border border-input bg-transparent px-3 text-sm tabular-nums focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            />
-          </label>
-          <p className="text-xs text-muted-foreground">
-            Starts {formatDate(start)}. Each term ends on the nearest Friday. Only staff see this block.
-          </p>
-        </div>
-      );
-    }
     if (block.type === "offers") {
       return (
         <>
-          <div className="mb-4 flex flex-wrap items-center gap-2">
-            <div role="group" aria-label="Terms offered" className="mr-2 flex gap-1.5">
+          <div className="mb-6 flex w-full flex-wrap items-center gap-x-3 gap-y-2 rounded-md border border-border bg-background px-2 py-1.5">
+            <div role="group" aria-label="Terms offered" className="flex gap-1.5">
               {CLIENT_TERMS.map((term) => {
                 const on = offered.includes(term);
                 return (
@@ -698,6 +681,18 @@ export function Editor({ deal }: { deal: EditorDeal }) {
                 );
               })}
             </div>
+            <span aria-hidden="true" className="h-5 w-px bg-border" />
+            <label className="flex items-center gap-2">
+              <span className="operate-label text-[11px] text-muted-foreground">Starts</span>
+              <input
+                type="date"
+                required
+                value={fields.startDate}
+                onChange={(event) => patch({ startDate: event.target.value })}
+                className="h-7 rounded-full border border-border bg-background px-3 text-xs tabular-nums transition-colors hover:border-foreground/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              />
+            </label>
+            <span aria-hidden="true" className="h-5 w-px bg-border" />
             <button
               type="button"
               aria-pressed={fields.ratesOverridden}
@@ -710,7 +705,7 @@ export function Editor({ deal }: { deal: EditorDeal }) {
               type="button"
               onClick={addLine}
               disabled={fields.lines.length >= MAX_LINES}
-              className={`${chip} text-muted-foreground disabled:opacity-40`}
+              className={`${chip} ml-auto text-muted-foreground disabled:opacity-40`}
             >
               <Plus aria-hidden="true" className="size-3.5" />
               Add service
@@ -727,7 +722,9 @@ export function Editor({ deal }: { deal: EditorDeal }) {
             {fields.ratesOverridden
               ? "Custom rates for this deal. Services and hours are the same in every term."
               : "Pricing sheet rates for each line's hours. Turn on custom rates to change them for this deal."}{" "}
-            {offered.length === 2 ? "The client picks one term." : "Click the other term to offer both."}
+            {offered.length === 2 ? "The client picks one term." : "Click the other term to offer both."} Starts{" "}
+            {formatDate(isIsoDate(fields.startDate) ? fields.startDate : deal.startDate)}; each term ends on the nearest
+            Friday.
           </p>
         </>
       );
@@ -735,18 +732,13 @@ export function Editor({ deal }: { deal: EditorDeal }) {
     return <hr className="operate-letter__divider" />;
   }
 
-  return (
-    <div className="min-h-full">
-      <div className="sticky top-12 z-10 flex flex-wrap items-center gap-2 border-b border-border bg-background/95 px-4 py-2 backdrop-blur">
-        <Link href="/operate" className="operate-label mr-2 text-[11px] text-muted-foreground hover:text-foreground">
-          All deals
-        </Link>
-
+  const toolbar = (
+    <>
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-2">
+            <Button variant="outline" size="sm" className="gap-2" aria-label="Details">
               <UserRound aria-hidden="true" className="size-4" />
-              Details
+              <span className="hidden lg:inline">Details</span>
             </Button>
           </PopoverTrigger>
           <PopoverContent className="grid w-96 gap-3">
@@ -783,9 +775,9 @@ export function Editor({ deal }: { deal: EditorDeal }) {
 
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-2 border-dashed">
+            <Button variant="outline" size="sm" className="gap-2 border-dashed" aria-label="Staff only">
               <Lock aria-hidden="true" className="size-4" />
-              Staff only
+              <span className="hidden lg:inline">Staff only</span>
             </Button>
           </PopoverTrigger>
           <PopoverContent className="grid w-96 gap-3">
@@ -866,14 +858,21 @@ export function Editor({ deal }: { deal: EditorDeal }) {
 
         {isNew ? null : (
           <>
-            <Button variant="ghost" size="sm" className="gap-2" onClick={() => void copyLink()} disabled={!origin}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-2"
+              aria-label={copied ? "Copied" : "Copy link"}
+              onClick={() => void copyLink()}
+              disabled={!origin}
+            >
               <Link2 aria-hidden="true" className="size-4" />
-              {copied ? "Copied" : "Copy link"}
+              <span className="hidden lg:inline">{copied ? "Copied" : "Copy link"}</span>
             </Button>
             <Button asChild variant="ghost" size="sm" className="gap-2">
-              <a href={`/operate/d/${deal.token}`} target="_blank" rel="noreferrer">
+              <a href={`/operate/d/${deal.token}`} target="_blank" rel="noreferrer" aria-label="Open as client">
                 <ExternalLink aria-hidden="true" className="size-4" />
-                Open as client
+                <span className="hidden lg:inline">Open as client</span>
               </a>
             </Button>
           </>
@@ -881,17 +880,26 @@ export function Editor({ deal }: { deal: EditorDeal }) {
 
         <div className="ml-auto flex items-center gap-3">
           {message ? (
-            <span role="status" className={`text-sm ${message.ok ? "text-muted-foreground" : "text-orange"}`}>
+            <span
+              role="status"
+              className={`max-w-[18rem] truncate text-sm ${message.ok ? "text-muted-foreground" : "text-orange"}`}
+              title={message.text}
+            >
               {message.text}
             </span>
           ) : dirty ? (
-            <span className="text-sm text-muted-foreground">Unsaved changes</span>
+            <span className="hidden text-sm text-muted-foreground md:inline">Unsaved changes</span>
           ) : null}
           <Button size="sm" onClick={save} disabled={pending || (!isNew && !dirty)}>
             {pending ? "Saving" : isNew ? "Create deal" : "Save"}
           </Button>
         </div>
-      </div>
+    </>
+  );
+
+  return (
+    <div className="min-h-full">
+      {slot ? createPortal(<>{toolbar}</>, slot) : null}
 
       <LetterFrame companyName={fields.companyName} companyLogoUrl={fields.companyLogoUrl} canvas>
         {blocks.length === 0 ? (

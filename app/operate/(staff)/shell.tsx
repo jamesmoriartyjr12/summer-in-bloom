@@ -22,6 +22,9 @@ import {
 } from "@/components/ui/sidebar";
 import { DealAvatar } from "./deal-avatar";
 
+// Pages put their own controls in the top bar, after the breadcrumb.
+export const HEADER_ACTIONS_ID = "operate-header-actions";
+
 type RailDeal = {
   id: string;
   companyName: string;
@@ -137,9 +140,26 @@ export function OperateShell({
       <SidebarInset>
         <header className="sticky top-0 z-20 flex h-12 shrink-0 items-center gap-3 border-b border-border bg-background px-3">
           <SidebarTrigger />
-          <span className="operate-label text-muted-foreground">
-            {current ? `Deals / ${current.companyName}` : pathname === "/operate/new" ? "Deals / New deal" : "Deals"}
+          <span className="operate-label min-w-0 truncate text-muted-foreground">
+            {current ? (
+              <>
+                <Link href="/operate" className="transition-colors hover:text-foreground">
+                  Deals
+                </Link>{" "}
+                / {current.companyName}
+              </>
+            ) : pathname === "/operate/new" ? (
+              <>
+                <Link href="/operate" className="transition-colors hover:text-foreground">
+                  Deals
+                </Link>{" "}
+                / New deal
+              </>
+            ) : (
+              "Deals"
+            )}
           </span>
+          <div id={HEADER_ACTIONS_ID} className="ml-3 flex flex-1 items-center gap-2" />
         </header>
         {children}
       </SidebarInset>

@@ -73,12 +73,8 @@ export const letterStyles = `
 .operate-letter__block + .operate-letter__block {
   margin-top: 48px;
 }
-.operate-letter__block--greeting + .operate-letter__block--equity,
-.operate-letter__block--greeting + .operate-letter__block--term {
+.operate-letter__block--greeting + .operate-letter__block--equity {
   margin-top: 24px;
-}
-.operate-letter__block--equity + .operate-letter__block--term {
-  margin-top: 20px;
 }
 .operate-letter__block--equity + .operate-letter__block--offers,
 .operate-letter__block--greeting + .operate-letter__block--offers {
@@ -95,11 +91,6 @@ export const letterStyles = `
 }
 .operate-letter__company {
   color: #FA4C1F;
-}
-.operate-letter__term {
-  margin: 0;
-  font-size: 18px;
-  line-height: 1.4;
 }
 .operate-letter__terms {
   display: inline-flex;
@@ -675,9 +666,7 @@ export function LetterFrame({
   );
 }
 
-// The client sees each offered term as its own block, so the Term block only matters to staff.
 function showsToClient(block: LetterBlock, deal: LetterDeal): boolean {
-  if (block.type === "term") return false;
   if (block.type === "equity") return deal.steps.some((step) => step > 0);
   return true;
 }

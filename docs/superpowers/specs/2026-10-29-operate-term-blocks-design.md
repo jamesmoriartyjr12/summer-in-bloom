@@ -12,7 +12,7 @@ This replaces the hours decision in `2026-10-29-operate-equity-choice-design.md`
 
 1. **Equity block.** Unchanged: "All cash" or "Cash and equity", then the dollars per hour, in $10 steps. The steps run up to the most expensive line in any offered term above the floor.
 2. **Term blocks.** One per offered term, stacked. The header reads "Six months" and "26 weeks · Nov 2, 2026 – Apr 30, 2027". Each service line shows its rate and weekly amount, struck list and cash with equity. The totals show the weekly total (with more than one line), the cash over the term, and the equity dollars with the ownership percentage. A sentence follows.
-3. The Term block itself does not render for the client.
+3. There is no Term block. A stored one is dropped when the deal is read.
 
 Choosing a block saves `selected_term` and `selected_equity_cents`. `selected_package_id` is cleared. The server checks that the term is offered and the step is one the deal allows.
 
@@ -25,7 +25,8 @@ Choosing a block saves `selected_term` and `selected_equity_cents`. `selected_pa
 
 ## Editor
 
-- The term switches are pills at the head of Offers, Ink when on, with no surrounding stroke. The Term block has only the Starts date field.
+- Offers opens with a full-width menu bar: the term pills (Ink when on, no surrounding stroke), the Starts date, Custom rates, and Add service on the right.
+- The deal controls (Details, Staff only, Copy link, Open as client, Save) sit in the top bar after the breadcrumb, through a slot in the staff shell.
 - Offers shows every offered term's block. Service names and hours edit in place and carry to every block. Custom rates edit per term in place.
 - "Add service" adds a Design Engineering line at 40 hours on the sheet. Each line can be removed while more than one remains. A deal holds up to 12 lines.
 

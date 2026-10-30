@@ -1,7 +1,6 @@
 export type LetterBlock =
   | { id: string; type: "greeting"; text: string }
   | { id: string; type: "equity" }
-  | { id: string; type: "term" }
   | { id: string; type: "offers" }
   | { id: string; type: "divider" };
 
@@ -9,15 +8,15 @@ export type BlockType = LetterBlock["type"];
 
 export const COMPANY_TOKEN = "{company}";
 export const DEFAULT_GREETING = `Hello ${COMPANY_TOKEN}, so nice to see you again.`;
-export const BLOCK_TYPES: BlockType[] = ["greeting", "equity", "term", "offers", "divider"];
-const SINGLE: BlockType[] = ["greeting", "equity", "term", "offers"];
+// The term choice lives on the Offers blocks, so a stored "term" block is dropped when read.
+export const BLOCK_TYPES: BlockType[] = ["greeting", "equity", "offers", "divider"];
+const SINGLE: BlockType[] = ["greeting", "equity", "offers"];
 const MAX_BLOCKS = 24;
 const MAX_GREETING = 280;
 
 export function blockLabel(type: BlockType): string {
   if (type === "greeting") return "Greeting";
   if (type === "equity") return "Equity";
-  if (type === "term") return "Term";
   if (type === "offers") return "Offers";
   return "Divider";
 }
@@ -40,7 +39,6 @@ export function defaultBlocks(): LetterBlock[] {
   return [
     newBlock("greeting", "greeting"),
     newBlock("equity", "equity"),
-    newBlock("term", "term"),
     newBlock("offers", "offers"),
   ];
 }
