@@ -49,16 +49,6 @@ export const letterStyles = `
   max-width: 140px;
   object-fit: contain;
 }
-.operate-letter__wordmark {
-  display: block;
-  width: min(1100px, 88%);
-  height: auto;
-  margin: clamp(40px, 6vh, 72px) auto 0;
-  opacity: 0.1;
-  filter: brightness(0);
-  pointer-events: none;
-  user-select: none;
-}
 .operate-letter__sheet {
   position: relative;
   z-index: 1;
@@ -654,7 +644,6 @@ export function LetterFrame({
           <img className="operate-letter__logo" src={companyLogoUrl} alt={companyName} />
         </header>
       ) : null}
-      <img className="operate-letter__wordmark" src="/bloom-wordmark.svg" alt="" aria-hidden draggable={false} />
       <div className="operate-letter__sheet">
         {children}
         <footer className="operate-letter__footer">
