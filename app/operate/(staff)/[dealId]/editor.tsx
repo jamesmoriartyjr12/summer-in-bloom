@@ -608,19 +608,12 @@ export function Editor({ deal }: { deal: EditorDeal }) {
     const row = fields.lines[index];
     if (!row) return undefined;
     const key = rateKey(term.term);
-    const input = (
+    return (
       <RateInput
         value={row[key]}
         label={`Rate, ${row.serviceName || "service"} ${row.hours} hours, ${term.label.toLowerCase()}`}
         onChange={(value) => patchLine(index, { [key]: value })}
       />
-    );
-    if (option.cashRateCents >= line.listRateCents) return input;
-    return (
-      <span className="operate-letter__pair">
-        <span className="operate-letter__struck">{input}</span>
-        <span className="operate-letter__primary">{formatDollars(option.cashRateCents)}</span>
-      </span>
     );
   }
 

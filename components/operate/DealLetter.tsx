@@ -245,6 +245,9 @@ button.operate-letter__option:focus-visible {
   align-items: end;
   width: 100%;
 }
+.operate-letter__grid--equity {
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+}
 .operate-letter__offer {
   display: flex;
   flex-direction: column;
@@ -317,7 +320,8 @@ button.operate-letter__option:focus-visible {
   line-height: 1.4;
 }
 @media (max-width: 700px) {
-  .operate-letter__grid {
+  .operate-letter__grid,
+  .operate-letter__grid--equity {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
   .operate-letter__option {
@@ -388,9 +392,11 @@ function LineRow({
   name?: ReactNode;
   rate?: ReactNode;
 }) {
+  const reduced = withEquity && option.cashRateCents < line.listRateCents;
+  const listRate = rate ?? <span className="operate-letter__primary">{formatDollars(line.listRateCents)}</span>;
   return (
     <span className="operate-letter__row">
-      <span className="operate-letter__grid">
+      <span className={withEquity ? "operate-letter__grid operate-letter__grid--equity" : "operate-letter__grid"}>
         {name ?? (
           <span className="operate-letter__offer">
             <span className="operate-letter__service">{line.serviceName}</span>
@@ -398,8 +404,13 @@ function LineRow({
           </span>
         )}
         <Figure label="Rate">
-          {rate ?? <Figures equityEnabled={withEquity} listCents={line.listRateCents} cashCents={option.cashRateCents} />}
+          {reduced ? <span className="operate-letter__struck">{listRate}</span> : listRate}
         </Figure>
+        {withEquity ? (
+          <Figure label="Equity">
+            <span className="operate-letter__primary">{formatDollars(option.cashRateCents)}</span>
+          </Figure>
+        ) : null}
         <Figure label="Weekly">
           <Figures equityEnabled={withEquity} listCents={line.weeklyListCents} cashCents={option.weeklyCashCents} />
         </Figure>
