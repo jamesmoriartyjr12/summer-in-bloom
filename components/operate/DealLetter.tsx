@@ -177,6 +177,7 @@ export const letterStyles = `
   text-align: left;
   box-sizing: border-box;
   appearance: none;
+  container: operate-option / inline-size;
   transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 button.operate-letter__option {
@@ -323,12 +324,14 @@ button.operate-letter__option:focus-visible {
   line-height: 1.4;
 }
 @media (max-width: 700px) {
+  .operate-letter__option {
+    padding: 20px 14px 18px;
+  }
+}
+@container operate-option (max-width: 640px) {
   .operate-letter__table,
   .operate-letter__table--equity {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  }
-  .operate-letter__option {
-    padding: 20px 14px 18px;
   }
   .operate-letter__totals > * {
     grid-column: auto;

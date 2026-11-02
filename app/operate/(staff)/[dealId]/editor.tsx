@@ -375,6 +375,46 @@ function GreetingEditor({
   );
 }
 
+function ServiceNameInput({ value, label, onChange }: { value: string; label: string; onChange: (value: string) => void }) {
+  const area = useRef<HTMLTextAreaElement>(null);
+
+  useLayoutEffect(() => {
+    const node = area.current;
+    if (!node) return;
+    const fit = () => {
+      node.style.height = "auto";
+      node.style.height = `${node.scrollHeight}px`;
+    };
+    fit();
+    let width = node.clientWidth;
+    const observer = new ResizeObserver(() => {
+      if (node.clientWidth === width) return;
+      width = node.clientWidth;
+      fit();
+    });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [value]);
+
+  return (
+    <textarea
+      ref={area}
+      rows={1}
+      aria-label={label}
+      value={value}
+      placeholder="Service"
+      onChange={(event) => onChange(event.target.value.replace(/\s*\n\s*/g, " "))}
+      onKeyDown={(event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          event.currentTarget.blur();
+        }
+      }}
+      className="operate-letter__service block w-full min-w-0 resize-none overflow-hidden border-0 border-b border-dashed border-transparent bg-transparent p-0 text-inherit outline-none hover:border-foreground/30 focus:border-orange"
+    />
+  );
+}
+
 function RateInput({ value, label, onChange }: { value: string; label: string; onChange: (value: string) => void }) {
   return (
     <span className="inline-flex items-baseline font-semibold tabular-nums">
@@ -572,12 +612,10 @@ export function Editor({ deal }: { deal: EditorDeal }) {
     const where = `${row.serviceName || "service"}, ${term.label.toLowerCase()}`;
     return (
       <span className="operate-letter__offer">
-        <input
-          aria-label={`Service name, line ${index + 1}, ${term.label.toLowerCase()}`}
+        <ServiceNameInput
+          label={`Service name, line ${index + 1}, ${term.label.toLowerCase()}`}
           value={row.serviceName}
-          placeholder="Service"
-          onChange={(event) => patchLine(index, { serviceName: event.target.value })}
-          className="operate-letter__service w-full min-w-0 border-0 border-b border-dashed border-transparent bg-transparent p-0 text-inherit outline-none hover:border-foreground/30 focus:border-orange"
+          onChange={(serviceName) => patchLine(index, { serviceName })}
         />
         <span className="operate-letter__hours flex items-center gap-1">
           <input
