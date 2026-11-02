@@ -267,6 +267,12 @@ button.operate-letter__option:focus-visible {
   font-weight: 600;
   line-height: 1.3;
 }
+.operate-letter__description {
+  max-width: 34rem;
+  font-size: 15px;
+  line-height: 1.45;
+  color: rgba(7, 15, 24, 0.7);
+}
 .operate-letter__hours {
   font-size: 16px;
   line-height: 1.4;
@@ -399,6 +405,7 @@ function LineRow({
       {name ?? (
         <span className="operate-letter__offer">
           <span className="operate-letter__service">{line.serviceName}</span>
+          {line.description ? <span className="operate-letter__description">{line.description}</span> : null}
           <span className="operate-letter__hours">{line.hoursPerWeek} / week</span>
         </span>
       )}

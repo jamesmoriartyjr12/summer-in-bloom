@@ -54,9 +54,20 @@ describe("amplifier pricing", () => {
   });
 
   it("checks every service line", () => {
-    const line = { serviceName: "Design Engineering", hoursPerWeek: 40, listRateCents: 20000, yearListRateCents: 18000 };
+    const line = {
+      serviceName: "Design Engineering",
+      description: "",
+      hoursPerWeek: 40,
+      listRateCents: 20000,
+      yearListRateCents: 18000,
+    };
     assert.equal(validateLine(line), null);
     assert.equal(validateLine({ ...line, serviceName: " " }), "Every service needs a name.");
+    assert.equal(validateLine({ ...line, description: "x".repeat(400) }), null);
+    assert.equal(
+      validateLine({ ...line, description: "x".repeat(401) }),
+      "A service description can be up to 400 characters.",
+    );
     assert.equal(validateLine({ ...line, hoursPerWeek: 0 }), "Hours per week must be a positive whole number.");
     assert.equal(validateLine({ ...line, yearListRateCents: 0 }), "Every rate must be more than zero.");
   });
@@ -84,7 +95,12 @@ describe("amplifier pricing", () => {
   });
 
   it("prices each term as its own block, with dates", () => {
-    const line = sheetLine(20000, { id: "a", serviceName: "Design Engineering", hoursPerWeek: 80 });
+    const line = sheetLine(20000, {
+      id: "a",
+      serviceName: "Design Engineering",
+      description: "Weekly design and build.",
+      hoursPerWeek: 80,
+    });
     assert.equal(line.listRateCents, 19000);
     assert.equal(line.yearListRateCents, 17000);
     const settings = {
@@ -97,6 +113,7 @@ describe("amplifier pricing", () => {
     const [six, year] = built.terms;
     assert.equal(six?.endDate, "2027-04-30");
     assert.equal(year?.endDate, "2027-10-29");
+    assert.equal(year?.lines[0]?.description, "Weekly design and build.");
     assert.equal(six?.options[3]?.weeklyCashCents, 80 * 16000);
     assert.equal(year?.options[3]?.weeklyCashCents, 80 * 15000);
     assert.equal(year?.options[4]?.weeklyCashCents, 80 * 15000);

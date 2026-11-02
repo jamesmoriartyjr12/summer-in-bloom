@@ -53,6 +53,7 @@ function readLine(formData: FormData, index: number): LineDraft {
   return {
     ...(id ? { id } : {}),
     serviceName: text(formData, `${key}Name`),
+    description: text(formData, `${key}Description`),
     hoursPerWeek: hours === "" ? Number.NaN : Number(hours),
     listRateCents: dollarsToCents(text(formData, `${key}ListRate`)) ?? Number.NaN,
     yearListRateCents: dollarsToCents(text(formData, `${key}YearListRate`)) ?? Number.NaN,

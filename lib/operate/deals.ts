@@ -137,7 +137,7 @@ function blankToNull(value: string | null): string | null {
 const DEFAULT_BASE_CENTS = 20000;
 
 export function defaultLine(baseCents: number, id: string): ServiceLine {
-  return sheetLine(baseCents, { id, serviceName: SHEET_SERVICE, hoursPerWeek: 40 });
+  return sheetLine(baseCents, { id, serviceName: SHEET_SERVICE, description: "", hoursPerWeek: 40 });
 }
 
 // The bundle is the deal's enabled rows. Without custom rates, each line follows the sheet for its hours.
@@ -146,7 +146,12 @@ function dealLines(rows: PackageRow[], ratesOverridden: boolean, baseCents: numb
     .filter((row) => row.enabled)
     .sort((left, right) => left.sortOrder - right.sortOrder || left.id.localeCompare(right.id))
     .map((row): ServiceLine => {
-      const line = { id: row.id, serviceName: row.serviceName, hoursPerWeek: row.hoursPerWeek };
+      const line = {
+        id: row.id,
+        serviceName: row.serviceName,
+        description: row.description,
+        hoursPerWeek: row.hoursPerWeek,
+      };
       if (!ratesOverridden) return sheetLine(baseCents, line);
       return {
         ...line,
@@ -296,6 +301,7 @@ function lineRows(dealId: string, lines: LineDraft[], knownIds: Set<string>) {
       id,
       dealId,
       serviceName: line.serviceName.trim(),
+      description: line.description.trim(),
       hoursPerWeek: line.hoursPerWeek,
       enabled: true,
       listRateCents: line.listRateCents,
