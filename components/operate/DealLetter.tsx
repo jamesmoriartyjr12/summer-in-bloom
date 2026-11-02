@@ -571,8 +571,8 @@ function TermOption({
                 ) : null}
               </Figure>
             ) : null}
-            <Figure label="Total Cash" className="operate-letter__total-over">
-              <span className="operate-letter__primary">{formatDollars(bundle.totalCashCents)}</span>
+            <Figure label="Total Billable" className="operate-letter__total-over">
+              <Figures equityEnabled={withEquity} listCents={bundle.totalListCents} cashCents={bundle.totalCashCents} />
             </Figure>
           </span>
         ) : null}

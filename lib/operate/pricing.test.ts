@@ -80,6 +80,7 @@ describe("amplifier pricing", () => {
     assert.equal(quote.equityPerWeekCents, 40 * 3000 + 80 * 1000);
     assert.equal(quote.equityTotalCents, (40 * 3000 + 80 * 1000) * 52);
     assert.equal(quote.totalCashCents, 120 * 15000 * 52);
+    assert.equal(quote.totalListCents, (40 * 18000 + 80 * 16000) * 52);
   });
 
   it("prices each term as its own block, with dates", () => {

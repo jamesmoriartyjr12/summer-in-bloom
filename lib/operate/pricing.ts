@@ -187,6 +187,7 @@ export type BundleQuote = {
   hoursPerWeek: number;
   weeklyListCents: number;
   weeklyCashCents: number;
+  totalListCents: number;
   totalCashCents: number;
   equityPerWeekCents: number;
   equityTotalCents: number;
@@ -212,6 +213,7 @@ export function bundleQuote(
     hoursPerWeek,
     weeklyListCents,
     weeklyCashCents,
+    totalListCents: weeklyListCents * weeks,
     totalCashCents: weeklyCashCents * weeks,
     equityPerWeekCents: equityPerWeek,
     equityTotalCents: equityPerWeek * weeks,
