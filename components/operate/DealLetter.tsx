@@ -305,13 +305,6 @@ button.operate-letter__option:focus-visible {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
-.operate-letter__equity {
-  display: block;
-  margin: 16px 10px 0;
-  max-width: 40rem;
-  font-size: 16px;
-  line-height: 1.45;
-}
 .operate-letter__footer {
   display: flex;
   align-items: center;
@@ -352,12 +345,6 @@ button.operate-letter__option:focus-visible {
   }
 }
 `;
-
-export function equitySentence(option: BundleOption | undefined, months: number): string | null {
-  if (!option || option.equityPerWeekCents <= 0) return null;
-  const ownership = option.ownershipPercent === null ? "" : `, for ${formatPercent(option.ownershipPercent)} of the company`;
-  return `${formatDollars(option.equityPerWeekCents)}/week goes toward equity: ${formatDollars(option.equityTotalCents)} over ${months} months${ownership}.`;
-}
 
 export function Figures({
   equityEnabled,
@@ -416,11 +403,11 @@ function LineRow({
         {reduced ? <span className="operate-letter__struck">{listRate}</span> : listRate}
       </Figure>
       {withEquity ? (
-        <Figure label="Equity" className="operate-letter__figure--start">
+        <Figure label="w/ Investment" className="operate-letter__figure--start">
           <span className="operate-letter__primary">{formatDollars(option.cashRateCents)}</span>
         </Figure>
       ) : null}
-      <Figure label="Weekly">
+      <Figure label="Weekly Billables">
         <Figures equityEnabled={withEquity} listCents={line.weeklyListCents} cashCents={option.weeklyCashCents} />
       </Figure>
     </span>
@@ -546,7 +533,6 @@ function TermOption({
   renderRate?: (line: LetterLine, option: LineOption, term: LetterTerm, index: number) => ReactNode;
 }) {
   const bundle = term.options[index];
-  const sentence = withEquity ? equitySentence(bundle, term.months) : null;
   const className = selected ? "operate-letter__option operate-letter__option--selected" : "operate-letter__option";
   const body = (
     <>
@@ -576,7 +562,7 @@ function TermOption({
               </Figure>
             ) : null}
             {withEquity ? (
-              <Figure label="Equity" className="operate-letter__figure--start operate-letter__total-equity">
+              <Figure label="Total Investment" className="operate-letter__figure--start operate-letter__total-equity">
                 <span className="operate-letter__primary">
                   {bundle.equityTotalCents > 0 ? formatDollars(bundle.equityTotalCents) : "—"}
                 </span>
@@ -585,13 +571,12 @@ function TermOption({
                 ) : null}
               </Figure>
             ) : null}
-            <Figure label={`Over ${term.weeks} weeks`} className="operate-letter__total-over">
+            <Figure label="Total Cash" className="operate-letter__total-over">
               <span className="operate-letter__primary">{formatDollars(bundle.totalCashCents)}</span>
             </Figure>
           </span>
         ) : null}
       </span>
-      {sentence ? <span className="operate-letter__equity">{sentence}</span> : null}
     </>
   );
 
