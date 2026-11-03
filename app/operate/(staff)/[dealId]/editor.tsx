@@ -46,7 +46,6 @@ import {
   buildLetterTerms,
   CLIENT_TERMS,
   formatDollars,
-  MAX_DESCRIPTION_LENGTH,
   MAX_LINES,
   SHEET_SERVICE,
   sheetRateCents,
@@ -63,7 +62,8 @@ import {
 import { formatDate, isIsoDate } from "@/lib/operate/dates";
 import { createDealAction, lookupLinkedInAction, saveDealAction } from "@/app/operate/actions";
 import { HEADER_ACTIONS_ID } from "../shell";
-import { OPERATE_SERVICES, type OperateService } from "@/content/operate-services";
+import { OPERATE_SERVICES } from "@/content/operate-services";
+import { approvedService, serviceDescription } from "@/lib/operate/services";
 
 // A deal with an empty id and token has not been saved yet.
 export type EditorDeal = {
@@ -99,7 +99,6 @@ type LineFields = {
   key: string;
   id: string;
   serviceName: string;
-  description: string;
   hours: string;
   listRate: string;
   yearListRate: string;
@@ -157,7 +156,6 @@ function lineFields(line: ServiceLine): LineFields {
     key: line.id,
     id: line.id,
     serviceName: line.serviceName,
-    description: line.description,
     hours: String(line.hoursPerWeek),
     listRate: centsToDollars(line.listRateCents),
     yearListRate: centsToDollars(line.yearListRateCents),
@@ -204,7 +202,7 @@ function previewLines(fields: Fields, baseCents: number): ServiceLine[] {
     return {
       id: row.key,
       serviceName: row.serviceName,
-      description: row.description,
+      description: serviceDescription(row.serviceName),
       hoursPerWeek: hours,
       listRateCents: dollarsToCents(rates.listRate),
       yearListRateCents: dollarsToCents(rates.yearListRate),
@@ -273,7 +271,6 @@ function toFormData(fields: Fields, blocks: LetterBlock[]): FormData {
   fields.lines.forEach((row, index) => {
     data.set(`line${index}Id`, row.id);
     data.set(`line${index}Name`, row.serviceName);
-    data.set(`line${index}Description`, row.description);
     data.set(`line${index}Hours`, row.hours);
     data.set(`line${index}ListRate`, row.listRate);
     data.set(`line${index}YearListRate`, row.yearListRate);
@@ -386,14 +383,12 @@ function GrowingText({
   value,
   label,
   placeholder,
-  maxLength,
   className,
   onChange,
 }: {
   value: string;
   label: string;
   placeholder: string;
-  maxLength?: number;
   className: string;
   onChange: (value: string) => void;
 }) {
@@ -424,7 +419,6 @@ function GrowingText({
       aria-label={label}
       value={value}
       placeholder={placeholder}
-      maxLength={maxLength}
       onChange={(event) => onChange(event.target.value.replace(/\s*\n\s*/g, " "))}
       onKeyDown={(event) => {
         if (event.key === "Enter") {
@@ -515,21 +509,11 @@ export function Editor({ deal }: { deal: EditorDeal }) {
     setMessage(null);
   }
 
-  function addLine(service: OperateService) {
+  function addLine(serviceName: string) {
     if (fields.lines.length >= MAX_LINES) return;
     const key = crypto.randomUUID();
     patch({
-      lines: [
-        ...fields.lines,
-        {
-          key,
-          id: "",
-          serviceName: service.name,
-          description: service.description,
-          hours: "40",
-          ...sheetRates(deal.baseCents, 40),
-        },
-      ],
+      lines: [...fields.lines, { key, id: "", serviceName, hours: "40", ...sheetRates(deal.baseCents, 40) }],
     });
   }
 
@@ -639,23 +623,23 @@ export function Editor({ deal }: { deal: EditorDeal }) {
     const row = fields.lines[index];
     if (!row) return undefined;
     const where = `${row.serviceName || "service"}, ${term.label.toLowerCase()}`;
+    const approved = approvedService(row.serviceName);
     return (
       <span className="operate-letter__offer">
-        <GrowingText
-          label={`Service name, line ${index + 1}, ${term.label.toLowerCase()}`}
-          value={row.serviceName}
-          placeholder="Service"
-          className="operate-letter__service text-inherit"
-          onChange={(serviceName) => patchLine(index, { serviceName })}
-        />
-        <GrowingText
-          label={`Description, ${where}`}
-          value={row.description}
-          placeholder="Add a description"
-          maxLength={MAX_DESCRIPTION_LENGTH}
-          className="operate-letter__description placeholder:text-foreground/35"
-          onChange={(description) => patchLine(index, { description })}
-        />
+        {approved ? (
+          <>
+            <span className="operate-letter__service">{approved.name}</span>
+            <span className="operate-letter__description">{approved.description}</span>
+          </>
+        ) : (
+          <GrowingText
+            label={`Service name, line ${index + 1}, ${term.label.toLowerCase()}`}
+            value={row.serviceName}
+            placeholder="Service"
+            className="operate-letter__service text-inherit"
+            onChange={(serviceName) => patchLine(index, { serviceName })}
+          />
+        )}
         <span className="operate-letter__hours flex items-center gap-1">
           <input
             inputMode="numeric"
@@ -973,7 +957,7 @@ export function Editor({ deal }: { deal: EditorDeal }) {
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-80">
             {OPERATE_SERVICES.map((service) => (
-              <DropdownMenuItem key={service.name} onSelect={() => addLine(service)} className="items-start">
+              <DropdownMenuItem key={service.name} onSelect={() => addLine(service.name)} className="items-start">
                 <span className="grid gap-0.5">
                   <span className="font-medium">{service.name}</span>
                   <span className="line-clamp-2 text-xs text-muted-foreground">{service.description}</span>
@@ -981,7 +965,7 @@ export function Editor({ deal }: { deal: EditorDeal }) {
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={() => addLine({ name: SHEET_SERVICE, description: "" })}>
+            <DropdownMenuItem onSelect={() => addLine(SHEET_SERVICE)}>
               Blank service
             </DropdownMenuItem>
           </DropdownMenuContent>

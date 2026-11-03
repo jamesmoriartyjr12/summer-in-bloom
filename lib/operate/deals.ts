@@ -32,6 +32,7 @@ import {
   type ValuationBasis,
 } from "./equity";
 import { baseRates, deals, packages } from "./schema";
+import { serviceDescription } from "./services";
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -66,7 +67,7 @@ export type DealRecord = {
   lines: ServiceLine[];
 };
 
-export type LineDraft = Omit<ServiceLine, "id"> & { id?: string };
+export type LineDraft = Omit<ServiceLine, "id" | "description"> & { id?: string };
 
 export type DealDraft = {
   companyName: string;
@@ -149,7 +150,7 @@ function dealLines(rows: PackageRow[], ratesOverridden: boolean, baseCents: numb
       const line = {
         id: row.id,
         serviceName: row.serviceName,
-        description: row.description,
+        description: serviceDescription(row.serviceName),
         hoursPerWeek: row.hoursPerWeek,
       };
       if (!ratesOverridden) return sheetLine(baseCents, line);
@@ -301,7 +302,6 @@ function lineRows(dealId: string, lines: LineDraft[], knownIds: Set<string>) {
       id,
       dealId,
       serviceName: line.serviceName.trim(),
-      description: line.description.trim(),
       hoursPerWeek: line.hoursPerWeek,
       enabled: true,
       listRateCents: line.listRateCents,

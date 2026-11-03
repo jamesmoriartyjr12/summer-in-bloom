@@ -44,7 +44,6 @@ export const packages = pgTable("packages", {
     .notNull()
     .references(() => deals.id, { onDelete: "cascade" }),
   serviceName: text("service_name").notNull(),
-  description: text("description").notNull().default(""),
   hoursPerWeek: integer("hours_per_week").notNull(),
   enabled: boolean("enabled").notNull().default(true),
   listRateCents: integer("list_rate_cents").notNull(),

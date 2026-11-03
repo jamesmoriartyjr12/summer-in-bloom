@@ -54,20 +54,9 @@ describe("amplifier pricing", () => {
   });
 
   it("checks every service line", () => {
-    const line = {
-      serviceName: "Design Engineering",
-      description: "",
-      hoursPerWeek: 40,
-      listRateCents: 20000,
-      yearListRateCents: 18000,
-    };
+    const line = { serviceName: "Design Engineering", hoursPerWeek: 40, listRateCents: 20000, yearListRateCents: 18000 };
     assert.equal(validateLine(line), null);
     assert.equal(validateLine({ ...line, serviceName: " " }), "Every service needs a name.");
-    assert.equal(validateLine({ ...line, description: "x".repeat(400) }), null);
-    assert.equal(
-      validateLine({ ...line, description: "x".repeat(401) }),
-      "A service description can be up to 400 characters.",
-    );
     assert.equal(validateLine({ ...line, hoursPerWeek: 0 }), "Hours per week must be a positive whole number.");
     assert.equal(validateLine({ ...line, yearListRateCents: 0 }), "Every rate must be more than zero.");
   });

@@ -156,7 +156,6 @@ export type ServiceLine = {
 };
 
 export const MAX_LINES = 12;
-export const MAX_DESCRIPTION_LENGTH = 400;
 
 export function lineRateCents(line: { listRateCents: number; yearListRateCents: number }, term: ClientTerm): number {
   return term === "one-year" ? line.yearListRateCents : line.listRateCents;
@@ -173,11 +172,8 @@ export function sheetLine(
   };
 }
 
-export function validateLine(line: Omit<ServiceLine, "id">): string | null {
+export function validateLine(line: Omit<ServiceLine, "id" | "description">): string | null {
   if (line.serviceName.trim() === "") return "Every service needs a name.";
-  if (line.description.length > MAX_DESCRIPTION_LENGTH) {
-    return `A service description can be up to ${MAX_DESCRIPTION_LENGTH} characters.`;
-  }
   if (!Number.isInteger(line.hoursPerWeek) || line.hoursPerWeek < 1) {
     return "Hours per week must be a positive whole number.";
   }
