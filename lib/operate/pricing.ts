@@ -256,6 +256,8 @@ export type LetterDeal = {
   companyName: string;
   companyLogoUrl: string | null;
   contactName: string;
+  contactFullName: string;
+  contactRole: string;
   avatarUrl: string | null;
   equityEnabled: boolean;
   steps: number[];

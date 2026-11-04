@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { OPERATE_SENDER } from "@/content/operate-sender";
 import { greetingParts, type LetterBlock } from "@/lib/operate/blocks";
 import { formatDate } from "@/lib/operate/dates";
 import { formatPercent } from "@/lib/operate/equity";
@@ -65,6 +66,50 @@ export const letterStyles = `
 }
 .operate-letter__block--greeting + .operate-letter__block--offers {
   margin-top: 32px;
+}
+.operate-letter__intro {
+  container: operate-intro / inline-size;
+}
+.operate-letter__intro-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 15rem;
+  column-gap: 48px;
+  row-gap: 32px;
+  align-items: center;
+}
+.operate-letter__parties {
+  grid-column: -2;
+  display: grid;
+  gap: 28px;
+  align-content: start;
+}
+.operate-letter__party {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.operate-letter__party-name {
+  margin-top: 6px;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+.operate-letter__party-line {
+  font-size: 14px;
+  line-height: 1.4;
+  color: rgba(7, 15, 24, 0.7);
+}
+.operate-letter__party-empty {
+  color: rgba(7, 15, 24, 0.4);
+}
+@container operate-intro (max-width: 640px) {
+  .operate-letter__intro-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .operate-letter__parties {
+    grid-column: auto;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
 }
 .operate-letter__greeting {
   margin: 0;
@@ -430,6 +475,75 @@ export function GreetingView({ text, companyName }: { text: string; companyName:
   );
 }
 
+export function ToParty({
+  companyName,
+  contactName,
+  contactRole,
+  editable = false,
+}: {
+  companyName: string;
+  contactName: string;
+  contactRole: string;
+  editable?: boolean;
+}) {
+  const empty = (label: string) => (editable ? <span className="operate-letter__party-empty">{label}</span> : null);
+  return (
+    <>
+      <span className="operate-letter__mono">To — Client</span>
+      <span className="operate-letter__party-name">{companyName || empty("Company")}</span>
+      {contactName || editable ? (
+        <span className="operate-letter__party-line">{contactName || empty("Contact name")}</span>
+      ) : null}
+      {contactRole || editable ? (
+        <span className="operate-letter__party-line">{contactRole || empty("Role")}</span>
+      ) : null}
+    </>
+  );
+}
+
+// The client and Bloom, top right of the letter, as on the contracts.
+export function PartiesView({
+  companyName,
+  contactName,
+  contactRole,
+  to,
+}: {
+  companyName: string;
+  contactName: string;
+  contactRole: string;
+  to?: ReactNode;
+}) {
+  return (
+    <aside className="operate-letter__parties">
+      {to ?? (
+        <div className="operate-letter__party">
+          <ToParty companyName={companyName} contactName={contactName} contactRole={contactRole} />
+        </div>
+      )}
+      <div className="operate-letter__party">
+        <span className="operate-letter__mono">From</span>
+        <span className="operate-letter__party-name">{OPERATE_SENDER.company}</span>
+        {OPERATE_SENDER.lines.map((line) => (
+          <span key={line} className="operate-letter__party-line">
+            {line}
+          </span>
+        ))}
+      </div>
+    </aside>
+  );
+}
+
+export function IntroView({ greeting, parties }: { greeting?: ReactNode; parties: ReactNode }) {
+  return (
+    <div className="operate-letter__intro">
+      <div className="operate-letter__intro-grid">
+        {greeting}
+        {parties}
+      </div>
+    </div>
+  );
+}
+
 export function termDates(term: LetterTerm): string {
   return `${formatDate(term.startDate)} – ${formatDate(term.endDate)}`;
 }
@@ -602,11 +716,21 @@ export function DealLetter({
   mode: "customer" | "preview";
   onSelect?: (term: ClientTerm) => void;
 }) {
+  const parties = (
+    <PartiesView companyName={deal.companyName} contactName={deal.contactFullName} contactRole={deal.contactRole} />
+  );
   return (
     <LetterFrame companyName={deal.companyName} companyLogoUrl={deal.companyLogoUrl}>
+      {deal.blocks.some((block) => block.type === "greeting") ? null : (
+        <section className="operate-letter__block">
+          <IntroView parties={parties} />
+        </section>
+      )}
       {deal.blocks.map((block) => (
         <section key={block.id} className={blockClassName(block)}>
-          {block.type === "greeting" ? <GreetingView text={block.text} companyName={deal.companyName} /> : null}
+          {block.type === "greeting" ? (
+            <IntroView greeting={<GreetingView text={block.text} companyName={deal.companyName} />} parties={parties} />
+          ) : null}
           {block.type === "offers" ? <OffersView deal={deal} mode={mode} onSelect={onSelect} /> : null}
           {block.type === "divider" ? <hr className="operate-letter__divider" /> : null}
         </section>

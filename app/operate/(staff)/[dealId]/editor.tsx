@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
-import { ArrowDown, ArrowUp, Check, ChevronDown, ExternalLink, Link2, Lock, Plus, Trash2, UserRound } from "lucide-react";
+import { ArrowDown, ArrowUp, Check, ChevronDown, ExternalLink, Link2, Lock, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -17,8 +17,11 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import {
   blockClassName,
   GreetingView,
+  IntroView,
   LetterFrame,
   OffersView,
+  PartiesView,
+  ToParty,
 } from "@/components/operate/DealLetter";
 import {
   BLOCK_TYPES,
@@ -61,6 +64,7 @@ import {
   type TermOffer,
 } from "@/lib/operate/pricing";
 import { isIsoDate } from "@/lib/operate/dates";
+import { contactFullName } from "@/lib/operate/linkedin";
 import { createDealAction, lookupLinkedInAction, saveDealAction } from "@/app/operate/actions";
 import { HEADER_ACTIONS_ID } from "../shell";
 import { OPERATE_SERVICES } from "@/content/operate-services";
@@ -243,6 +247,8 @@ function previewLetter(
     companyName: fields.companyName,
     companyLogoUrl: fields.companyLogoUrl,
     contactName: fields.contactName,
+    contactFullName: contactFullName(fields.contactName, fields.linkedinUrl),
+    contactRole: fields.contactRole,
     avatarUrl: fields.avatarUrl,
     equityEnabled: fields.equityEnabled,
     steps: built.steps,
@@ -799,13 +805,75 @@ export function Editor({ deal }: { deal: EditorDeal }) {
     );
   }
 
+  const clientParty = (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          aria-label="Client details"
+          className="operate-letter__party rounded-sm text-left outline-dashed outline-1 outline-offset-8 outline-transparent transition-[outline-color] hover:outline-foreground/30 focus-visible:outline-orange"
+        >
+          <ToParty
+            companyName={fields.companyName}
+            contactName={contactFullName(fields.contactName, fields.linkedinUrl)}
+            contactRole={fields.contactRole}
+            editable
+          />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="grid w-96 gap-3">
+        <Field label="LinkedIn" note="Name, role, company, and logos come from the public page.">
+          <Input
+            type="url"
+            placeholder="https://www.linkedin.com/in/…"
+            value={fields.linkedinUrl}
+            onChange={(event) => patch({ linkedinUrl: event.target.value })}
+            onBlur={() => void onLinkedInBlur()}
+          />
+        </Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Contact name">
+            <Input value={fields.contactName} onChange={(event) => patch({ contactName: event.target.value })} />
+          </Field>
+          <Field label="Contact role">
+            <Input value={fields.contactRole} onChange={(event) => patch({ contactRole: event.target.value })} />
+          </Field>
+        </div>
+        <Field label="Company">
+          <Input required value={fields.companyName} onChange={(event) => patch({ companyName: event.target.value })} />
+        </Field>
+        <Field label="Company website" note="The company name in the pipeline opens this.">
+          <Input
+            inputMode="url"
+            placeholder="amplifier.health"
+            value={fields.companyUrl}
+            onChange={(event) => patch({ companyUrl: event.target.value })}
+          />
+        </Field>
+      </PopoverContent>
+    </Popover>
+  );
+  const parties = (
+    <PartiesView
+      companyName={fields.companyName}
+      contactName={fields.contactName}
+      contactRole={fields.contactRole}
+      to={clientParty}
+    />
+  );
+
   function renderBlock(block: LetterBlock) {
     if (block.type === "greeting") {
       return (
-        <GreetingEditor
-          text={block.text}
-          companyName={fields.companyName}
-          onChange={(text) => patchBlocks(blocks.map((item) => (item.id === block.id ? { ...block, text } : item)))}
+        <IntroView
+          greeting={
+            <GreetingEditor
+              text={block.text}
+              companyName={fields.companyName}
+              onChange={(text) => patchBlocks(blocks.map((item) => (item.id === block.id ? { ...block, text } : item)))}
+            />
+          }
+          parties={parties}
         />
       );
     }
@@ -831,45 +899,6 @@ export function Editor({ deal }: { deal: EditorDeal }) {
 
   const toolbar = (
     <>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-2" aria-label="Details">
-              <UserRound aria-hidden="true" className="size-4" />
-              <span className="hidden lg:inline">Details</span>
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="grid w-96 gap-3">
-            <Field label="LinkedIn" note="Name, role, company, and logos come from the public page.">
-              <Input
-                type="url"
-                placeholder="https://www.linkedin.com/in/…"
-                value={fields.linkedinUrl}
-                onChange={(event) => patch({ linkedinUrl: event.target.value })}
-                onBlur={() => void onLinkedInBlur()}
-              />
-            </Field>
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="Contact name">
-                <Input value={fields.contactName} onChange={(event) => patch({ contactName: event.target.value })} />
-              </Field>
-              <Field label="Contact role">
-                <Input value={fields.contactRole} onChange={(event) => patch({ contactRole: event.target.value })} />
-              </Field>
-            </div>
-            <Field label="Company">
-              <Input required value={fields.companyName} onChange={(event) => patch({ companyName: event.target.value })} />
-            </Field>
-            <Field label="Company website" note="The company name in the pipeline opens this.">
-              <Input
-                inputMode="url"
-                placeholder="amplifier.health"
-                value={fields.companyUrl}
-                onChange={(event) => patch({ companyUrl: event.target.value })}
-              />
-            </Field>
-          </PopoverContent>
-        </Popover>
-
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="outline" size="sm" className="gap-2 border-dashed" aria-label="Staff only">
@@ -1057,6 +1086,11 @@ export function Editor({ deal }: { deal: EditorDeal }) {
       </div>
 
       <LetterFrame companyName={fields.companyName} companyLogoUrl={fields.companyLogoUrl} canvas>
+        {blocks.some((block) => block.type === "greeting") ? null : (
+          <section className="operate-letter__block">
+            <IntroView parties={parties} />
+          </section>
+        )}
         {blocks.length === 0 ? (
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
             <AddBlockMenu blocks={blocks} onAdd={(type) => addBlock(type, 0)} label="Add a block" />

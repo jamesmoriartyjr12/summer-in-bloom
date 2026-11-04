@@ -24,6 +24,7 @@ import {
 } from "./pricing";
 import { parseBlocks, type LetterBlock } from "./blocks";
 import { isIsoDate, nextMonday } from "./dates";
+import { contactFullName } from "./linkedin";
 import {
   DEFAULT_MULTIPLIER,
   defaultEquityBasis,
@@ -573,6 +574,8 @@ export function dealToLetter(deal: DealRecord): LetterDeal {
     companyName: deal.companyName,
     companyLogoUrl: deal.companyLogoUrl,
     contactName: deal.contactName,
+    contactFullName: contactFullName(deal.contactName, deal.linkedinUrl),
+    contactRole: deal.contactRole,
     avatarUrl: deal.avatarUrl,
     equityEnabled: deal.equityEnabled,
     steps: built.steps,
