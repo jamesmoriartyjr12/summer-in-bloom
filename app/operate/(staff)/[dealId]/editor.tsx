@@ -953,37 +953,6 @@ export function Editor({ deal }: { deal: EditorDeal }) {
           </PopoverContent>
         </Popover>
 
-        {isNew ? null : (
-          <>
-            <Button
-              variant="outline"
-              size="sm"
-              className="size-9 px-0"
-              aria-label={copied ? "Copied" : "Copy link"}
-              title={copied ? "Copied" : "Copy link"}
-              onClick={() => void copyLink()}
-              disabled={!origin}
-            >
-              {copied ? (
-                <Check aria-hidden="true" className="size-4" />
-              ) : (
-                <Link2 aria-hidden="true" className="size-4" />
-              )}
-            </Button>
-            <Button asChild variant="outline" size="sm" className="size-9 px-0">
-              <a
-                href={`/operate/d/${deal.token}`}
-                target="_blank"
-                rel="noreferrer"
-                aria-label="Open as client"
-                title="Open as client"
-              >
-                <ExternalLink aria-hidden="true" className="size-4" />
-              </a>
-            </Button>
-          </>
-        )}
-
         <div className="ml-auto flex items-center gap-3">
           {message ? (
             <span
@@ -996,9 +965,41 @@ export function Editor({ deal }: { deal: EditorDeal }) {
           ) : dirty ? (
             <span className="hidden text-sm text-muted-foreground md:inline">Unsaved changes</span>
           ) : null}
-          <Button size="sm" onClick={save} disabled={pending || (!isNew && !dirty)}>
-            {pending ? "Saving" : isNew ? "Create deal" : "Save"}
-          </Button>
+          <div className="flex items-center gap-2">
+            {isNew ? null : (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="size-9 px-0"
+                  aria-label={copied ? "Copied" : "Copy link"}
+                  title={copied ? "Copied" : "Copy link"}
+                  onClick={() => void copyLink()}
+                  disabled={!origin}
+                >
+                  {copied ? (
+                    <Check aria-hidden="true" className="size-4" />
+                  ) : (
+                    <Link2 aria-hidden="true" className="size-4" />
+                  )}
+                </Button>
+                <Button asChild variant="outline" size="sm" className="size-9 px-0">
+                  <a
+                    href={`/operate/d/${deal.token}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Open as client"
+                    title="Open as client"
+                  >
+                    <ExternalLink aria-hidden="true" className="size-4" />
+                  </a>
+                </Button>
+              </>
+            )}
+            <Button size="sm" onClick={save} disabled={pending || (!isNew && !dirty)}>
+              {pending ? "Saving" : isNew ? "Create deal" : "Save"}
+            </Button>
+          </div>
         </div>
     </>
   );

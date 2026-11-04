@@ -177,7 +177,15 @@ button.operate-letter__option:focus-visible {
   grid-column: 1 / -1;
   display: flex;
   padding: 14px 10px;
-  border-bottom: 1px solid rgba(7, 15, 24, 0.14);
+}
+.operate-letter__totals > .operate-letter__add {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: end;
+  padding: 0;
+}
+.operate-letter__totals--stacked > .operate-letter__add {
+  grid-row: 1 / span 2;
 }
 .operate-letter__total-weekly,
 .operate-letter__total-over {
@@ -305,6 +313,11 @@ button.operate-letter__option:focus-visible {
   }
   .operate-letter__totals > * {
     grid-column: auto;
+  }
+  .operate-letter__totals > .operate-letter__add {
+    grid-column: 1 / -1;
+    grid-row: auto;
+    margin-bottom: 10px;
   }
   .operate-letter__offer > .operate-letter__service {
     grid-column: 1 / -1;
@@ -466,9 +479,14 @@ function TermOption({
             rate={renderRate?.(line, line.options[index]!, term, i)}
           />
         ))}
-        {addLine ? <span className="operate-letter__add">{addLine}</span> : null}
+        {addLine && !bundle ? <span className="operate-letter__add">{addLine}</span> : null}
         {bundle ? (
-          <span className="operate-letter__totals">
+          <span
+            className={
+              term.lines.length > 1 ? "operate-letter__totals operate-letter__totals--stacked" : "operate-letter__totals"
+            }
+          >
+            {addLine ? <span className="operate-letter__add">{addLine}</span> : null}
             {term.lines.length > 1 ? (
               <Figure label="Weekly total" className="operate-letter__total-weekly">
                 <Figures equityEnabled={withEquity} listCents={bundle.weeklyListCents} cashCents={bundle.weeklyCashCents} />
