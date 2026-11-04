@@ -19,6 +19,7 @@ import {
   GreetingView,
   IntroView,
   LetterFrame,
+  MessageView,
   OffersView,
   PartiesView,
   ToParty,
@@ -29,6 +30,7 @@ import {
   canAddBlock,
   greetingForEditing,
   greetingFromEditing,
+  messageParagraphs,
   moveBlock,
   newBlock,
   type BlockType,
@@ -509,6 +511,74 @@ function GreetingEditor({
   );
 }
 
+function MessageEditor({
+  text,
+  companyName,
+  onChange,
+}: {
+  text: string;
+  companyName: string;
+  onChange: (text: string) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const area = useRef<HTMLTextAreaElement>(null);
+  const value = greetingForEditing(text, companyName);
+  const empty = messageParagraphs(text, companyName).length === 0;
+
+  useLayoutEffect(() => {
+    const node = area.current;
+    if (!node) return;
+    node.style.height = "auto";
+    node.style.height = `${node.scrollHeight}px`;
+  }, [editing, value]);
+
+  if (!editing) {
+    return (
+      <div
+        role="button"
+        tabIndex={0}
+        aria-label="Edit the message"
+        className="cursor-text focus-visible:outline-none"
+        onClick={() => setEditing(true)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            setEditing(true);
+          }
+        }}
+      >
+        {empty ? (
+          <p className="operate-letter__message text-muted-foreground">
+            Write the scope of work for this deal. It stays off the client&rsquo;s letter until it has words.
+          </p>
+        ) : (
+          <MessageView text={text} companyName={companyName} />
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <textarea
+      ref={area}
+      autoFocus
+      rows={3}
+      aria-label="Message"
+      placeholder="Write the scope of work for this deal."
+      className="operate-letter__message block w-full resize-none overflow-hidden border-0 bg-transparent p-0 outline-none"
+      value={value}
+      onChange={(event) => onChange(greetingFromEditing(event.target.value, companyName))}
+      onBlur={() => setEditing(false)}
+      onKeyDown={(event) => {
+        if (event.key === "Escape") {
+          event.preventDefault();
+          event.currentTarget.blur();
+        }
+      }}
+    />
+  );
+}
+
 function GrowingText({
   value,
   label,
@@ -881,6 +951,15 @@ export function Editor({ deal }: { deal: EditorDeal }) {
             />
           }
           parties={parties}
+        />
+      );
+    }
+    if (block.type === "message") {
+      return (
+        <MessageEditor
+          text={block.text}
+          companyName={fields.companyName}
+          onChange={(text) => patchBlocks(blocks.map((item) => (item.id === block.id ? { ...block, text } : item)))}
         />
       );
     }

@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { OPERATE_SENDER } from "@/content/operate-sender";
-import { greetingParts, type LetterBlock } from "@/lib/operate/blocks";
+import { greetingParts, messageParagraphs, type LetterBlock } from "@/lib/operate/blocks";
 import { formatDate } from "@/lib/operate/dates";
 import { formatPercent } from "@/lib/operate/equity";
 import {
@@ -64,8 +64,19 @@ export const letterStyles = `
 .operate-letter__block + .operate-letter__block {
   margin-top: 48px;
 }
-.operate-letter__block--greeting + .operate-letter__block--offers {
-  margin-top: 32px;
+.operate-letter__block--greeting + .operate-letter__block {
+  margin-top: 72px;
+}
+.operate-letter__message {
+  display: grid;
+  gap: 16px;
+  font-size: 16px;
+  line-height: 1.6;
+  color: rgba(7, 15, 24, 0.8);
+}
+.operate-letter__message p {
+  margin: 0;
+  white-space: pre-line;
 }
 .operate-letter__intro {
   container: operate-intro / inline-size;
@@ -544,6 +555,16 @@ export function IntroView({ greeting, parties }: { greeting?: ReactNode; parties
   );
 }
 
+export function MessageView({ text, companyName }: { text: string; companyName: string }) {
+  return (
+    <div className="operate-letter__message">
+      {messageParagraphs(text, companyName).map((paragraph, index) => (
+        <p key={index}>{paragraph}</p>
+      ))}
+    </div>
+  );
+}
+
 export function termDates(term: LetterTerm): string {
   return `${formatDate(term.startDate)} – ${formatDate(term.endDate)}`;
 }
@@ -726,15 +747,18 @@ export function DealLetter({
           <IntroView parties={parties} />
         </section>
       )}
-      {deal.blocks.map((block) => (
-        <section key={block.id} className={blockClassName(block)}>
-          {block.type === "greeting" ? (
-            <IntroView greeting={<GreetingView text={block.text} companyName={deal.companyName} />} parties={parties} />
-          ) : null}
-          {block.type === "offers" ? <OffersView deal={deal} mode={mode} onSelect={onSelect} /> : null}
-          {block.type === "divider" ? <hr className="operate-letter__divider" /> : null}
-        </section>
-      ))}
+      {deal.blocks
+        .filter((block) => block.type !== "message" || messageParagraphs(block.text, deal.companyName).length > 0)
+        .map((block) => (
+          <section key={block.id} className={blockClassName(block)}>
+            {block.type === "greeting" ? (
+              <IntroView greeting={<GreetingView text={block.text} companyName={deal.companyName} />} parties={parties} />
+            ) : null}
+            {block.type === "offers" ? <OffersView deal={deal} mode={mode} onSelect={onSelect} /> : null}
+            {block.type === "message" ? <MessageView text={block.text} companyName={deal.companyName} /> : null}
+            {block.type === "divider" ? <hr className="operate-letter__divider" /> : null}
+          </section>
+        ))}
     </LetterFrame>
   );
 }

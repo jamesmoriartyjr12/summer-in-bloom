@@ -1,5 +1,6 @@
 export type LetterBlock =
   | { id: string; type: "greeting"; text: string }
+  | { id: string; type: "message"; text: string }
   | { id: string; type: "offers" }
   | { id: string; type: "divider" };
 
@@ -8,13 +9,15 @@ export type BlockType = LetterBlock["type"];
 export const COMPANY_TOKEN = "{company}";
 export const DEFAULT_GREETING = `Hello ${COMPANY_TOKEN}, so nice to see you again.`;
 // Terms live on the Offers block and staff set equity in the menu bar, so stored "term" and "equity" blocks are dropped when read.
-export const BLOCK_TYPES: BlockType[] = ["greeting", "offers", "divider"];
-const SINGLE: BlockType[] = ["greeting", "offers"];
+export const BLOCK_TYPES: BlockType[] = ["greeting", "message", "offers", "divider"];
+const SINGLE: BlockType[] = ["greeting", "message", "offers"];
 const MAX_BLOCKS = 24;
 const MAX_GREETING = 280;
+const MAX_MESSAGE = 2000;
 
 export function blockLabel(type: BlockType): string {
   if (type === "greeting") return "Greeting";
+  if (type === "message") return "Message";
   if (type === "offers") return "Offers";
   return "Divider";
 }
@@ -30,11 +33,20 @@ export function canAddBlock(blocks: LetterBlock[], type: BlockType): boolean {
 
 export function newBlock(type: BlockType, id: string): LetterBlock {
   if (type === "greeting") return { id, type, text: DEFAULT_GREETING };
+  if (type === "message") return { id, type, text: "" };
   return { id, type };
 }
 
 export function defaultBlocks(): LetterBlock[] {
-  return [newBlock("greeting", "greeting"), newBlock("offers", "offers")];
+  return [newBlock("greeting", "greeting"), newBlock("message", "message"), newBlock("offers", "offers")];
+}
+
+// A message is paragraphs split on blank lines; an empty one is left off the client's letter.
+export function messageParagraphs(text: string, companyName: string): string[] {
+  return greetingForEditing(text, companyName)
+    .split(/\n\s*\n/)
+    .map((paragraph) => paragraph.trim())
+    .filter((paragraph) => paragraph !== "");
 }
 
 function isBlockType(value: unknown): value is BlockType {
@@ -59,6 +71,9 @@ export function parseBlocks(value: unknown): LetterBlock[] {
     ids.add(item.id);
     if (type === "greeting") {
       const text = typeof item.text === "string" ? item.text.slice(0, MAX_GREETING) : DEFAULT_GREETING;
+      blocks.push({ id: item.id, type, text });
+    } else if (type === "message") {
+      const text = typeof item.text === "string" ? item.text.slice(0, MAX_MESSAGE) : "";
       blocks.push({ id: item.id, type, text });
     } else {
       blocks.push({ id: item.id, type });

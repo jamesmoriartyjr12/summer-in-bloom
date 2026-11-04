@@ -7,6 +7,7 @@ import {
   greetingForEditing,
   greetingFromEditing,
   greetingParts,
+  messageParagraphs,
   moveBlock,
   parseBlocks,
 } from "./blocks";
@@ -16,7 +17,7 @@ describe("letter blocks", () => {
     assert.deepEqual(parseBlocks(null), defaultBlocks());
     assert.deepEqual(
       defaultBlocks().map((block) => block.type),
-      ["greeting", "offers"],
+      ["greeting", "message", "offers"],
     );
   });
 
@@ -27,6 +28,8 @@ describe("letter blocks", () => {
       { id: "c", type: "greeting", text: "Again" },
       { id: "d", type: "divider" },
       { id: "e", type: "offers" },
+      { id: "m", type: "message", text: "Scope" },
+      { id: "n", type: "message", text: "Again" },
       { id: "t", type: "term" },
       { id: "q", type: "equity" },
       { id: "f", type: "script" },
@@ -34,9 +37,10 @@ describe("letter blocks", () => {
     ]);
     assert.deepEqual(
       blocks.map((block) => block.id),
-      ["a", "b", "d", "e"],
+      ["a", "b", "d", "e", "m"],
     );
     assert.equal(canAddBlock(blocks, "greeting"), false);
+    assert.equal(canAddBlock(blocks, "message"), false);
     assert.equal(canAddBlock(blocks, "offers"), false);
     assert.equal(canAddBlock(blocks, "divider"), true);
   });
@@ -44,8 +48,8 @@ describe("letter blocks", () => {
   it("moves a block and ignores moves off the end", () => {
     const blocks = defaultBlocks();
     assert.deepEqual(
-      moveBlock(blocks, 1, -1).map((block) => block.type),
-      ["offers", "greeting"],
+      moveBlock(blocks, 2, -1).map((block) => block.type),
+      ["greeting", "offers", "message"],
     );
     assert.equal(moveBlock(blocks, 0, -1), blocks);
   });
@@ -59,5 +63,13 @@ describe("letter blocks", () => {
     const editing = greetingForEditing(DEFAULT_GREETING, "Amplifier Health");
     assert.equal(editing, "Hello Amplifier Health, so nice to see you again.");
     assert.equal(greetingFromEditing(editing, "Amplifier Health"), DEFAULT_GREETING);
+  });
+
+  it("splits a message into paragraphs and carries the company name", () => {
+    assert.deepEqual(messageParagraphs("At {company}, first.\n\n  Second.  \n\n\n", "Amplifier Health"), [
+      "At Amplifier Health, first.",
+      "Second.",
+    ]);
+    assert.deepEqual(messageParagraphs("  ", "Amplifier Health"), []);
   });
 });
