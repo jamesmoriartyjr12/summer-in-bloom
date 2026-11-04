@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { greetingParts, type LetterBlock } from "@/lib/operate/blocks";
 import { formatDate } from "@/lib/operate/dates";
 import { formatPercent } from "@/lib/operate/equity";
@@ -63,10 +63,6 @@ export const letterStyles = `
 .operate-letter__block + .operate-letter__block {
   margin-top: 48px;
 }
-.operate-letter__block--greeting + .operate-letter__block--equity {
-  margin-top: 24px;
-}
-.operate-letter__block--equity + .operate-letter__block--offers,
 .operate-letter__block--greeting + .operate-letter__block--offers {
   margin-top: 32px;
 }
@@ -81,78 +77,6 @@ export const letterStyles = `
 }
 .operate-letter__company {
   color: #FA4C1F;
-}
-.operate-letter__terms {
-  display: inline-flex;
-  gap: 2px;
-  padding: 3px;
-  border: 1px solid rgba(7, 15, 24, 0.2);
-  border-radius: 999px;
-}
-.operate-letter__term-option {
-  margin: 0;
-  padding: 8px 18px;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: rgba(7, 15, 24, 0.7);
-  font: inherit;
-  font-size: 16px;
-  font-weight: 500;
-  line-height: 1.2;
-  cursor: pointer;
-  appearance: none;
-  transition: background-color 150ms ease, color 150ms ease;
-}
-.operate-letter__term-option:hover {
-  color: #070F18;
-}
-.operate-letter__term-option[aria-checked="true"],
-.operate-letter__term-option[aria-pressed="true"] {
-  background: #070F18;
-  color: #FAF6EC;
-}
-.operate-letter__choice {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 14px;
-}
-.operate-letter__steps {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
-.operate-letter__step {
-  margin: 0;
-  padding: 6px 14px;
-  border: 1px solid rgba(7, 15, 24, 0.2);
-  border-radius: 999px;
-  background: transparent;
-  color: rgba(7, 15, 24, 0.7);
-  font: inherit;
-  font-size: 15px;
-  font-weight: 500;
-  line-height: 1.2;
-  font-variant-numeric: tabular-nums;
-  cursor: pointer;
-  appearance: none;
-  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
-}
-.operate-letter__step:hover {
-  border-color: #070F18;
-  color: #070F18;
-}
-.operate-letter__step[aria-checked="true"] {
-  border-color: #070F18;
-  background: #070F18;
-  color: #FAF6EC;
-}
-.operate-letter__step:focus-visible,
-.operate-letter__term-option:focus-visible {
-  outline: 2px solid #070F18;
-  outline-offset: 3px;
 }
 .operate-letter__divider {
   margin: 0;
@@ -248,6 +172,12 @@ button.operate-letter__option:focus-visible {
 }
 .operate-letter__totals {
   padding: 18px 10px 0;
+}
+.operate-letter__add {
+  grid-column: 1 / -1;
+  display: flex;
+  padding: 14px 10px;
+  border-bottom: 1px solid rgba(7, 15, 24, 0.14);
 }
 .operate-letter__total-weekly,
 .operate-letter__total-over {
@@ -440,84 +370,6 @@ export function GreetingView({ text, companyName }: { text: string; companyName:
   );
 }
 
-export function LetterToggle<T extends string>({
-  label,
-  options,
-  value,
-  onChange,
-}: {
-  label: string;
-  options: { value: T; label: string }[];
-  value: T;
-  onChange: (value: T) => void;
-}) {
-  return (
-    <div role="radiogroup" aria-label={label} className="operate-letter__terms">
-      {options.map((option) => (
-        <button
-          key={option.value}
-          type="button"
-          role="radio"
-          aria-checked={option.value === value}
-          className="operate-letter__term-option"
-          onClick={() => onChange(option.value)}
-        >
-          {option.label}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-type Payment = "cash" | "equity";
-
-const PAYMENT_OPTIONS: { value: Payment; label: string }[] = [
-  { value: "cash", label: "All cash" },
-  { value: "equity", label: "Cash and equity" },
-];
-
-// The first decision: pay all cash, or move part of each hour into equity.
-export function EquityView({
-  steps,
-  step,
-  onStep,
-}: {
-  steps: number[];
-  step: number;
-  onStep: (stepCents: number) => void;
-}) {
-  const offered = steps.filter((value) => value > 0);
-  if (offered.length === 0) return null;
-  const current = steps[stepIndex(steps, step)] ?? 0;
-  return (
-    <div className="operate-letter__choice">
-      <LetterToggle
-        label="Payment"
-        options={PAYMENT_OPTIONS}
-        value={current > 0 ? "equity" : "cash"}
-        onChange={(payment) => onStep(payment === "cash" ? 0 : (offered[0] ?? 0))}
-      />
-      {current > 0 ? (
-        <div className="operate-letter__steps" role="radiogroup" aria-label="Per hour into equity">
-          <span className="operate-letter__figure-label">Per hour into equity</span>
-          {offered.map((value) => (
-            <button
-              key={value}
-              type="button"
-              role="radio"
-              aria-checked={value === current}
-              className="operate-letter__step"
-              onClick={() => onStep(value)}
-            >
-              {formatDollars(value)}
-            </button>
-          ))}
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
 export function termDates(term: LetterTerm): string {
   return `${term.weeks} weeks · ${formatDate(term.startDate)} – ${formatDate(term.endDate)}`;
 }
@@ -532,6 +384,7 @@ function TermOption({
   onSelect,
   renderName,
   renderRate,
+  renderAddLine,
 }: {
   term: LetterTerm;
   index: number;
@@ -541,7 +394,9 @@ function TermOption({
   onSelect?: (term: ClientTerm) => void;
   renderName?: (line: LetterLine, index: number, term: LetterTerm) => ReactNode;
   renderRate?: (line: LetterLine, option: LineOption, term: LetterTerm, index: number) => ReactNode;
+  renderAddLine?: (term: LetterTerm) => ReactNode;
 }) {
+  const addLine = renderAddLine?.(term);
   const bundle = term.options[index];
   const className = selected ? "operate-letter__option operate-letter__option--selected" : "operate-letter__option";
   const body = (
@@ -564,6 +419,7 @@ function TermOption({
             rate={renderRate?.(line, line.options[index]!, term, i)}
           />
         ))}
+        {addLine ? <span className="operate-letter__add">{addLine}</span> : null}
         {bundle ? (
           <span className="operate-letter__totals">
             {term.lines.length > 1 ? (
@@ -600,24 +456,24 @@ function TermOption({
   return <div className={className}>{body}</div>;
 }
 
+// Every term is priced at the equity amount staff set on the deal.
 export function OffersView({
   deal,
-  step,
   mode,
   onSelect,
   renderName,
   renderRate,
+  renderAddLine,
 }: {
   deal: LetterDeal;
-  step: number;
   mode: "customer" | "preview";
   onSelect?: (term: ClientTerm) => void;
   renderName?: (line: LetterLine, index: number, term: LetterTerm) => ReactNode;
   renderRate?: (line: LetterLine, option: LineOption, term: LetterTerm, index: number) => ReactNode;
+  renderAddLine?: (term: LetterTerm) => ReactNode;
 }) {
-  const index = stepIndex(deal.steps, step);
+  const index = stepIndex(deal.steps, deal.selectedEquityCents);
   const withEquity = (deal.steps[index] ?? 0) > 0;
-  const chosenHere = stepIndex(deal.steps, deal.selectedEquityCents) === index;
   return (
     <div className="operate-letter__options">
       {deal.terms.map((term) => (
@@ -627,10 +483,11 @@ export function OffersView({
           index={index}
           withEquity={withEquity}
           mode={mode}
-          selected={chosenHere && deal.selectedTerm === term.term}
+          selected={deal.selectedTerm === term.term}
           onSelect={onSelect}
           renderName={renderName}
           renderRate={renderRate}
+          renderAddLine={renderAddLine}
         />
       ))}
     </div>
@@ -671,11 +528,6 @@ export function LetterFrame({
   );
 }
 
-function showsToClient(block: LetterBlock, deal: LetterDeal): boolean {
-  if (block.type === "equity") return deal.steps.some((step) => step > 0);
-  return true;
-}
-
 export function DealLetter({
   deal,
   mode,
@@ -683,24 +535,17 @@ export function DealLetter({
 }: {
   deal: LetterDeal;
   mode: "customer" | "preview";
-  onSelect?: (term: ClientTerm, equityCents: number) => void;
+  onSelect?: (term: ClientTerm) => void;
 }) {
-  const [step, setStep] = useState(deal.selectedEquityCents);
-  const stepCents = deal.steps[stepIndex(deal.steps, step)] ?? 0;
   return (
     <LetterFrame companyName={deal.companyName} companyLogoUrl={deal.companyLogoUrl}>
-      {deal.blocks
-        .filter((block) => showsToClient(block, deal))
-        .map((block) => (
-          <section key={block.id} className={blockClassName(block)}>
-            {block.type === "greeting" ? <GreetingView text={block.text} companyName={deal.companyName} /> : null}
-            {block.type === "equity" ? <EquityView steps={deal.steps} step={step} onStep={setStep} /> : null}
-            {block.type === "offers" ? (
-              <OffersView deal={deal} step={step} mode={mode} onSelect={(term) => onSelect?.(term, stepCents)} />
-            ) : null}
-            {block.type === "divider" ? <hr className="operate-letter__divider" /> : null}
-          </section>
-        ))}
+      {deal.blocks.map((block) => (
+        <section key={block.id} className={blockClassName(block)}>
+          {block.type === "greeting" ? <GreetingView text={block.text} companyName={deal.companyName} /> : null}
+          {block.type === "offers" ? <OffersView deal={deal} mode={mode} onSelect={onSelect} /> : null}
+          {block.type === "divider" ? <hr className="operate-letter__divider" /> : null}
+        </section>
+      ))}
     </LetterFrame>
   );
 }

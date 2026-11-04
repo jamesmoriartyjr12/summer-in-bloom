@@ -283,18 +283,35 @@ export type EquitySettings = {
   ownership: OwnershipTerms;
 };
 
+export function letterSteps(
+  terms: ClientTerm[],
+  lines: Pick<ServiceLine, "listRateCents" | "yearListRateCents">[],
+  equityEnabled: boolean,
+  floorCents: number,
+): number[] {
+  if (!equityEnabled) return [0];
+  return equitySteps(
+    terms.flatMap((term) => lines.map((line) => lineRateCents(line, term))),
+    floorCents,
+  );
+}
+
+// Staff set one equity amount per deal. With equity on it is never zero while the rates leave room for one.
+export function dealStepCents(steps: number[], wantedCents: number, equityEnabled: boolean): number {
+  if (!equityEnabled) return 0;
+  const offered = steps.filter((step) => step > 0);
+  if (offered.length === 0) return 0;
+  const snapped = steps[stepIndex(steps, wantedCents)] ?? 0;
+  return snapped > 0 ? snapped : offered[0]!;
+}
+
 export function buildLetterTerms(
   terms: ClientTerm[],
   lines: ServiceLine[],
   settings: EquitySettings,
   startDate: string,
 ): { steps: number[]; terms: LetterTerm[] } {
-  const steps = settings.equityEnabled
-    ? equitySteps(
-        terms.flatMap((term) => lines.map((line) => lineRateCents(line, term))),
-        settings.floorCents,
-      )
-    : [0];
+  const steps = letterSteps(terms, lines, settings.equityEnabled, settings.floorCents);
   return {
     steps,
     terms: terms.map((term) => {

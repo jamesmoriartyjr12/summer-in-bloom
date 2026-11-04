@@ -16,7 +16,6 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   blockClassName,
-  EquityView,
   GreetingView,
   LetterFrame,
   OffersView,
@@ -46,6 +45,7 @@ import {
   buildLetterTerms,
   CLIENT_TERMS,
   formatDollars,
+  dealStepCents,
   MAX_LINES,
   SHEET_SERVICE,
   sheetRateCents,
@@ -127,6 +127,7 @@ type Fields = {
   equityMultiplier: string;
   cashFloorDollars: string;
   hourlyCostDollars: string;
+  equityCents: number;
   lines: LineFields[];
 };
 
@@ -182,6 +183,7 @@ function initialFields(deal: EditorDeal): Fields {
     equityMultiplier: String(deal.equityMultiplier),
     cashFloorDollars: centsToDollars(deal.cashFloorCents),
     hourlyCostDollars: deal.hourlyCostCents === null ? "" : centsToDollars(deal.hourlyCostCents),
+    equityCents: deal.selectedEquityCents,
     lines: deal.lines.map(lineFields),
   };
 }
@@ -213,7 +215,7 @@ function previewLines(fields: Fields, baseCents: number): ServiceLine[] {
 function previewLetter(
   fields: Fields,
   blocks: LetterBlock[],
-  selected: { term: ClientTerm | null; equityCents: number },
+  selectedTerm: ClientTerm | null,
   baseCents: number,
   fallbackStart: string,
 ): LetterDeal {
@@ -244,8 +246,8 @@ function previewLetter(
     equityEnabled: fields.equityEnabled,
     steps: built.steps,
     terms: built.terms,
-    selectedTerm: selected.term,
-    selectedEquityCents: selected.equityCents,
+    selectedTerm,
+    selectedEquityCents: dealStepCents(built.steps, fields.equityCents, fields.equityEnabled),
   };
 }
 
@@ -265,6 +267,7 @@ function toFormData(fields: Fields, blocks: LetterBlock[]): FormData {
   data.set("equityMultiplier", fields.equityMultiplier);
   data.set("cashFloorDollars", fields.cashFloorDollars);
   data.set("hourlyCostDollars", fields.hourlyCostDollars);
+  data.set("equityCents", String(fields.equityCents));
   if (fields.equityEnabled) data.set("equityEnabled", "on");
   if (fields.ratesOverridden) data.set("ratesOverridden", "on");
   data.set("lineCount", String(fields.lines.length));
@@ -314,6 +317,44 @@ function AddBlockMenu({
             {blockLabel(type)}
           </DropdownMenuItem>
         ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+function AddServiceMenu({
+  label,
+  disabled,
+  onAdd,
+}: {
+  label: string;
+  disabled: boolean;
+  onAdd: (serviceName: string) => void;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          aria-label={label}
+          disabled={disabled}
+          className={`${chip} text-muted-foreground disabled:opacity-40`}
+        >
+          <Plus aria-hidden="true" className="size-3.5" />
+          Add service
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-80">
+        {OPERATE_SERVICES.map((service) => (
+          <DropdownMenuItem key={service.name} onSelect={() => onAdd(service.name)} className="items-start">
+            <span className="grid gap-0.5">
+              <span className="font-medium">{service.name}</span>
+              <span className="line-clamp-2 text-xs text-muted-foreground">{service.description}</span>
+            </span>
+          </DropdownMenuItem>
+        ))}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={() => onAdd(SHEET_SERVICE)}>Blank service</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -467,7 +508,6 @@ export function Editor({ deal }: { deal: EditorDeal }) {
   const [pending, startTransition] = useTransition();
   const [origin, setOrigin] = useState("");
   const [copied, setCopied] = useState(false);
-  const [previewStep, setPreviewStep] = useState(deal.selectedEquityCents);
   const [slot, setSlot] = useState<HTMLElement | null>(null);
   const offered = offeredTerms(fields.termOffer);
 
@@ -477,16 +517,10 @@ export function Editor({ deal }: { deal: EditorDeal }) {
   }, []);
 
   const letter = useMemo(
-    () =>
-      previewLetter(
-        fields,
-        blocks,
-        { term: deal.selectedTerm, equityCents: deal.selectedEquityCents },
-        deal.baseCents,
-        deal.startDate,
-      ),
-    [fields, blocks, deal.selectedTerm, deal.selectedEquityCents, deal.baseCents, deal.startDate],
+    () => previewLetter(fields, blocks, deal.selectedTerm, deal.baseCents, deal.startDate),
+    [fields, blocks, deal.selectedTerm, deal.baseCents, deal.startDate],
   );
+  const offeredSteps = letter.steps.filter((step) => step > 0);
   const floor = floorCents(fields);
   const dirty = JSON.stringify([fields, blocks]) !== saved;
   const link = `${origin}/operate/d/${deal.token}`;
@@ -688,42 +722,21 @@ export function Editor({ deal }: { deal: EditorDeal }) {
         />
       );
     }
-    if (block.type === "equity") {
-      const hasRoom = letter.steps.length > 1;
-      return (
-        <>
-          <div className="mb-4 flex flex-wrap gap-2">
-            <button
-              type="button"
-              aria-pressed={fields.equityEnabled}
-              onClick={() => patch({ equityEnabled: !fields.equityEnabled })}
-              className={`${chip} ${fields.equityEnabled ? "border-orange text-orange" : "text-muted-foreground"}`}
-            >
-              Equity {fields.equityEnabled ? "offered" : "off"}
-            </button>
-          </div>
-          {fields.equityEnabled && hasRoom ? (
-            <EquityView steps={letter.steps} step={previewStep} onStep={setPreviewStep} />
-          ) : null}
-          <p className="mt-3 text-xs text-muted-foreground">
-            {!fields.equityEnabled
-              ? "The client pays all cash. Offer equity to let them move part of each hour into it."
-              : hasRoom
-                ? `The client picks how much. Cash never goes under ${formatDollars(floor)}/hr.`
-                : `No room above the ${formatDollars(floor)}/hr cash floor at these rates.`}
-          </p>
-        </>
-      );
-    }
     if (block.type === "offers") {
       return (
         <>
           <OffersView
             deal={letter}
-            step={previewStep}
             mode="preview"
             renderName={(line, index, term) => renderLineName(line, index, term)}
             renderRate={(line, option, term, index) => renderLineRate(line, option, term, index)}
+            renderAddLine={(term) => (
+              <AddServiceMenu
+                label={`Add service, ${term.label.toLowerCase()}`}
+                disabled={fields.lines.length >= MAX_LINES}
+                onAdd={addLine}
+              />
+            )}
           />
           <p className="mt-3 text-xs text-muted-foreground">
             {fields.ratesOverridden
@@ -936,40 +949,48 @@ export function Editor({ deal }: { deal: EditorDeal }) {
           />
         </label>
         <span aria-hidden="true" className="h-5 w-px bg-border" />
+        <div role="group" aria-label="Equity" className="flex flex-wrap items-center gap-1.5">
+          <button
+            type="button"
+            aria-pressed={fields.equityEnabled}
+            onClick={() => patch({ equityEnabled: !fields.equityEnabled })}
+            className={`${chip} ${fields.equityEnabled ? "border-orange text-orange" : "text-muted-foreground"}`}
+          >
+            Equity {fields.equityEnabled ? "on" : "off"}
+          </button>
+          {fields.equityEnabled && offeredSteps.length > 0
+            ? offeredSteps.map((step) => {
+                const on = step === letter.selectedEquityCents;
+                return (
+                  <button
+                    key={step}
+                    type="button"
+                    aria-pressed={on}
+                    aria-label={`${formatDollars(step)} per hour into equity`}
+                    onClick={() => patch({ equityCents: step })}
+                    className={`${chip} tabular-nums ${on ? "border-foreground bg-foreground text-background hover:border-foreground" : "text-muted-foreground"}`}
+                  >
+                    {formatDollars(step)}/hr
+                  </button>
+                );
+              })
+            : null}
+          {fields.equityEnabled ? (
+            <span className="text-xs text-muted-foreground">
+              {offeredSteps.length > 0
+                ? `Cash floor ${formatDollars(floor)}/hr`
+                : `No room above the ${formatDollars(floor)}/hr floor`}
+            </span>
+          ) : null}
+        </div>
         <button
           type="button"
           aria-pressed={fields.ratesOverridden}
           onClick={() => setCustomRates(!fields.ratesOverridden)}
-          className={`${chip} ${fields.ratesOverridden ? "border-orange text-orange" : "text-muted-foreground"}`}
+          className={`${chip} ml-auto ${fields.ratesOverridden ? "border-orange text-orange" : "text-muted-foreground"}`}
         >
           Custom rates {fields.ratesOverridden ? "on" : "off"}
         </button>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              disabled={fields.lines.length >= MAX_LINES}
-              className={`${chip} ml-auto text-muted-foreground disabled:opacity-40`}
-            >
-              <Plus aria-hidden="true" className="size-3.5" />
-              Add service
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-80">
-            {OPERATE_SERVICES.map((service) => (
-              <DropdownMenuItem key={service.name} onSelect={() => addLine(service.name)} className="items-start">
-                <span className="grid gap-0.5">
-                  <span className="font-medium">{service.name}</span>
-                  <span className="line-clamp-2 text-xs text-muted-foreground">{service.description}</span>
-                </span>
-              </DropdownMenuItem>
-            ))}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={() => addLine(SHEET_SERVICE)}>
-              Blank service
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
 
       <LetterFrame companyName={fields.companyName} companyLogoUrl={fields.companyLogoUrl} canvas>

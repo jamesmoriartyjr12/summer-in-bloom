@@ -113,6 +113,7 @@ function parseDraft(formData: FormData): DealDraft | { error: string } {
     return { error: `A deal needs between 1 and ${MAX_LINES} services.` };
   }
   const lines = Array.from({ length: lineCount }, (_, index) => readLine(formData, index));
+  const equityCents = Number(text(formData, "equityCents"));
 
   return {
     companyName: text(formData, "companyName"),
@@ -134,6 +135,7 @@ function parseDraft(formData: FormData): DealDraft | { error: string } {
     equityMultiplierTenths,
     cashFloorCents,
     hourlyCostCents,
+    equityCents: Number.isInteger(equityCents) ? equityCents : 0,
     lines,
   };
 }

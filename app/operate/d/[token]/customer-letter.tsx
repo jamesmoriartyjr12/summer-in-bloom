@@ -15,40 +15,34 @@ const errorStyle = {
   textAlign: "center",
 } as const;
 
-type Choice = { term: ClientTerm | null; equityCents: number };
-
 export function CustomerLetter({ token, deal }: { token: string; deal: LetterDeal }) {
   const router = useRouter();
-  const [choice, setChoice] = useState<Choice>({
-    term: deal.selectedTerm,
-    equityCents: deal.selectedEquityCents,
-  });
+  const [term, setTerm] = useState<ClientTerm | null>(deal.selectedTerm);
   const [error, setError] = useState<string | null>(null);
-  const choiceRef = useRef(choice);
+  const termRef = useRef(term);
   const requestRef = useRef(0);
 
-  async function onSelect(term: ClientTerm, equityCents: number) {
+  async function onSelect(next: ClientTerm) {
     const request = ++requestRef.current;
-    const previous = choiceRef.current;
-    const next = { term, equityCents };
-    choiceRef.current = next;
-    setChoice(next);
+    const previous = termRef.current;
+    termRef.current = next;
+    setTerm(next);
     setError(null);
 
     try {
       const response = await fetch(`/operate/d/${token}/select`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(next),
+        body: JSON.stringify({ term: next }),
       });
       // A slower response for a choice the customer has left is ignored.
-      if (requestRef.current !== request || choiceRef.current !== next) return;
+      if (requestRef.current !== request || termRef.current !== next) return;
       if (!response.ok) throw new Error("select failed");
       router.refresh();
     } catch {
-      if (requestRef.current !== request || choiceRef.current !== next) return;
-      choiceRef.current = previous;
-      setChoice(previous);
+      if (requestRef.current !== request || termRef.current !== next) return;
+      termRef.current = previous;
+      setTerm(previous);
       setError("Could not save that choice.");
     }
   }
@@ -60,15 +54,7 @@ export function CustomerLetter({ token, deal }: { token: string; deal: LetterDea
           {error}
         </p>
       ) : null}
-      <DealLetter
-        deal={{
-          ...deal,
-          selectedTerm: choice.term,
-          selectedEquityCents: choice.equityCents,
-        }}
-        mode="customer"
-        onSelect={onSelect}
-      />
+      <DealLetter deal={{ ...deal, selectedTerm: term }} mode="customer" onSelect={onSelect} />
     </>
   );
 }

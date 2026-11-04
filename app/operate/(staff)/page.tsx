@@ -10,7 +10,10 @@ import {
   averageCents,
   bundleQuote,
   formatDollars,
+  dealStepCents,
+  letterSteps,
   lineRateCents,
+  offeredTerms,
   quotedTerm,
   termMonths,
   termWeeks,
@@ -46,7 +49,7 @@ type PipelineRow = {
   equityCents: number | null;
 };
 
-// Until the client chooses, a deal is valued on its first term, all cash.
+// Until the client chooses, a deal is valued on its first term.
 function dealTerm(deal: DashboardDeal): ClientTerm {
   return quotedTerm(deal.termOffer, deal.selectedTerm);
 }
@@ -55,10 +58,11 @@ function dealTerm(deal: DashboardDeal): ClientTerm {
 function toRow(deal: DashboardDeal): PipelineRow {
   const term = dealTerm(deal);
   const months = termMonths(term);
+  const steps = letterSteps(offeredTerms(deal.termOffer), deal.lines, deal.equityEnabled, deal.cashFloorCents);
   const quote = bundleQuote(
     deal.lines.map((line) => ({ hoursPerWeek: line.hoursPerWeek, listRateCents: lineRateCents(line, term) })),
     termWeeks(term) ?? 0,
-    deal.equityEnabled ? deal.selectedEquityCents : 0,
+    dealStepCents(steps, deal.selectedEquityCents, deal.equityEnabled),
     deal.cashFloorCents,
   );
   if (quote.hoursPerWeek === 0) {

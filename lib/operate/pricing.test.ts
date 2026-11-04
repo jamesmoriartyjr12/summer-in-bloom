@@ -7,10 +7,12 @@ import {
   buildLetterTerms,
   bundleQuote,
   contractValueCents,
+  dealStepCents,
   equityPerHourCents,
   equityPerWeekCents,
   equityValueCents,
   formatDollars,
+  letterSteps,
   offeredTerms,
   quotedTerm,
   sheetLine,
@@ -110,6 +112,19 @@ describe("amplifier pricing", () => {
     assert.equal(year?.options[3]?.ownershipPercent, 0.83);
     const cash = buildLetterTerms(["one-year"], [line], { ...settings, equityEnabled: false }, "2026-11-02");
     assert.deepEqual(cash.steps, [0]);
+  });
+
+  it("holds the staff equity amount to what the rates allow", () => {
+    const line = { listRateCents: 18000, yearListRateCents: 16000 };
+    assert.deepEqual(letterSteps(["one-year"], [line], true, 15000), [0, 1000]);
+    assert.deepEqual(letterSteps(["six-month", "one-year"], [line], true, 15000), [0, 1000, 2000, 3000]);
+    assert.deepEqual(letterSteps(["six-month"], [line], false, 15000), [0]);
+    const steps = [0, 1000, 2000, 3000];
+    assert.equal(dealStepCents(steps, 2000, true), 2000);
+    assert.equal(dealStepCents(steps, 5000, true), 3000);
+    assert.equal(dealStepCents(steps, 0, true), 1000);
+    assert.equal(dealStepCents(steps, 2000, false), 0);
+    assert.equal(dealStepCents([0], 2000, true), 0);
   });
 
   it("builds the pricing sheet from the base rate", () => {

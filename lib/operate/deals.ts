@@ -4,8 +4,10 @@ import { getDb } from "./db";
 import {
   baseRateCents,
   buildLetterTerms,
+  dealStepCents,
   isClientTerm,
   isTermOffer,
+  letterSteps,
   longTermCents,
   MAX_LINES,
   offeredTerms,
@@ -89,6 +91,7 @@ export type DealDraft = {
   equityMultiplierTenths: number | null;
   cashFloorCents: number | null;
   hourlyCostCents: number | null;
+  equityCents: number;
   lines: LineDraft[];
 };
 
@@ -293,6 +296,16 @@ function draftError(input: DealDraft): string | null {
   return null;
 }
 
+function draftStepCents(input: DealDraft): number {
+  const steps = letterSteps(
+    offeredTerms(input.termOffer),
+    input.lines,
+    input.equityEnabled,
+    input.cashFloorCents ?? MIN_CASH_RATE_CENTS,
+  );
+  return dealStepCents(steps, input.equityCents, input.equityEnabled);
+}
+
 function lineRows(dealId: string, lines: LineDraft[], knownIds: Set<string>) {
   const used = new Set<string>();
   return lines.map((line, sortOrder) => {
@@ -450,6 +463,7 @@ export async function createDeal(
       equityMultiplierTenths: input.equityMultiplierTenths,
       cashFloorCents: input.cashFloorCents,
       hourlyCostCents: input.hourlyCostCents,
+      selectedEquityCents: draftStepCents(input),
     });
     await tx.insert(packages).values(lineRows(id, input.lines, new Set()));
   });
@@ -466,7 +480,7 @@ export async function saveDeal(
 
   const db = getDb();
   const [existing] = await db
-    .select({ selectedTerm: deals.selectedTerm, selectedEquityCents: deals.selectedEquityCents })
+    .select({ selectedTerm: deals.selectedTerm })
     .from(deals)
     .where(eq(deals.id, id))
     .limit(1);
@@ -477,7 +491,6 @@ export async function saveDeal(
   // A choice made on a term that is no longer offered is cleared with it.
   const chosen = selectedTermFromColumn(existing.selectedTerm);
   const selectedTerm = chosen !== null && offeredTerms(input.termOffer).includes(chosen) ? chosen : null;
-  const selectedEquityCents = selectedTerm === null || !input.equityEnabled ? null : existing.selectedEquityCents;
 
   const dealUpdate = {
     companyName: input.companyName.trim(),
@@ -501,7 +514,7 @@ export async function saveDeal(
     hourlyCostCents: input.hourlyCostCents,
     selectedPackageId: null,
     selectedTerm,
-    selectedEquityCents,
+    selectedEquityCents: draftStepCents(input),
   };
   await db.transaction(async (tx) => {
     await tx.delete(packages).where(eq(packages.dealId, id));
@@ -511,23 +524,14 @@ export async function saveDeal(
   return { ok: true };
 }
 
-// The client picks a whole term block, with how much of each hour goes into equity.
-export async function selectTerm(
-  token: string,
-  term: string,
-  equityCents: number,
-): Promise<{ ok: true } | { ok: false; error: string }> {
+// The client picks a whole term block. Staff set the equity amount; the client does not change it.
+export async function selectTerm(token: string, term: string): Promise<{ ok: true } | { ok: false; error: string }> {
   if (!isClientTerm(term)) return { ok: false, error: "That term is not offered." };
   const deal = await getDealByToken(token);
   if (!deal) return { ok: false, error: "That term is not offered." };
-  const letter = dealToLetter(deal);
-  if (!letter.terms.some((item) => item.term === term)) return { ok: false, error: "That term is not offered." };
-  if (!letter.steps.includes(equityCents)) return { ok: false, error: "That equity amount is not offered." };
+  if (!offeredTerms(deal.termOffer).includes(term)) return { ok: false, error: "That term is not offered." };
   const db = getDb();
-  await db
-    .update(deals)
-    .set({ selectedPackageId: null, selectedTerm: term, selectedEquityCents: equityCents })
-    .where(eq(deals.id, deal.id));
+  await db.update(deals).set({ selectedPackageId: null, selectedTerm: term }).where(eq(deals.id, deal.id));
   return { ok: true };
 }
 
@@ -574,6 +578,6 @@ export function dealToLetter(deal: DealRecord): LetterDeal {
     steps: built.steps,
     terms: built.terms,
     selectedTerm: deal.selectedTerm,
-    selectedEquityCents: deal.equityEnabled ? deal.selectedEquityCents : 0,
+    selectedEquityCents: dealStepCents(built.steps, deal.selectedEquityCents, deal.equityEnabled),
   };
 }

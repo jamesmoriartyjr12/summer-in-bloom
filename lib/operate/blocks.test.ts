@@ -16,11 +16,11 @@ describe("letter blocks", () => {
     assert.deepEqual(parseBlocks(null), defaultBlocks());
     assert.deepEqual(
       defaultBlocks().map((block) => block.type),
-      ["greeting", "equity", "offers"],
+      ["greeting", "offers"],
     );
   });
 
-  it("keeps one greeting and offers, any number of dividers, and drops the old term block", () => {
+  it("keeps one greeting and offers, any number of dividers, and drops the old term and equity blocks", () => {
     const blocks = parseBlocks([
       { id: "a", type: "greeting", text: "Hi" },
       { id: "b", type: "divider" },
@@ -28,6 +28,7 @@ describe("letter blocks", () => {
       { id: "d", type: "divider" },
       { id: "e", type: "offers" },
       { id: "t", type: "term" },
+      { id: "q", type: "equity" },
       { id: "f", type: "script" },
       { id: "d", type: "divider" },
     ]);
@@ -36,7 +37,6 @@ describe("letter blocks", () => {
       ["a", "b", "d", "e"],
     );
     assert.equal(canAddBlock(blocks, "greeting"), false);
-    assert.equal(canAddBlock(blocks, "equity"), true);
     assert.equal(canAddBlock(blocks, "offers"), false);
     assert.equal(canAddBlock(blocks, "divider"), true);
   });
@@ -44,8 +44,8 @@ describe("letter blocks", () => {
   it("moves a block and ignores moves off the end", () => {
     const blocks = defaultBlocks();
     assert.deepEqual(
-      moveBlock(blocks, 2, -1).map((block) => block.type),
-      ["greeting", "offers", "equity"],
+      moveBlock(blocks, 1, -1).map((block) => block.type),
+      ["offers", "greeting"],
     );
     assert.equal(moveBlock(blocks, 0, -1), blocks);
   });
