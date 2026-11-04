@@ -36,6 +36,7 @@ import {
   DEFAULT_MULTIPLIER,
   EQUITY_BASES,
   equityBasisLabel,
+  formatPercent,
   isEquityBasis,
   MIN_CASH_RATE_CENTS,
   type EquityBasis,
@@ -363,17 +364,20 @@ function AddServiceMenu({
 function EquityMenu({
   enabled,
   steps,
+  terms,
   selectedCents,
   floorCents,
   onChange,
 }: {
   enabled: boolean;
   steps: number[];
+  terms: LetterTerm[];
   selectedCents: number;
   floorCents: number;
   onChange: (next: { equityEnabled: boolean; equityCents?: number }) => void;
 }) {
   const on = enabled && selectedCents > 0;
+  const offered = steps.filter((step) => step > 0);
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -385,24 +389,52 @@ function EquityMenu({
           <ChevronDown aria-hidden="true" className="size-3.5" />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-56">
+      <DropdownMenuContent align="start" className="w-72">
         <DropdownMenuItem onSelect={() => onChange({ equityEnabled: false })}>
           <Check aria-hidden="true" className={enabled ? "invisible" : undefined} />
           No equity
         </DropdownMenuItem>
-        {steps.map((step) => (
-          <DropdownMenuItem
-            key={step}
-            onSelect={() => onChange({ equityEnabled: true, equityCents: step })}
-            className="tabular-nums"
-          >
-            <Check aria-hidden="true" className={on && step === selectedCents ? undefined : "invisible"} />
-            {formatDollars(step)}/hr into equity
-          </DropdownMenuItem>
-        ))}
+        {offered.length > 0 ? (
+          <div className="flex items-baseline justify-between gap-3 px-2 pb-1 pt-2 pl-8">
+            <span className="operate-label text-[10px] text-muted-foreground">Into equity</span>
+            <span className="operate-label text-[10px] text-muted-foreground">Total Investment</span>
+          </div>
+        ) : null}
+        {offered.map((step) => {
+          const index = steps.indexOf(step);
+          return (
+            <DropdownMenuItem
+              key={step}
+              onSelect={() => onChange({ equityEnabled: true, equityCents: step })}
+              className="items-start tabular-nums"
+            >
+              <Check aria-hidden="true" className={on && step === selectedCents ? "mt-0.5" : "invisible mt-0.5"} />
+              <span className="flex flex-1 items-start justify-between gap-3">
+                <span>{formatDollars(step)}/hr</span>
+                <span className="grid justify-items-end gap-0.5">
+                  {terms.map((term) => {
+                    const bundle = term.options[index];
+                    if (!bundle) return null;
+                    return (
+                      <span key={term.term} className="flex items-baseline gap-2">
+                        {terms.length > 1 ? (
+                          <span className="operate-label text-[10px] text-muted-foreground">{term.label}</span>
+                        ) : null}
+                        <span className="font-medium">{formatDollars(bundle.equityTotalCents)}</span>
+                        {bundle.ownershipPercent !== null ? (
+                          <span className="text-xs text-muted-foreground">{formatPercent(bundle.ownershipPercent)}</span>
+                        ) : null}
+                      </span>
+                    );
+                  })}
+                </span>
+              </span>
+            </DropdownMenuItem>
+          );
+        })}
         <DropdownMenuSeparator />
         <p className="px-2 py-1.5 text-xs text-muted-foreground">
-          {steps.length > 0
+          {offered.length > 0
             ? `Cash never drops below ${formatDollars(floorCents)}/hr.`
             : `No room above the ${formatDollars(floorCents)}/hr cash floor.`}
         </p>
@@ -571,7 +603,13 @@ export function Editor({ deal }: { deal: EditorDeal }) {
     () => previewLetter(fields, blocks, deal.selectedTerm, deal.baseCents, deal.startDate),
     [fields, blocks, deal.selectedTerm, deal.baseCents, deal.startDate],
   );
-  const offeredSteps = letter.steps.filter((step) => step > 0);
+  const equityOptions = useMemo(
+    () =>
+      fields.equityEnabled
+        ? letter
+        : previewLetter({ ...fields, equityEnabled: true }, blocks, deal.selectedTerm, deal.baseCents, deal.startDate),
+    [letter, fields, blocks, deal.selectedTerm, deal.baseCents, deal.startDate],
+  );
   const floor = floorCents(fields);
   const dirty = JSON.stringify([fields, blocks]) !== saved;
   const link = `${origin}/operate/d/${deal.token}`;
@@ -1002,7 +1040,8 @@ export function Editor({ deal }: { deal: EditorDeal }) {
         <span aria-hidden="true" className="h-5 w-px bg-border" />
         <EquityMenu
           enabled={fields.equityEnabled}
-          steps={offeredSteps}
+          steps={equityOptions.steps}
+          terms={equityOptions.terms}
           selectedCents={letter.selectedEquityCents}
           floorCents={floor}
           onChange={patch}
