@@ -99,6 +99,10 @@ export const letterStyles = `
   flex-direction: column;
   gap: 2px;
 }
+.operate-letter__parties .operate-letter__party {
+  align-items: flex-end;
+  text-align: right;
+}
 .operate-letter__party-name {
   margin-top: 6px;
   font-size: 20px;
@@ -120,6 +124,10 @@ export const letterStyles = `
   .operate-letter__parties {
     grid-column: auto;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .operate-letter__parties .operate-letter__party {
+    align-items: flex-start;
+    text-align: left;
   }
 }
 .operate-letter__greeting {

@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DealLetter } from "@/components/operate/DealLetter";
+import { Receipt } from "@/components/operate/Receipt";
 import type { ClientTerm, LetterDeal } from "@/lib/operate/pricing";
 
 const errorStyle = {
@@ -55,6 +56,7 @@ export function CustomerLetter({ token, deal }: { token: string; deal: LetterDea
         </p>
       ) : null}
       <DealLetter deal={{ ...deal, selectedTerm: term }} mode="customer" onSelect={onSelect} />
+      <Receipt deal={{ ...deal, selectedTerm: term }} />
     </>
   );
 }
