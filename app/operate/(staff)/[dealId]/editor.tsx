@@ -60,7 +60,7 @@ import {
   type ServiceLine,
   type TermOffer,
 } from "@/lib/operate/pricing";
-import { formatDate, isIsoDate } from "@/lib/operate/dates";
+import { isIsoDate } from "@/lib/operate/dates";
 import { createDealAction, lookupLinkedInAction, saveDealAction } from "@/app/operate/actions";
 import { HEADER_ACTIONS_ID } from "../shell";
 import { OPERATE_SERVICES } from "@/content/operate-services";
@@ -813,29 +813,19 @@ export function Editor({ deal }: { deal: EditorDeal }) {
     }
     if (block.type === "offers") {
       return (
-        <>
-          <OffersView
-            deal={letter}
-            mode="preview"
-            renderName={(line, index, term) => renderLineName(line, index, term)}
-            renderRate={(line, option, term, index) => renderLineRate(line, option, term, index)}
-            renderAddLine={(term) => (
-              <AddServiceMenu
-                label={`Add service, ${term.label.toLowerCase()}`}
-                disabled={fields.lines.length >= MAX_LINES}
-                onAdd={addLine}
-              />
-            )}
-          />
-          <p className="mt-3 text-xs text-muted-foreground">
-            {fields.ratesOverridden
-              ? "Custom rates for this deal. Services and hours are the same in every term."
-              : "Pricing sheet rates for each line's hours. Turn on custom rates to change them for this deal."}{" "}
-            {offered.length === 2 ? "The client picks one term." : "Click the other term to offer both."} Starts{" "}
-            {formatDate(isIsoDate(fields.startDate) ? fields.startDate : deal.startDate)}; each term ends on the nearest
-            Friday.
-          </p>
-        </>
+        <OffersView
+          deal={letter}
+          mode="preview"
+          renderName={(line, index, term) => renderLineName(line, index, term)}
+          renderRate={(line, option, term, index) => renderLineRate(line, option, term, index)}
+          renderAddLine={(term) => (
+            <AddServiceMenu
+              label={`Add service, ${term.label.toLowerCase()}`}
+              disabled={fields.lines.length >= MAX_LINES}
+              onAdd={addLine}
+            />
+          )}
+        />
       );
     }
     return <hr className="operate-letter__divider" />;
