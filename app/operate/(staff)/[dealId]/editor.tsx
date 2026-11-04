@@ -290,7 +290,7 @@ const blockShell =
   "group/block relative rounded-sm outline outline-1 outline-offset-[12px] outline-transparent transition-[outline-color] hover:outline-foreground/15 focus-within:outline-foreground/25";
 
 const chip =
-  "operate-label inline-flex h-7 items-center gap-1.5 rounded-full border border-border bg-background px-3 text-[11px] transition-colors hover:border-foreground/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+  "operate-label inline-flex h-7 shrink-0 items-center whitespace-nowrap gap-1.5 rounded-full border border-border bg-background px-3 text-[11px] transition-colors hover:border-foreground/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 function AddBlockMenu({
   blocks,
@@ -760,9 +760,7 @@ export function Editor({ deal }: { deal: EditorDeal }) {
             onChange={(serviceName) => patchLine(index, { serviceName })}
           />
         )}
-        <span className="operate-letter__detail">
-          {approved ? <span className="operate-letter__description">{approved.description}</span> : null}
-          <span className="operate-letter__hours flex items-center gap-1">
+        <span className="operate-letter__hours flex items-center gap-1">
           <input
             inputMode="numeric"
             aria-label={`Hours per week, ${where}`}
@@ -781,8 +779,8 @@ export function Editor({ deal }: { deal: EditorDeal }) {
               <Trash2 aria-hidden="true" className="size-3.5" />
             </button>
           ) : null}
-          </span>
         </span>
+        {approved ? <span className="operate-letter__description">{approved.description}</span> : null}
       </span>
     );
   }
@@ -999,18 +997,20 @@ export function Editor({ deal }: { deal: EditorDeal }) {
   return (
     <div className="min-h-full">
       {slot ? createPortal(<>{toolbar}</>, slot) : null}
-      <div className="sticky top-12 z-10 flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-border bg-background/95 px-4 py-2 backdrop-blur md:grid md:grid-cols-[1fr_auto_1fr]">
-        <label className="flex items-center gap-2 justify-self-start">
-          <span className="operate-label text-[11px] text-muted-foreground">Starts</span>
-          <input
-            type="date"
-            required
-            value={fields.startDate}
-            onChange={(event) => patch({ startDate: event.target.value })}
-            className="h-7 rounded-full border border-border bg-background px-3 text-xs tabular-nums transition-colors hover:border-foreground/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          />
-        </label>
-        <div role="group" aria-label="Terms offered" className="flex gap-1.5">
+      <div className="sticky top-12 z-10 flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-border bg-background/95 px-4 py-2 backdrop-blur">
+        <div className="flex flex-1 basis-0">
+          <label className="flex shrink-0 items-center gap-2 whitespace-nowrap">
+            <span className="operate-label text-[11px] text-muted-foreground">Starts</span>
+            <input
+              type="date"
+              required
+              value={fields.startDate}
+              onChange={(event) => patch({ startDate: event.target.value })}
+              className="h-7 rounded-full border border-border bg-background px-3 text-xs tabular-nums transition-colors hover:border-foreground/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            />
+          </label>
+        </div>
+        <div role="group" aria-label="Terms offered" className="flex shrink-0 gap-1.5">
           {CLIENT_TERMS.map((term) => {
             const on = offered.includes(term);
             return (
@@ -1026,7 +1026,7 @@ export function Editor({ deal }: { deal: EditorDeal }) {
             );
           })}
         </div>
-        <div className="flex items-center gap-1.5 md:justify-self-end">
+        <div className="flex flex-1 basis-0 items-center justify-end gap-1.5">
           <EquityMenu
             enabled={fields.equityEnabled}
             steps={equityOptions.steps}

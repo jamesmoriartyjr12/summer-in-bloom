@@ -190,19 +190,35 @@ button.operate-letter__option:focus-visible {
   display: contents;
 }
 .operate-letter__offer > .operate-letter__service {
-  grid-column: 1 / -1;
+  grid-column: 1 / -2;
   grid-row: 1;
-}
-.operate-letter__detail {
-  grid-column: 1;
-  grid-row: 2;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
   min-width: 0;
+}
+.operate-letter__offer > .operate-letter__hours {
+  grid-column: -2;
+  grid-row: 1;
+  justify-self: end;
+  white-space: nowrap;
+}
+.operate-letter__offer > .operate-letter__description {
+  grid-column: 1 / -1;
+  grid-row: 2;
 }
 .operate-letter__row > .operate-letter__figure {
   grid-row: 2;
+}
+.operate-letter__row--described > .operate-letter__figure {
+  grid-row: 3;
+  margin-top: 8px;
+}
+.operate-letter__row > .operate-letter__figure--rate {
+  grid-column: 2;
+}
+.operate-letter__row > .operate-letter__figure--cash {
+  grid-column: 3;
+}
+.operate-letter__row > .operate-letter__figure--weekly {
+  grid-column: -2;
 }
 .operate-letter__service {
   font-size: 20px;
@@ -210,7 +226,7 @@ button.operate-letter__option:focus-visible {
   line-height: 1.3;
 }
 .operate-letter__description {
-  max-width: 34rem;
+  max-width: 40rem;
   font-size: 15px;
   line-height: 1.45;
   color: rgba(7, 15, 24, 0.7);
@@ -284,11 +300,20 @@ button.operate-letter__option:focus-visible {
   .operate-letter__totals > * {
     grid-column: auto;
   }
-  .operate-letter__detail {
+  .operate-letter__offer > .operate-letter__service {
     grid-column: 1 / -1;
+  }
+  .operate-letter__offer > .operate-letter__hours {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: start;
+  }
+  .operate-letter__offer > .operate-letter__description {
+    grid-row: 3;
   }
   .operate-letter__row > .operate-letter__figure {
     grid-row: auto;
+    grid-column: auto;
   }
   .operate-letter__figure {
     align-items: flex-start;
@@ -346,25 +371,23 @@ function LineRow({
   const reduced = withEquity && option.cashRateCents < line.listRateCents;
   const listRate = rate ?? <span className="operate-letter__primary">{formatDollars(line.listRateCents)}</span>;
   return (
-    <span className="operate-letter__row">
+    <span className={line.description ? "operate-letter__row operate-letter__row--described" : "operate-letter__row"}>
       {name ?? (
         <span className="operate-letter__offer">
           <span className="operate-letter__service">{line.serviceName}</span>
-          <span className="operate-letter__detail">
-            {line.description ? <span className="operate-letter__description">{line.description}</span> : null}
-            <span className="operate-letter__hours">{line.hoursPerWeek} / week</span>
-          </span>
+          <span className="operate-letter__hours">{line.hoursPerWeek} / week</span>
+          {line.description ? <span className="operate-letter__description">{line.description}</span> : null}
         </span>
       )}
-      <Figure label="Rate">
+      <Figure label="Rate" className="operate-letter__figure--rate">
         {reduced ? <span className="operate-letter__struck">{listRate}</span> : listRate}
       </Figure>
       {withEquity ? (
-        <Figure label="w/ Investment" className="operate-letter__figure--start">
+        <Figure label="w/ Investment" className="operate-letter__figure--start operate-letter__figure--cash">
           <span className="operate-letter__primary">{formatDollars(option.cashRateCents)}</span>
         </Figure>
       ) : null}
-      <Figure label="Weekly Billables">
+      <Figure label="Weekly Billables" className="operate-letter__figure--weekly">
         <Figures equityEnabled={withEquity} listCents={line.weeklyListCents} cashCents={option.weeklyCashCents} />
       </Figure>
     </span>
