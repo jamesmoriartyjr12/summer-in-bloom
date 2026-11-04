@@ -187,10 +187,22 @@ button.operate-letter__option:focus-visible {
   grid-column: -3;
 }
 .operate-letter__offer {
+  display: contents;
+}
+.operate-letter__offer > .operate-letter__service {
+  grid-column: 1 / -1;
+  grid-row: 1;
+}
+.operate-letter__detail {
+  grid-column: 1;
+  grid-row: 2;
   display: flex;
   flex-direction: column;
   gap: 4px;
   min-width: 0;
+}
+.operate-letter__row > .operate-letter__figure {
+  grid-row: 2;
 }
 .operate-letter__service {
   font-size: 20px;
@@ -272,8 +284,11 @@ button.operate-letter__option:focus-visible {
   .operate-letter__totals > * {
     grid-column: auto;
   }
-  .operate-letter__offer {
+  .operate-letter__detail {
     grid-column: 1 / -1;
+  }
+  .operate-letter__row > .operate-letter__figure {
+    grid-row: auto;
   }
   .operate-letter__figure {
     align-items: flex-start;
@@ -335,8 +350,10 @@ function LineRow({
       {name ?? (
         <span className="operate-letter__offer">
           <span className="operate-letter__service">{line.serviceName}</span>
-          {line.description ? <span className="operate-letter__description">{line.description}</span> : null}
-          <span className="operate-letter__hours">{line.hoursPerWeek} / week</span>
+          <span className="operate-letter__detail">
+            {line.description ? <span className="operate-letter__description">{line.description}</span> : null}
+            <span className="operate-letter__hours">{line.hoursPerWeek} / week</span>
+          </span>
         </span>
       )}
       <Figure label="Rate">

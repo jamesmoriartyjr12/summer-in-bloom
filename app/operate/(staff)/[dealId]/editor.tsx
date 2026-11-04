@@ -750,10 +750,7 @@ export function Editor({ deal }: { deal: EditorDeal }) {
     return (
       <span className="operate-letter__offer">
         {approved ? (
-          <>
-            <span className="operate-letter__service">{approved.name}</span>
-            <span className="operate-letter__description">{approved.description}</span>
-          </>
+          <span className="operate-letter__service">{approved.name}</span>
         ) : (
           <GrowingText
             label={`Service name, line ${index + 1}, ${term.label.toLowerCase()}`}
@@ -763,7 +760,9 @@ export function Editor({ deal }: { deal: EditorDeal }) {
             onChange={(serviceName) => patchLine(index, { serviceName })}
           />
         )}
-        <span className="operate-letter__hours flex items-center gap-1">
+        <span className="operate-letter__detail">
+          {approved ? <span className="operate-letter__description">{approved.description}</span> : null}
+          <span className="operate-letter__hours flex items-center gap-1">
           <input
             inputMode="numeric"
             aria-label={`Hours per week, ${where}`}
@@ -782,6 +781,7 @@ export function Editor({ deal }: { deal: EditorDeal }) {
               <Trash2 aria-hidden="true" className="size-3.5" />
             </button>
           ) : null}
+          </span>
         </span>
       </span>
     );
@@ -999,7 +999,17 @@ export function Editor({ deal }: { deal: EditorDeal }) {
   return (
     <div className="min-h-full">
       {slot ? createPortal(<>{toolbar}</>, slot) : null}
-      <div className="sticky top-12 z-10 flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-border bg-background/95 px-4 py-2 backdrop-blur">
+      <div className="sticky top-12 z-10 flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-border bg-background/95 px-4 py-2 backdrop-blur md:grid md:grid-cols-[1fr_auto_1fr]">
+        <label className="flex items-center gap-2 justify-self-start">
+          <span className="operate-label text-[11px] text-muted-foreground">Starts</span>
+          <input
+            type="date"
+            required
+            value={fields.startDate}
+            onChange={(event) => patch({ startDate: event.target.value })}
+            className="h-7 rounded-full border border-border bg-background px-3 text-xs tabular-nums transition-colors hover:border-foreground/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          />
+        </label>
         <div role="group" aria-label="Terms offered" className="flex gap-1.5">
           {CLIENT_TERMS.map((term) => {
             const on = offered.includes(term);
@@ -1016,34 +1026,24 @@ export function Editor({ deal }: { deal: EditorDeal }) {
             );
           })}
         </div>
-        <span aria-hidden="true" className="h-5 w-px bg-border" />
-        <label className="flex items-center gap-2">
-          <span className="operate-label text-[11px] text-muted-foreground">Starts</span>
-          <input
-            type="date"
-            required
-            value={fields.startDate}
-            onChange={(event) => patch({ startDate: event.target.value })}
-            className="h-7 rounded-full border border-border bg-background px-3 text-xs tabular-nums transition-colors hover:border-foreground/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        <div className="flex items-center gap-1.5 md:justify-self-end">
+          <EquityMenu
+            enabled={fields.equityEnabled}
+            steps={equityOptions.steps}
+            terms={equityOptions.terms}
+            selectedCents={letter.selectedEquityCents}
+            floorCents={floor}
+            onChange={patch}
           />
-        </label>
-        <span aria-hidden="true" className="h-5 w-px bg-border" />
-        <EquityMenu
-          enabled={fields.equityEnabled}
-          steps={equityOptions.steps}
-          terms={equityOptions.terms}
-          selectedCents={letter.selectedEquityCents}
-          floorCents={floor}
-          onChange={patch}
-        />
-        <button
-          type="button"
-          aria-pressed={fields.ratesOverridden}
-          onClick={() => setCustomRates(!fields.ratesOverridden)}
-          className={`${chip} ml-auto ${fields.ratesOverridden ? "border-orange text-orange" : "text-muted-foreground"}`}
-        >
-          Custom rates {fields.ratesOverridden ? "on" : "off"}
-        </button>
+          <button
+            type="button"
+            aria-pressed={fields.ratesOverridden}
+            onClick={() => setCustomRates(!fields.ratesOverridden)}
+            className={`${chip} ${fields.ratesOverridden ? "border-orange text-orange" : "text-muted-foreground"}`}
+          >
+            Custom rates {fields.ratesOverridden ? "on" : "off"}
+          </button>
+        </div>
       </div>
 
       <LetterFrame companyName={fields.companyName} companyLogoUrl={fields.companyLogoUrl} canvas>
