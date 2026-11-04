@@ -956,20 +956,29 @@ export function Editor({ deal }: { deal: EditorDeal }) {
         {isNew ? null : (
           <>
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
-              className="gap-2"
+              className="size-9 px-0"
               aria-label={copied ? "Copied" : "Copy link"}
+              title={copied ? "Copied" : "Copy link"}
               onClick={() => void copyLink()}
               disabled={!origin}
             >
-              <Link2 aria-hidden="true" className="size-4" />
-              <span className="hidden lg:inline">{copied ? "Copied" : "Copy link"}</span>
+              {copied ? (
+                <Check aria-hidden="true" className="size-4" />
+              ) : (
+                <Link2 aria-hidden="true" className="size-4" />
+              )}
             </Button>
-            <Button asChild variant="ghost" size="sm" className="gap-2">
-              <a href={`/operate/d/${deal.token}`} target="_blank" rel="noreferrer" aria-label="Open as client">
+            <Button asChild variant="outline" size="sm" className="size-9 px-0">
+              <a
+                href={`/operate/d/${deal.token}`}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Open as client"
+                title="Open as client"
+              >
                 <ExternalLink aria-hidden="true" className="size-4" />
-                <span className="hidden lg:inline">Open as client</span>
               </a>
             </Button>
           </>
