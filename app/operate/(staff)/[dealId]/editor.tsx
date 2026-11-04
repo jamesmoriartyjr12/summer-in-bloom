@@ -561,6 +561,11 @@ function GrowingText({
   );
 }
 
+// Number fields fit their digits, so the "$" and the unit sit right against them.
+function fitWidth(value: string, minDigits: number): string {
+  return `calc(${Math.max(value.length, minDigits)}ch + 2px)`;
+}
+
 function RateInput({ value, label, onChange }: { value: string; label: string; onChange: (value: string) => void }) {
   return (
     <span className="inline-flex items-baseline font-semibold tabular-nums">
@@ -571,7 +576,8 @@ function RateInput({ value, label, onChange }: { value: string; label: string; o
         aria-label={label}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="w-16 border-0 border-b border-dashed border-foreground/40 bg-transparent p-0 text-right font-semibold tabular-nums text-inherit outline-none focus:border-orange"
+        style={{ width: fitWidth(value, 3) }}
+        className="h-6 border-0 border-b border-dashed border-foreground/40 bg-transparent p-0 text-right font-semibold tabular-nums text-inherit outline-none focus:border-orange"
       />
     </span>
   );
@@ -772,7 +778,8 @@ export function Editor({ deal }: { deal: EditorDeal }) {
             aria-label={`Hours per week, ${where}`}
             value={row.hours}
             onChange={(event) => patchLine(index, { hours: event.target.value })}
-            className="w-10 border-0 border-b border-dashed border-foreground/40 bg-transparent p-0 text-right tabular-nums text-inherit outline-none focus:border-orange"
+            style={{ width: fitWidth(row.hours, 2) }}
+            className="h-6 border-0 border-b border-dashed border-foreground/40 bg-transparent p-0 text-right tabular-nums text-inherit outline-none focus:border-orange"
           />
           hrs / week
           {fields.lines.length > 1 ? (
