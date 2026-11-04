@@ -371,7 +371,7 @@ export function GreetingView({ text, companyName }: { text: string; companyName:
 }
 
 export function termDates(term: LetterTerm): string {
-  return `${term.weeks} weeks · ${formatDate(term.startDate)} – ${formatDate(term.endDate)}`;
+  return `${formatDate(term.startDate)} – ${formatDate(term.endDate)}`;
 }
 
 // One term is one whole offer: every service line, priced for that term.
