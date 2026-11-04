@@ -12,8 +12,8 @@ describe("approved services", () => {
   });
 
   it("gives any other service no description", () => {
-    assert.equal(approvedService("Embedded Design Engineering"), undefined);
-    assert.equal(serviceDescription("Embedded Design Engineering"), "");
+    assert.equal(approvedService("Motion Graphics"), undefined);
+    assert.equal(serviceDescription("Motion Graphics"), "");
     assert.equal(serviceDescription("product strategy, product design"), "");
   });
 });
