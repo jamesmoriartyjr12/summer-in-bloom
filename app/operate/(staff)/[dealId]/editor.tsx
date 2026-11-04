@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
-import { ArrowDown, ArrowUp, ExternalLink, Link2, Lock, Plus, Trash2, UserRound } from "lucide-react";
+import { ArrowDown, ArrowUp, Check, ChevronDown, ExternalLink, Link2, Lock, Plus, Trash2, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -355,6 +355,57 @@ function AddServiceMenu({
         ))}
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={() => onAdd(SHEET_SERVICE)}>Blank service</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+function EquityMenu({
+  enabled,
+  steps,
+  selectedCents,
+  floorCents,
+  onChange,
+}: {
+  enabled: boolean;
+  steps: number[];
+  selectedCents: number;
+  floorCents: number;
+  onChange: (next: { equityEnabled: boolean; equityCents?: number }) => void;
+}) {
+  const on = enabled && selectedCents > 0;
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          className={`${chip} tabular-nums ${enabled ? "border-orange text-orange" : "text-muted-foreground"}`}
+        >
+          Equity {on ? `${formatDollars(selectedCents)}/hr` : enabled ? "on" : "off"}
+          <ChevronDown aria-hidden="true" className="size-3.5" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-56">
+        <DropdownMenuItem onSelect={() => onChange({ equityEnabled: false })}>
+          <Check aria-hidden="true" className={enabled ? "invisible" : undefined} />
+          No equity
+        </DropdownMenuItem>
+        {steps.map((step) => (
+          <DropdownMenuItem
+            key={step}
+            onSelect={() => onChange({ equityEnabled: true, equityCents: step })}
+            className="tabular-nums"
+          >
+            <Check aria-hidden="true" className={on && step === selectedCents ? undefined : "invisible"} />
+            {formatDollars(step)}/hr into equity
+          </DropdownMenuItem>
+        ))}
+        <DropdownMenuSeparator />
+        <p className="px-2 py-1.5 text-xs text-muted-foreground">
+          {steps.length > 0
+            ? `Cash never drops below ${formatDollars(floorCents)}/hr.`
+            : `No room above the ${formatDollars(floorCents)}/hr cash floor.`}
+        </p>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -949,40 +1000,13 @@ export function Editor({ deal }: { deal: EditorDeal }) {
           />
         </label>
         <span aria-hidden="true" className="h-5 w-px bg-border" />
-        <div role="group" aria-label="Equity" className="flex flex-wrap items-center gap-1.5">
-          <button
-            type="button"
-            aria-pressed={fields.equityEnabled}
-            onClick={() => patch({ equityEnabled: !fields.equityEnabled })}
-            className={`${chip} ${fields.equityEnabled ? "border-orange text-orange" : "text-muted-foreground"}`}
-          >
-            Equity {fields.equityEnabled ? "on" : "off"}
-          </button>
-          {fields.equityEnabled && offeredSteps.length > 0
-            ? offeredSteps.map((step) => {
-                const on = step === letter.selectedEquityCents;
-                return (
-                  <button
-                    key={step}
-                    type="button"
-                    aria-pressed={on}
-                    aria-label={`${formatDollars(step)} per hour into equity`}
-                    onClick={() => patch({ equityCents: step })}
-                    className={`${chip} tabular-nums ${on ? "border-foreground bg-foreground text-background hover:border-foreground" : "text-muted-foreground"}`}
-                  >
-                    {formatDollars(step)}/hr
-                  </button>
-                );
-              })
-            : null}
-          {fields.equityEnabled ? (
-            <span className="text-xs text-muted-foreground">
-              {offeredSteps.length > 0
-                ? `Cash floor ${formatDollars(floor)}/hr`
-                : `No room above the ${formatDollars(floor)}/hr floor`}
-            </span>
-          ) : null}
-        </div>
+        <EquityMenu
+          enabled={fields.equityEnabled}
+          steps={offeredSteps}
+          selectedCents={letter.selectedEquityCents}
+          floorCents={floor}
+          onChange={patch}
+        />
         <button
           type="button"
           aria-pressed={fields.ratesOverridden}
