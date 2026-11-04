@@ -226,7 +226,7 @@ button.operate-letter__option:focus-visible {
   line-height: 1.3;
 }
 .operate-letter__description {
-  max-width: 40rem;
+  max-width: calc(100% * 2 / 3);
   font-size: 15px;
   line-height: 1.45;
   color: rgba(7, 15, 24, 0.7);
@@ -264,6 +264,12 @@ button.operate-letter__option:focus-visible {
 .operate-letter__struck {
   color: rgba(7, 15, 24, 0.45);
   font-weight: 400;
+  text-decoration: line-through;
+}
+.operate-letter__struck:has(input) {
+  color: #070f18;
+}
+.operate-letter__struck input {
   text-decoration: line-through;
 }
 .operate-letter__primary {
@@ -310,6 +316,7 @@ button.operate-letter__option:focus-visible {
   }
   .operate-letter__offer > .operate-letter__description {
     grid-row: 3;
+    max-width: none;
   }
   .operate-letter__row > .operate-letter__figure {
     grid-row: auto;
@@ -375,7 +382,7 @@ function LineRow({
       {name ?? (
         <span className="operate-letter__offer">
           <span className="operate-letter__service">{line.serviceName}</span>
-          <span className="operate-letter__hours">{line.hoursPerWeek} / week</span>
+          <span className="operate-letter__hours">{line.hoursPerWeek} hrs / week</span>
           {line.description ? <span className="operate-letter__description">{line.description}</span> : null}
         </span>
       )}

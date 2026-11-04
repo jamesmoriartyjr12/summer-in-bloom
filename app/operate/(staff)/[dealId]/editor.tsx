@@ -768,7 +768,7 @@ export function Editor({ deal }: { deal: EditorDeal }) {
             onChange={(event) => patchLine(index, { hours: event.target.value })}
             className="w-10 border-0 border-b border-dashed border-foreground/40 bg-transparent p-0 text-right tabular-nums text-inherit outline-none focus:border-orange"
           />
-          / week
+          hrs / week
           {fields.lines.length > 1 ? (
             <button
               type="button"
