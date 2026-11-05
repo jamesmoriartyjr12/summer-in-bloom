@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useSyncExternalStore, type ReactNode } from "react";
-import { ChevronUp } from "lucide-react";
+import * as Dialog from "@radix-ui/react-dialog";
+import { ChevronUp, Download, X } from "lucide-react";
 import { sowPage } from "@/content/operate-contracts";
 import { formatPercent } from "@/lib/operate/equity";
 import { formatDollars, letterTerm, stepIndex, type LetterDeal } from "@/lib/operate/pricing";
@@ -196,11 +197,141 @@ button.operate-receipt__head:focus-visible {
   height: 6px;
   background: #FA4C1F;
 }
+.operate-receipt__cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 44px;
+  margin-top: 16px;
+  border: 0;
+  border-radius: 999px;
+  background: #FA4C1F;
+  color: #070F18;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.operate-receipt__cta:hover {
+  background: #E8441A;
+}
+.operate-receipt__cta:focus-visible {
+  outline: 2px solid #070F18;
+  outline-offset: 2px;
+}
 .operate-receipt__note {
-  margin: 12px 0 0;
+  margin: 10px 0 0;
+  text-align: center;
   font-size: 12px;
   line-height: 1.5;
   color: rgba(7, 15, 24, 0.6);
+}
+.operate-package__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(7, 15, 24, 0.4);
+}
+.operate-package {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 41;
+  box-sizing: border-box;
+  width: min(560px, calc(100vw - 24px));
+  max-height: calc(100vh - 24px);
+  overflow-y: auto;
+  padding: 24px;
+  transform: translate(-50%, -50%);
+  background: #FAF6EC;
+  border: 1px solid #070F18;
+  border-radius: 6px;
+  color: #070F18;
+  font-family: var(--font-archivo), sans-serif;
+}
+.operate-package:focus {
+  outline: none;
+}
+.operate-package__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.operate-package__title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1.25;
+}
+.operate-package__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.operate-package__close:focus-visible {
+  outline: 2px solid #070F18;
+}
+.operate-package__error {
+  margin: 12px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #C2370F;
+}
+.operate-package__docs {
+  display: grid;
+  gap: 16px;
+  margin-top: 20px;
+}
+.operate-package__doc {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 20px;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px dashed rgba(7, 15, 24, 0.3);
+}
+.operate-package__doc-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+.operate-package__doc-name {
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+.operate-package__doc-meta {
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(7, 15, 24, 0.7);
+}
+.operate-package__download {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  margin-top: 6px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: #FA4C1F;
+  color: #070F18;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+}
+.operate-package__download:focus-visible {
+  outline: 2px solid #070F18;
+  outline-offset: 2px;
 }
 @media (max-width: 640px) {
   .operate-receipt,
@@ -268,9 +399,11 @@ function DrawnPage({ title, companyName }: { title: string; companyName: string 
 }
 
 // A checkout review of the term the client picked: the ledger, then the SOW and MSA drawn up from it.
-export function Receipt({ deal }: { deal: LetterDeal }) {
+export function Receipt({ token, deal }: { token: string; deal: LetterDeal }) {
   const beside = useBesideLetter();
   const [opened, setOpened] = useState(false);
+  const [packageOpen, setPackageOpen] = useState(false);
+  const [packageError, setPackageError] = useState<string | null>(null);
   const term = letterTerm(deal, deal.selectedTerm);
   if (!term) return null;
 
@@ -280,6 +413,17 @@ export function Receipt({ deal }: { deal: LetterDeal }) {
   const open = beside || opened;
   const sow = sowPage(deal.companyName, term.term);
   const total = bundle ? formatDollars(bundle.totalCashCents) : null;
+
+  async function sendPackage() {
+    setPackageOpen(true);
+    setPackageError(null);
+    try {
+      const response = await fetch(`/operate/d/${token}/package`, { method: "POST" });
+      if (!response.ok) throw new Error("package failed");
+    } catch {
+      setPackageError("We could not let James know. Your SOW is below, and james@bloomventures.com can send the MSA.");
+    }
+  }
 
   const headContent = (
     <>
@@ -366,9 +510,67 @@ export function Receipt({ deal }: { deal: LetterDeal }) {
               <figcaption className="operate-letter__mono">MSA</figcaption>
             </figure>
           </div>
+          <button type="button" className="operate-receipt__cta" onClick={sendPackage}>
+            Send me package
+          </button>
           <p className="operate-receipt__note">Your SOW and MSA are drawn up from this selection.</p>
         </div>
       ) : null}
+      <Dialog.Root open={packageOpen} onOpenChange={setPackageOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="operate-package__overlay" />
+          <Dialog.Content className="operate-package">
+            <div className="operate-package__head">
+              <div>
+                <Dialog.Title className="operate-package__title">Your package</Dialog.Title>
+                <Dialog.Description className="operate-letter__mono">
+                  {term.label} · {termDates(term)}
+                </Dialog.Description>
+              </div>
+              <Dialog.Close className="operate-package__close" aria-label="Close">
+                <X className="size-4" aria-hidden="true" />
+              </Dialog.Close>
+            </div>
+            {packageError ? (
+              <p role="alert" className="operate-package__error">
+                {packageError}
+              </p>
+            ) : null}
+            <div className="operate-package__docs">
+              <div className="operate-package__doc">
+                {sow ? (
+                  <img className="operate-receipt__page" src={sow} alt="" />
+                ) : (
+                  <DrawnPage title="Statement of Work" companyName={deal.companyName} />
+                )}
+                <div className="operate-package__doc-text">
+                  <span className="operate-package__doc-name">Statement of Work</span>
+                  <span className="operate-package__doc-meta">
+                    {term.label}
+                    {total ? `, ${total} total billable` : null}
+                  </span>
+                  <a
+                    className="operate-package__download"
+                    href={`/operate/d/${token}/sow`}
+                    target="_blank"
+                    rel="noopener"
+                  >
+                    <Download className="size-4" aria-hidden="true" />
+                    Open and download
+                  </a>
+                </div>
+              </div>
+              <div className="operate-package__doc">
+                <DrawnPage title="Master Services Agreement" companyName={deal.companyName} />
+                <div className="operate-package__doc-text">
+                  <span className="operate-package__doc-name">Master Services Agreement</span>
+                  <span className="operate-package__doc-meta">James sends the MSA with your SOW for signature.</span>
+                </div>
+              </div>
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
     </aside>
   );
 }

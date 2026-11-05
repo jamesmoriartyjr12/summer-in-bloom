@@ -1,4 +1,4 @@
-import { bigint, boolean, date, integer, jsonb, pgTable, text, uuid } from "drizzle-orm/pg-core";
+import { bigint, boolean, date, integer, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 export const deals = pgTable("deals", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -25,6 +25,7 @@ export const deals = pgTable("deals", {
   selectedPackageId: uuid("selected_package_id"),
   selectedTerm: text("selected_term"),
   selectedEquityCents: integer("selected_equity_cents"),
+  packageRequestedAt: timestamp("package_requested_at", { withTimezone: true, mode: "string" }),
   hubspotContactId: text("hubspot_contact_id"),
   hubspotDealId: text("hubspot_deal_id"),
 });

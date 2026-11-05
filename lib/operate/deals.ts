@@ -64,6 +64,7 @@ export type DealRecord = {
   hourlyCostCents: number | null;
   selectedTerm: ClientTerm | null;
   selectedEquityCents: number;
+  packageRequestedAt: string | null;
   hubspotContactId: string | null;
   hubspotDealId: string | null;
   baseCents: number;
@@ -192,6 +193,7 @@ function toDealRecord(deal: DealRow, rows: PackageRow[], baseCents: number): Dea
     hourlyCostCents: deal.hourlyCostCents,
     selectedTerm: selectedTermFromColumn(deal.selectedTerm),
     selectedEquityCents: deal.selectedEquityCents ?? 0,
+    packageRequestedAt: deal.packageRequestedAt === null ? null : new Date(deal.packageRequestedAt).toISOString(),
     hubspotContactId: deal.hubspotContactId,
     hubspotDealId: deal.hubspotDealId,
     baseCents,
@@ -533,6 +535,15 @@ export async function selectTerm(token: string, term: string): Promise<{ ok: tru
   if (!offeredTerms(deal.termOffer).includes(term)) return { ok: false, error: "That term is not offered." };
   const db = getDb();
   await db.update(deals).set({ selectedPackageId: null, selectedTerm: term }).where(eq(deals.id, deal.id));
+  return { ok: true };
+}
+
+// The client asks for their SOW and MSA once a term is chosen; staff see when on the deal.
+export async function requestPackage(token: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  const deal = await getDealByToken(token);
+  if (!deal || !deal.selectedTerm) return { ok: false, error: "Choose a term first." };
+  const db = getDb();
+  await db.update(deals).set({ packageRequestedAt: new Date().toISOString() }).where(eq(deals.id, deal.id));
   return { ok: true };
 }
 

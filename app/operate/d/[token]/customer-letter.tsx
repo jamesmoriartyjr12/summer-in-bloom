@@ -56,7 +56,7 @@ export function CustomerLetter({ token, deal }: { token: string; deal: LetterDea
         </p>
       ) : null}
       <DealLetter deal={{ ...deal, selectedTerm: term }} mode="customer" onSelect={onSelect} />
-      <Receipt deal={{ ...deal, selectedTerm: term }} />
+      <Receipt token={token} deal={{ ...deal, selectedTerm: term }} />
     </>
   );
 }

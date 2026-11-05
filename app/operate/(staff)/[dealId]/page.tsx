@@ -51,6 +51,7 @@ export default async function DealEditorPage({ params }: { params: { dealId: str
     hourlyCostCents: deal.hourlyCostCents,
     selectedTerm: deal.selectedTerm,
     selectedEquityCents: deal.selectedEquityCents,
+    packageRequestedAt: deal.packageRequestedAt,
     lines: deal.lines,
   };
 

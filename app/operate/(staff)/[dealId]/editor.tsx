@@ -98,8 +98,13 @@ export type EditorDeal = {
   hourlyCostCents: number | null;
   selectedTerm: ClientTerm | null;
   selectedEquityCents: number;
+  packageRequestedAt?: string | null;
   lines: ServiceLine[];
 };
+
+function requestedOn(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "America/New_York" });
+}
 
 // `key` stays put for React while `id` is empty until the line is saved.
 type LineFields = {
@@ -1079,6 +1084,10 @@ export function Editor({ deal }: { deal: EditorDeal }) {
             </span>
           ) : dirty ? (
             <span className="hidden text-sm text-muted-foreground md:inline">Unsaved changes</span>
+          ) : deal.packageRequestedAt ? (
+            <span className="hidden text-sm text-muted-foreground md:inline">
+              Package requested {requestedOn(deal.packageRequestedAt)}
+            </span>
           ) : null}
           <div className="flex items-center gap-2">
             {isNew ? null : (
