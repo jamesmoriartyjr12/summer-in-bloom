@@ -1140,7 +1140,7 @@ export function Editor({ deal }: { deal: EditorDeal }) {
               required
               value={fields.startDate}
               onChange={(event) => patch({ startDate: event.target.value })}
-              className="h-7 rounded-full border border-border bg-background px-3 text-xs tabular-nums transition-colors hover:border-foreground/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="h-7 rounded-md border-0 bg-transparent px-1.5 text-sm tabular-nums transition-colors hover:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
           </label>
         </div>
