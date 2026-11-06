@@ -115,9 +115,6 @@ button.operate-receipt__head:focus-visible {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-.operate-receipt__value s {
-  color: rgba(7, 15, 24, 0.45);
-}
 .operate-receipt__service {
   display: flex;
   flex-direction: column;
@@ -369,15 +366,6 @@ function Row({ label, children, total = false }: { label: ReactNode; children: R
   );
 }
 
-function Amount({ listCents, cashCents }: { listCents: number; cashCents: number }) {
-  return (
-    <>
-      {cashCents < listCents ? <s>{formatDollars(listCents)}</s> : null}
-      <span>{formatDollars(cashCents)}</span>
-    </>
-  );
-}
-
 const PAGE_LINES = [92, 100, 96, 70, 0, 100, 88, 94, 60, 0, 98, 90, 76];
 
 function DrawnPage({ title, companyName }: { title: string; companyName: string }) {
@@ -468,7 +456,7 @@ export function Receipt({ token, deal }: { token: string; deal: LetterDeal }) {
                 <div key={line.id} className="operate-receipt__service">
                   <span className="operate-receipt__service-name">{line.serviceName}</span>
                   <Row label={`${line.hoursPerWeek} hrs × ${formatDollars(option.cashRateCents)}`}>
-                    <Amount listCents={line.weeklyListCents} cashCents={option.weeklyCashCents} />
+                    <span>{formatDollars(option.weeklyCashCents)}</span>
                     <span className="operate-receipt__row-label">/ wk</span>
                   </Row>
                 </div>
@@ -478,21 +466,25 @@ export function Receipt({ token, deal }: { token: string; deal: LetterDeal }) {
           {bundle ? (
             <div className="operate-receipt__ledger">
               {term.lines.length > 1 ? (
-                <Row label="Weekly billables">
-                  <Amount listCents={bundle.weeklyListCents} cashCents={bundle.weeklyCashCents} />
+                <Row label="Weekly total">
+                  <span>{formatDollars(bundle.weeklyCashCents)}</span>
+                  <span className="operate-receipt__row-label">/ wk</span>
                 </Row>
               ) : null}
               <Row label="Weeks">{term.weeks}</Row>
               {withEquity && bundle.equityTotalCents > 0 ? (
-                <Row label="Total investment">
-                  <span>{formatDollars(bundle.equityTotalCents)}</span>
-                  {bundle.ownershipPercent !== null ? (
-                    <span className="operate-receipt__row-label">{formatPercent(bundle.ownershipPercent)}</span>
-                  ) : null}
-                </Row>
+                <>
+                  <Row label="Value">{formatDollars(bundle.totalListCents)}</Row>
+                  <Row label="Bloom invests">
+                    {bundle.ownershipPercent !== null ? (
+                      <span className="operate-receipt__row-label">{formatPercent(bundle.ownershipPercent)}</span>
+                    ) : null}
+                    <span>−{formatDollars(bundle.equityTotalCents)}</span>
+                  </Row>
+                </>
               ) : null}
-              <Row label="Total billable" total>
-                <Amount listCents={bundle.totalListCents} cashCents={bundle.totalCashCents} />
+              <Row label="You pay" total>
+                {formatDollars(bundle.totalCashCents)}
               </Row>
             </div>
           ) : null}

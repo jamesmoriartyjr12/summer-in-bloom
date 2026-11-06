@@ -217,10 +217,7 @@ button.operate-letter__option:focus-visible {
 .operate-letter__table {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
-  column-gap: 32px;
-}
-.operate-letter__table--equity {
-  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  column-gap: 40px;
 }
 .operate-letter__row,
 .operate-letter__totals {
@@ -242,21 +239,32 @@ button.operate-letter__option:focus-visible {
   display: flex;
   padding: 14px 10px;
 }
-.operate-letter__totals > .operate-letter__add {
-  grid-column: 1;
-  grid-row: 1;
-  align-self: end;
-  padding: 0;
-}
-.operate-letter__totals--stacked > .operate-letter__add {
-  grid-row: 1 / span 2;
-}
-.operate-letter__total-weekly,
-.operate-letter__total-over {
+.operate-letter__total-weekly {
   grid-column: -2;
 }
-.operate-letter__total-equity {
-  grid-column: -3;
+.operate-letter__total-line {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px 24px;
+}
+.operate-letter__total-line > .operate-letter__add {
+  padding: 0;
+}
+.operate-letter__equation {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 8px 16px;
+  margin-left: auto;
+}
+.operate-letter__operator {
+  font-size: 18px;
+  line-height: 1.4;
+  color: rgba(7, 15, 24, 0.45);
 }
 .operate-letter__offer {
   display: contents;
@@ -281,13 +289,10 @@ button.operate-letter__option:focus-visible {
 }
 .operate-letter__row--described > .operate-letter__figure {
   grid-row: 3;
-  margin-top: 8px;
+  margin-top: 28px;
 }
 .operate-letter__row > .operate-letter__figure--rate {
   grid-column: 2;
-}
-.operate-letter__row > .operate-letter__figure--cash {
-  grid-column: 3;
 }
 .operate-letter__row > .operate-letter__figure--weekly {
   grid-column: -2;
@@ -314,12 +319,18 @@ button.operate-letter__option:focus-visible {
   align-items: flex-end;
   gap: 2px;
 }
-.operate-letter__figure--start {
-  align-items: flex-start;
-}
 .operate-letter__percent {
   font-size: 14px;
   color: rgba(7, 15, 24, 0.7);
+  font-variant-numeric: tabular-nums;
+}
+.operate-letter__unit {
+  font-weight: 400;
+  color: rgba(7, 15, 24, 0.6);
+}
+.operate-letter__value {
+  font-size: 18px;
+  line-height: 1.4;
   font-variant-numeric: tabular-nums;
 }
 .operate-letter__figure-label {
@@ -337,6 +348,9 @@ button.operate-letter__option:focus-visible {
   color: rgba(7, 15, 24, 0.45);
   font-weight: 400;
   text-decoration: line-through;
+}
+.operate-letter__struck--small {
+  font-size: 14px;
 }
 .operate-letter__struck:has(input) {
   color: #070f18;
@@ -371,17 +385,15 @@ button.operate-letter__option:focus-visible {
   }
 }
 @container operate-option (max-width: 640px) {
-  .operate-letter__table,
-  .operate-letter__table--equity {
+  .operate-letter__table {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
   .operate-letter__totals > * {
-    grid-column: auto;
-  }
-  .operate-letter__totals > .operate-letter__add {
     grid-column: 1 / -1;
-    grid-row: auto;
-    margin-bottom: 10px;
+  }
+  .operate-letter__equation {
+    justify-content: flex-start;
+    margin-left: 0;
   }
   .operate-letter__offer > .operate-letter__service {
     grid-column: 1 / -1;
@@ -408,27 +420,6 @@ button.operate-letter__option:focus-visible {
   }
 }
 `;
-
-export function Figures({
-  equityEnabled,
-  listCents,
-  cashCents,
-}: {
-  equityEnabled: boolean;
-  listCents: number;
-  cashCents: number;
-}) {
-  if (!equityEnabled || cashCents >= listCents) {
-    return <span className="operate-letter__primary">{formatDollars(listCents)}</span>;
-  }
-
-  return (
-    <span className="operate-letter__pair">
-      <span className="operate-letter__struck">{formatDollars(listCents)}</span>
-      <span className="operate-letter__primary">{formatDollars(cashCents)}</span>
-    </span>
-  );
-}
 
 function Figure({ label, className, children }: { label: string; className?: string; children: ReactNode }) {
   return (
@@ -464,15 +455,19 @@ function LineRow({
         </span>
       )}
       <Figure label="Rate" className="operate-letter__figure--rate">
-        {reduced ? <span className="operate-letter__struck">{listRate}</span> : listRate}
+        <span className="operate-letter__pair operate-letter__value">
+          {reduced ? <span className="operate-letter__struck operate-letter__struck--small">{listRate}</span> : null}
+          <span>
+            {reduced ? <span className="operate-letter__primary">{formatDollars(option.cashRateCents)}</span> : listRate}
+            <span className="operate-letter__unit">/hr</span>
+          </span>
+        </span>
       </Figure>
-      {withEquity ? (
-        <Figure label="w/ Investment" className="operate-letter__figure--start operate-letter__figure--cash">
-          <span className="operate-letter__primary">{formatDollars(option.cashRateCents)}</span>
-        </Figure>
-      ) : null}
-      <Figure label="Weekly Billables" className="operate-letter__figure--weekly">
-        <Figures equityEnabled={withEquity} listCents={line.weeklyListCents} cashCents={option.weeklyCashCents} />
+      <Figure label="Weekly" className="operate-letter__figure--weekly">
+        <span className="operate-letter__value">
+          <span className="operate-letter__primary">{formatDollars(withEquity ? option.weeklyCashCents : line.weeklyListCents)}</span>
+          <span className="operate-letter__unit">/wk</span>
+        </span>
       </Figure>
     </span>
   );
@@ -577,6 +572,41 @@ export function termDates(term: LetterTerm): string {
   return `${formatDate(term.startDate)} – ${formatDate(term.endDate)}`;
 }
 
+// What the client pays, shown as the sum: the full value, less what Bloom takes in equity.
+function TotalEquation({ bundle, withEquity }: { bundle: BundleOption; withEquity: boolean }) {
+  const invests = withEquity && bundle.equityTotalCents > 0;
+  return (
+    <span className="operate-letter__equation">
+      {invests ? (
+        <>
+          <Figure label="Value">
+            <span className="operate-letter__value">{formatDollars(bundle.totalListCents)}</span>
+          </Figure>
+          <span className="operate-letter__operator" aria-label="minus">
+            −
+          </span>
+          <Figure label="Bloom invests">
+            <span className="operate-letter__pair operate-letter__value">
+              {formatDollars(bundle.equityTotalCents)}
+              {bundle.ownershipPercent !== null ? (
+                <span className="operate-letter__percent">{formatPercent(bundle.ownershipPercent)}</span>
+              ) : null}
+            </span>
+          </Figure>
+          <span className="operate-letter__operator" aria-label="equals">
+            =
+          </span>
+        </>
+      ) : null}
+      <Figure label="You pay">
+        <span className="operate-letter__value operate-letter__primary">
+          {formatDollars(invests ? bundle.totalCashCents : bundle.totalListCents)}
+        </span>
+      </Figure>
+    </span>
+  );
+}
+
 // One term is one whole offer: every service line, priced for that term.
 function TermOption({
   term,
@@ -611,7 +641,7 @@ function TermOption({
         </span>
         <span className="operate-letter__mono">{termDates(term)}</span>
       </span>
-      <span className={withEquity ? "operate-letter__table operate-letter__table--equity" : "operate-letter__table"}>
+      <span className="operate-letter__table">
         {term.lines.map((line, i) => (
           <LineRow
             key={line.id}
@@ -624,30 +654,21 @@ function TermOption({
         ))}
         {addLine && !bundle ? <span className="operate-letter__add">{addLine}</span> : null}
         {bundle ? (
-          <span
-            className={
-              term.lines.length > 1 ? "operate-letter__totals operate-letter__totals--stacked" : "operate-letter__totals"
-            }
-          >
-            {addLine ? <span className="operate-letter__add">{addLine}</span> : null}
+          <span className="operate-letter__totals">
             {term.lines.length > 1 ? (
               <Figure label="Weekly total" className="operate-letter__total-weekly">
-                <Figures equityEnabled={withEquity} listCents={bundle.weeklyListCents} cashCents={bundle.weeklyCashCents} />
-              </Figure>
-            ) : null}
-            {withEquity ? (
-              <Figure label="Total Investment" className="operate-letter__figure--start operate-letter__total-equity">
-                <span className="operate-letter__primary">
-                  {bundle.equityTotalCents > 0 ? formatDollars(bundle.equityTotalCents) : "—"}
+                <span className="operate-letter__value">
+                  <span className="operate-letter__primary">
+                    {formatDollars(withEquity ? bundle.weeklyCashCents : bundle.weeklyListCents)}
+                  </span>
+                  <span className="operate-letter__unit">/wk</span>
                 </span>
-                {bundle.ownershipPercent !== null ? (
-                  <span className="operate-letter__percent">{formatPercent(bundle.ownershipPercent)}</span>
-                ) : null}
               </Figure>
             ) : null}
-            <Figure label="Total Billable" className="operate-letter__total-over">
-              <Figures equityEnabled={withEquity} listCents={bundle.totalListCents} cashCents={bundle.totalCashCents} />
-            </Figure>
+            <span className="operate-letter__total-line">
+              {addLine ? <span className="operate-letter__add">{addLine}</span> : null}
+              <TotalEquation bundle={bundle} withEquity={withEquity} />
+            </span>
           </span>
         ) : null}
       </span>
