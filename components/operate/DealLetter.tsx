@@ -86,7 +86,11 @@ export const letterStyles = `
   grid-template-columns: minmax(0, 1fr) 15rem;
   column-gap: 48px;
   row-gap: 32px;
-  align-items: center;
+  align-items: start;
+}
+/* Archivo's cap top sits 0.242em into the greeting's line box, the label's 3.6px into its own. */
+.operate-letter__intro-grid .operate-letter__greeting {
+  margin-top: calc(3.6px - 0.242em);
 }
 .operate-letter__parties {
   grid-column: -2;
@@ -120,6 +124,9 @@ export const letterStyles = `
 @container operate-intro (max-width: 640px) {
   .operate-letter__intro-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .operate-letter__intro-grid .operate-letter__greeting {
+    margin-top: 0;
   }
   .operate-letter__parties {
     grid-column: auto;
