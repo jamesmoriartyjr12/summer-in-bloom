@@ -53,8 +53,10 @@ import {
   formatDollars,
   dealStepCents,
   MAX_LINES,
+  SHEET_HOURS,
   SHEET_SERVICE,
   sheetLine,
+  termFloorCents,
   termLabel,
   offeredTerms,
   type ClientTerm,
@@ -421,9 +423,11 @@ function EquityMenu({
         })}
         <DropdownMenuSeparator />
         <p className="px-2 py-1.5 text-xs text-muted-foreground">
-          {offered.length > 0
-            ? `Cash never drops below ${formatDollars(floorCents)}/hr.`
-            : `No room above the ${formatDollars(floorCents)}/hr cash floor.`}
+          {offered.length > 0 ? "Cash never drops below " : "No room above the cash floor: "}
+          {terms
+            .map((term) => `${formatDollars(termFloorCents(floorCents, term.term))}/hr for ${term.label.toLowerCase()}`)
+            .join(", ")}
+          .
         </p>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -610,11 +614,6 @@ function GrowingText({
   );
 }
 
-// Number fields fit their digits, so the "$" and the unit sit right against them.
-function fitWidth(value: string, minDigits: number): string {
-  return `calc(${Math.max(value.length, minDigits)}ch + 2px)`;
-}
-
 function Field({ label, note, children }: { label: string; note?: string; children: React.ReactNode }) {
   return (
     <label className="grid gap-1.5">
@@ -795,14 +794,29 @@ export function Editor({ deal }: { deal: EditorDeal }) {
           />
         )}
         <span className="operate-letter__hours flex items-center gap-1">
-          <input
-            inputMode="numeric"
-            aria-label={`Hours per week, ${where}`}
-            value={row.hours}
-            onChange={(event) => patchLine(index, { hours: event.target.value })}
-            style={{ width: fitWidth(row.hours, 2) }}
-            className="h-6 border-0 border-b border-dashed border-foreground/40 bg-transparent p-0 text-right tabular-nums text-inherit outline-none focus:border-orange"
-          />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                aria-label={`Hours per week, ${where}: ${row.hours}`}
+                className="h-6 border-0 border-b border-dashed border-foreground/40 bg-transparent p-0 tabular-nums text-inherit outline-none focus-visible:border-orange data-[state=open]:border-orange"
+              >
+                {row.hours}
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-36">
+              {SHEET_HOURS.map((hours) => (
+                <DropdownMenuItem
+                  key={hours}
+                  onSelect={() => patchLine(index, { hours: String(hours) })}
+                  className="tabular-nums"
+                >
+                  <Check aria-hidden="true" className={row.hours === String(hours) ? undefined : "invisible"} />
+                  {hours} hrs / week
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
           hrs / week
           {fields.lines.length > 1 ? (
             <button
@@ -983,7 +997,7 @@ export function Editor({ deal }: { deal: EditorDeal }) {
                 />
               </Field>
             ) : null}
-            <Field label="Cash floor ($/hr)">
+            <Field label="Cash floor ($/hr)" note="For six months. One year can go $20 under it.">
               <Input
                 inputMode="decimal"
                 value={fields.cashFloorDollars}

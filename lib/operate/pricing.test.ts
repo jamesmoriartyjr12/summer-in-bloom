@@ -21,6 +21,7 @@ import {
   termLabel,
   termMonths,
   termWeeks,
+  termFloorCents,
   validateLine,
   weeklyAmountCents,
 } from "./pricing";
@@ -59,7 +60,8 @@ describe("amplifier pricing", () => {
     const line = { serviceName: "Design Engineering", hoursPerWeek: 40, listRateCents: 20000, yearListRateCents: 18000 };
     assert.equal(validateLine(line), null);
     assert.equal(validateLine({ ...line, serviceName: " " }), "Every service needs a name.");
-    assert.equal(validateLine({ ...line, hoursPerWeek: 0 }), "Hours per week must be a positive whole number.");
+    assert.equal(validateLine({ ...line, hoursPerWeek: 0 }), "Hours per week must be 40, 80, or 120.");
+    assert.equal(validateLine({ ...line, hoursPerWeek: 100 }), "Hours per week must be 40, 80, or 120.");
     assert.equal(validateLine({ ...line, yearListRateCents: 0 }), "Every rate must be more than zero.");
   });
 
@@ -106,17 +108,20 @@ describe("amplifier pricing", () => {
     assert.equal(year?.endDate, "2027-10-29");
     assert.equal(year?.lines[0]?.description, "Weekly design and build.");
     assert.equal(six?.options[3]?.weeklyCashCents, 80 * 16000);
-    assert.equal(year?.options[3]?.weeklyCashCents, 80 * 15000);
-    assert.equal(year?.options[4]?.weeklyCashCents, 80 * 15000);
-    assert.equal(year?.options[3]?.equityTotalCents, 80 * 2000 * 52);
-    assert.equal(year?.options[3]?.ownershipPercent, 0.83);
+    assert.equal(six?.options[4]?.weeklyCashCents, 80 * 15000);
+    assert.equal(year?.options[3]?.weeklyCashCents, 80 * 14000);
+    assert.equal(year?.options[4]?.weeklyCashCents, 80 * 13000);
+    assert.equal(year?.options[3]?.equityTotalCents, 80 * 3000 * 52);
+    assert.equal(year?.options[3]?.ownershipPercent, 1.25);
     const cash = buildLetterTerms(["one-year"], [line], { ...settings, equityEnabled: false }, "2026-11-02");
     assert.deepEqual(cash.steps, [0]);
   });
 
   it("holds the staff equity amount to what the rates allow", () => {
     const line = { listRateCents: 18000, yearListRateCents: 16000 };
-    assert.deepEqual(letterSteps(["one-year"], [line], true, 15000), [0, 1000]);
+    assert.deepEqual(letterSteps(["one-year"], [line], true, 15000), [0, 1000, 2000, 3000]);
+    assert.equal(termFloorCents(15000, "six-month"), 15000);
+    assert.equal(termFloorCents(15000, "one-year"), 13000);
     assert.deepEqual(letterSteps(["six-month", "one-year"], [line], true, 15000), [0, 1000, 2000, 3000]);
     assert.deepEqual(letterSteps(["six-month"], [line], false, 15000), [0]);
     const steps = [0, 1000, 2000, 3000];

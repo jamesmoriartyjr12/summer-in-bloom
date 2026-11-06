@@ -15,6 +15,7 @@ import {
   lineRateCents,
   offeredTerms,
   quotedTerm,
+  termFloorCents,
   termMonths,
   termWeeks,
   type ClientTerm,
@@ -63,7 +64,7 @@ function toRow(deal: DashboardDeal): PipelineRow {
     deal.lines.map((line) => ({ hoursPerWeek: line.hoursPerWeek, listRateCents: lineRateCents(line, term) })),
     termWeeks(term) ?? 0,
     dealStepCents(steps, deal.selectedEquityCents, deal.equityEnabled),
-    deal.cashFloorCents,
+    termFloorCents(deal.cashFloorCents, term),
   );
   if (quote.hoursPerWeek === 0) {
     return { deal, term, hours: null, months, rateCents: null, valueCents: null, equityCents: null };

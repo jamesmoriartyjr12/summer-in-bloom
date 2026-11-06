@@ -44,6 +44,15 @@ export function longTermCents(sixMonthCents: number): number {
   return Math.max(0, sixMonthCents - LONG_TERM_DISCOUNT_CENTS);
 }
 
+// One year's cash floor sits $20 under six months', so the deepest discount needs the longer term.
+export function termFloorCents(floorCents: number, term: ClientTerm): number {
+  return term === "one-year" ? longTermCents(floorCents) : floorCents;
+}
+
+export function isSheetHours(hoursPerWeek: number): boolean {
+  return (SHEET_HOURS as readonly number[]).includes(hoursPerWeek);
+}
+
 export function sheetRateCents(baseCents: number, hoursPerWeek: number, term: ClientTerm): number {
   const sixMonth = Math.max(0, baseCents - hourSteps(hoursPerWeek) * STEP_DISCOUNT_CENTS);
   return term === "one-year" ? longTermCents(sixMonth) : sixMonth;
@@ -174,9 +183,7 @@ export function sheetLine(
 
 export function validateLine(line: Omit<ServiceLine, "id" | "description">): string | null {
   if (line.serviceName.trim() === "") return "Every service needs a name.";
-  if (!Number.isInteger(line.hoursPerWeek) || line.hoursPerWeek < 1) {
-    return "Hours per week must be a positive whole number.";
-  }
+  if (!isSheetHours(line.hoursPerWeek)) return "Hours per week must be 40, 80, or 120.";
   for (const rate of [line.listRateCents, line.yearListRateCents]) {
     if (!Number.isInteger(rate) || rate <= 0) return "Every rate must be more than zero.";
   }
@@ -292,10 +299,10 @@ export function letterSteps(
   floorCents: number,
 ): number[] {
   if (!equityEnabled) return [0];
-  return equitySteps(
-    terms.flatMap((term) => lines.map((line) => lineRateCents(line, term))),
-    floorCents,
+  const room = terms.flatMap((term) =>
+    lines.map((line) => lineRateCents(line, term) - termFloorCents(floorCents, term)),
   );
+  return equitySteps(room, 0);
 }
 
 // Staff set one equity amount per deal. With equity on it is never zero while the rates leave room for one.
@@ -318,6 +325,7 @@ export function buildLetterTerms(
     steps,
     terms: terms.map((term) => {
       const weeks = termWeeks(term) ?? 0;
+      const floorCents = termFloorCents(settings.floorCents, term);
       const priced = lines.map((line) => ({ ...line, listRateCents: lineRateCents(line, term) }));
       return {
         term,
@@ -334,12 +342,12 @@ export function buildLetterTerms(
           listRateCents: line.listRateCents,
           weeklyListCents: weeklyAmountCents(line.hoursPerWeek, line.listRateCents),
           options: steps.map((stepCents) => {
-            const cashRateCents = cashRateAt(line.listRateCents, stepCents, settings.floorCents);
+            const cashRateCents = cashRateAt(line.listRateCents, stepCents, floorCents);
             return { stepCents, cashRateCents, weeklyCashCents: weeklyAmountCents(line.hoursPerWeek, cashRateCents) };
           }),
         })),
         options: steps.map((stepCents) => {
-          const quote = bundleQuote(priced, weeks, stepCents, settings.floorCents);
+          const quote = bundleQuote(priced, weeks, stepCents, floorCents);
           return { ...quote, ownershipPercent: ownershipPercent(quote.equityTotalCents, settings.ownership) };
         }),
       };
