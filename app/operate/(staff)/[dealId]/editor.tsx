@@ -1086,7 +1086,14 @@ export function Editor({ deal }: { deal: EditorDeal }) {
               required
               value={fields.startDate}
               onChange={(event) => patch({ startDate: event.target.value })}
-              className="h-7 rounded-md border-0 bg-transparent px-1.5 text-sm tabular-nums transition-colors hover:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              onClick={(event) => {
+                try {
+                  event.currentTarget.showPicker();
+                } catch {
+                  // Some frames block the picker; the date can still be typed.
+                }
+              }}
+              className="h-7 cursor-pointer rounded-md border-0 bg-transparent px-1.5 text-sm tabular-nums transition-colors hover:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-calendar-picker-indicator]:hidden"
             />
           </label>
         </div>
