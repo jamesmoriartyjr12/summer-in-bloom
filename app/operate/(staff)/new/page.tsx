@@ -32,7 +32,6 @@ export default async function NewDealPage() {
     companyUrl: "",
     letterBlocks: defaultBlocks(),
     equityEnabled: false,
-    ratesOverridden: false,
     baseCents,
     termOffer: "both",
     startDate: dealStartDate({ startDate: null }),

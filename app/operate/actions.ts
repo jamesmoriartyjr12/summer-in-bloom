@@ -44,8 +44,8 @@ function dollarsToCents(raw: string): number | null {
   return Math.round(Number(clean) * 100);
 }
 
-// Staff set each line's rate per term. Cash comes from the client's equity choice and the floor.
-// Unreadable numbers stay NaN so the line validation reports them.
+// Staff set each line's service and hours. Rates come from the sheet when the deal is saved.
+// Unreadable hours stay NaN so the line validation reports them.
 function readLine(formData: FormData, index: number): LineDraft {
   const key = `line${index}`;
   const id = text(formData, `${key}Id`);
@@ -54,8 +54,8 @@ function readLine(formData: FormData, index: number): LineDraft {
     ...(id ? { id } : {}),
     serviceName: text(formData, `${key}Name`),
     hoursPerWeek: hours === "" ? Number.NaN : Number(hours),
-    listRateCents: dollarsToCents(text(formData, `${key}ListRate`)) ?? Number.NaN,
-    yearListRateCents: dollarsToCents(text(formData, `${key}YearListRate`)) ?? Number.NaN,
+    listRateCents: Number.NaN,
+    yearListRateCents: Number.NaN,
   };
 }
 
@@ -125,7 +125,6 @@ function parseDraft(formData: FormData): DealDraft | { error: string } {
     companyUrl,
     letterBlocks: parseBlocks(letterBlocks),
     equityEnabled: formData.get("equityEnabled") === "on",
-    ratesOverridden: formData.get("ratesOverridden") === "on",
     termOffer,
     startDate: startRaw === "" ? null : startRaw,
     round: text(formData, "round"),
@@ -173,14 +172,12 @@ async function completeDraft(
       if (profile.profile.company) draft.companyName = profile.profile.company;
     }
   }
-  if (!draft.ratesOverridden) {
-    const baseCents = await currentBaseCents();
-    draft.lines = draft.lines.map((line) => ({
-      ...line,
-      listRateCents: sheetRateCents(baseCents, line.hoursPerWeek, "six-month"),
-      yearListRateCents: sheetRateCents(baseCents, line.hoursPerWeek, "one-year"),
-    }));
-  }
+  const baseCents = await currentBaseCents();
+  draft.lines = draft.lines.map((line) => ({
+    ...line,
+    listRateCents: sheetRateCents(baseCents, line.hoursPerWeek, "six-month"),
+    yearListRateCents: sheetRateCents(baseCents, line.hoursPerWeek, "one-year"),
+  }));
   return { draft, notice };
 }
 

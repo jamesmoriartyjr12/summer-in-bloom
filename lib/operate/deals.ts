@@ -52,7 +52,6 @@ export type DealRecord = {
   companyUrl: string | null;
   letterBlocks: LetterBlock[];
   equityEnabled: boolean;
-  ratesOverridden: boolean;
   termOffer: TermOffer;
   startDate: string | null;
   round: string | null;
@@ -83,7 +82,6 @@ export type DealDraft = {
   companyUrl: string | null;
   letterBlocks: LetterBlock[];
   equityEnabled: boolean;
-  ratesOverridden: boolean;
   termOffer: TermOffer;
   startDate: string | null;
   round: string | null;
@@ -109,7 +107,6 @@ export type DealListItem = {
   avatarUrl: string | null;
   termOffer: TermOffer;
   selectedTerm: ClientTerm | null;
-  ratesOverridden: boolean;
 };
 
 type DealRow = typeof deals.$inferSelect;
@@ -146,25 +143,19 @@ export function defaultLine(baseCents: number, id: string): ServiceLine {
   return sheetLine(baseCents, { id, serviceName: SHEET_SERVICE, description: "", hoursPerWeek: 40 });
 }
 
-// The bundle is the deal's enabled rows. Without custom rates, each line follows the sheet for its hours.
-function dealLines(rows: PackageRow[], ratesOverridden: boolean, baseCents: number): ServiceLine[] {
+// The bundle is the deal's enabled rows. Every line follows the rate sheet for its hours.
+function dealLines(rows: PackageRow[], baseCents: number): ServiceLine[] {
   const lines = rows
     .filter((row) => row.enabled)
     .sort((left, right) => left.sortOrder - right.sortOrder || left.id.localeCompare(right.id))
-    .map((row): ServiceLine => {
-      const line = {
+    .map((row) =>
+      sheetLine(baseCents, {
         id: row.id,
         serviceName: row.serviceName,
         description: serviceDescription(row.serviceName),
         hoursPerWeek: row.hoursPerWeek,
-      };
-      if (!ratesOverridden) return sheetLine(baseCents, line);
-      return {
-        ...line,
-        listRateCents: row.listRateCents,
-        yearListRateCents: row.yearListRateCents ?? longTermCents(row.listRateCents),
-      };
-    });
+      }),
+    );
   return lines.length > 0 ? lines : [defaultLine(baseCents, crypto.randomUUID())];
 }
 
@@ -181,7 +172,6 @@ function toDealRecord(deal: DealRow, rows: PackageRow[], baseCents: number): Dea
     companyUrl: deal.companyUrl,
     letterBlocks: parseBlocks(deal.letterBlocks),
     equityEnabled: deal.equityEnabled,
-    ratesOverridden: deal.ratesOverridden,
     termOffer: offerFromColumn(deal.termLength),
     startDate: deal.startDate,
     round: deal.round,
@@ -197,7 +187,7 @@ function toDealRecord(deal: DealRow, rows: PackageRow[], baseCents: number): Dea
     hubspotContactId: deal.hubspotContactId,
     hubspotDealId: deal.hubspotDealId,
     baseCents,
-    lines: dealLines(rows, deal.ratesOverridden, baseCents),
+    lines: dealLines(rows, baseCents),
   };
 }
 
@@ -236,7 +226,7 @@ export async function currentBaseCents(): Promise<number> {
   return baseRateCents(await listBaseRates()) ?? DEFAULT_BASE_CENTS;
 }
 
-// One base rate builds the whole sheet. Deals without custom rates read their prices from it.
+// One base rate builds the whole sheet. Every deal reads its prices from it.
 export async function saveBaseRate(
   baseCents: number,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
@@ -353,7 +343,6 @@ export async function listDashboard(): Promise<{ rates: OfferRate[]; deals: Dash
       avatarUrl: deals.avatarUrl,
       termLength: deals.termLength,
       selectedTerm: deals.selectedTerm,
-      ratesOverridden: deals.ratesOverridden,
       equityEnabled: deals.equityEnabled,
       selectedEquityCents: deals.selectedEquityCents,
       cashFloorCents: deals.cashFloorCents,
@@ -378,11 +367,9 @@ export async function listDashboard(): Promise<{ rates: OfferRate[]; deals: Dash
       avatarUrl: row.avatarUrl,
       termOffer: offerFromColumn(row.termLength),
       selectedTerm: selectedTermFromColumn(row.selectedTerm),
-      ratesOverridden: row.ratesOverridden,
       equityEnabled: row.equityEnabled,
       lines: dealLines(
         lineRowsFound.filter((pkg) => pkg.dealId === row.id),
-        row.ratesOverridden,
         baseCents,
       ),
       selectedEquityCents: row.selectedEquityCents ?? 0,
@@ -406,7 +393,6 @@ export async function listDeals(): Promise<DealListItem[]> {
       avatarUrl: deals.avatarUrl,
       termLength: deals.termLength,
       selectedTerm: deals.selectedTerm,
-      ratesOverridden: deals.ratesOverridden,
     })
     .from(deals)
     .orderBy(asc(deals.companyName), asc(deals.id));
@@ -422,7 +408,6 @@ export async function listDeals(): Promise<DealListItem[]> {
     avatarUrl: row.avatarUrl,
     termOffer: offerFromColumn(row.termLength),
     selectedTerm: selectedTermFromColumn(row.selectedTerm),
-    ratesOverridden: row.ratesOverridden,
   }));
 }
 
@@ -456,7 +441,7 @@ export async function createDeal(
       companyUrl: input.companyUrl,
       letterBlocks: input.letterBlocks,
       equityEnabled: input.equityEnabled,
-      ratesOverridden: input.ratesOverridden,
+      ratesOverridden: false,
       termLength: input.termOffer,
       startDate: input.startDate,
       round: blankToNull(input.round),
@@ -505,7 +490,7 @@ export async function saveDeal(
     companyUrl: input.companyUrl,
     letterBlocks: input.letterBlocks,
     equityEnabled: input.equityEnabled,
-    ratesOverridden: input.ratesOverridden,
+    ratesOverridden: false,
     termLength: input.termOffer,
     startDate: input.startDate,
     round: blankToNull(input.round),

@@ -38,7 +38,6 @@ export default async function DealEditorPage({ params }: { params: { dealId: str
     companyUrl: deal.companyUrl ?? "",
     letterBlocks: deal.letterBlocks,
     equityEnabled: deal.equityEnabled,
-    ratesOverridden: deal.ratesOverridden,
     baseCents: deal.baseCents,
     termOffer: deal.termOffer,
     startDate: dealStartDate(deal),

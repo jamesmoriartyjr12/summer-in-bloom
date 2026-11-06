@@ -54,14 +54,13 @@ import {
   dealStepCents,
   MAX_LINES,
   SHEET_SERVICE,
-  sheetRateCents,
+  sheetLine,
   termLabel,
   offeredTerms,
   type ClientTerm,
   type LetterDeal,
   type LetterLine,
   type LetterTerm,
-  type LineOption,
   type ServiceLine,
   type TermOffer,
 } from "@/lib/operate/pricing";
@@ -85,7 +84,6 @@ export type EditorDeal = {
   companyUrl: string;
   letterBlocks: LetterBlock[];
   equityEnabled: boolean;
-  ratesOverridden: boolean;
   baseCents: number;
   termOffer: TermOffer;
   startDate: string;
@@ -112,13 +110,7 @@ type LineFields = {
   id: string;
   serviceName: string;
   hours: string;
-  listRate: string;
-  yearListRate: string;
 };
-
-function rateKey(term: ClientTerm): "listRate" | "yearListRate" {
-  return term === "one-year" ? "yearListRate" : "listRate";
-}
 
 type Fields = {
   companyName: string;
@@ -129,7 +121,6 @@ type Fields = {
   companyLogoUrl: string | null;
   companyUrl: string;
   equityEnabled: boolean;
-  ratesOverridden: boolean;
   termOffer: TermOffer;
   startDate: string;
   round: string;
@@ -157,21 +148,12 @@ function hoursValue(raw: string): number {
   return Number.isInteger(value) && value > 0 ? value : 0;
 }
 
-function sheetRates(baseCents: number, hours: number): Pick<LineFields, "listRate" | "yearListRate"> {
-  return {
-    listRate: centsToDollars(sheetRateCents(baseCents, hours, "six-month")),
-    yearListRate: centsToDollars(sheetRateCents(baseCents, hours, "one-year")),
-  };
-}
-
 function lineFields(line: ServiceLine): LineFields {
   return {
     key: line.id,
     id: line.id,
     serviceName: line.serviceName,
     hours: String(line.hoursPerWeek),
-    listRate: centsToDollars(line.listRateCents),
-    yearListRate: centsToDollars(line.yearListRateCents),
   };
 }
 
@@ -185,7 +167,6 @@ function initialFields(deal: EditorDeal): Fields {
     companyLogoUrl: deal.companyLogoUrl,
     companyUrl: deal.companyUrl,
     equityEnabled: deal.equityEnabled,
-    ratesOverridden: deal.ratesOverridden,
     termOffer: deal.termOffer,
     startDate: deal.startDate,
     round: deal.round,
@@ -208,20 +189,16 @@ function resolvedBasis(fields: Fields): EquityBasis {
   return fields.equityBasis === "" ? defaultEquityBasis(fields.round) : fields.equityBasis;
 }
 
-// Without custom rates, each line follows the pricing sheet for its hours.
+// Each line follows the pricing sheet for its hours.
 function previewLines(fields: Fields, baseCents: number): ServiceLine[] {
-  return fields.lines.map((row) => {
-    const hours = hoursValue(row.hours);
-    const rates = fields.ratesOverridden ? row : sheetRates(baseCents, hours);
-    return {
+  return fields.lines.map((row) =>
+    sheetLine(baseCents, {
       id: row.key,
       serviceName: row.serviceName,
       description: serviceDescription(row.serviceName),
-      hoursPerWeek: hours,
-      listRateCents: dollarsToCents(rates.listRate),
-      yearListRateCents: dollarsToCents(rates.yearListRate),
-    };
-  });
+      hoursPerWeek: hoursValue(row.hours),
+    }),
+  );
 }
 
 function previewLetter(
@@ -283,14 +260,11 @@ function toFormData(fields: Fields, blocks: LetterBlock[]): FormData {
   data.set("hourlyCostDollars", fields.hourlyCostDollars);
   data.set("equityCents", String(fields.equityCents));
   if (fields.equityEnabled) data.set("equityEnabled", "on");
-  if (fields.ratesOverridden) data.set("ratesOverridden", "on");
   data.set("lineCount", String(fields.lines.length));
   fields.lines.forEach((row, index) => {
     data.set(`line${index}Id`, row.id);
     data.set(`line${index}Name`, row.serviceName);
     data.set(`line${index}Hours`, row.hours);
-    data.set(`line${index}ListRate`, row.listRate);
-    data.set(`line${index}YearListRate`, row.yearListRate);
   });
   data.set("letterBlocks", JSON.stringify(blocks));
   return data;
@@ -641,23 +615,6 @@ function fitWidth(value: string, minDigits: number): string {
   return `calc(${Math.max(value.length, minDigits)}ch + 2px)`;
 }
 
-function RateInput({ value, label, onChange }: { value: string; label: string; onChange: (value: string) => void }) {
-  return (
-    <span className="inline-flex items-baseline font-semibold tabular-nums">
-      $
-      <input
-        type="text"
-        inputMode="decimal"
-        aria-label={label}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        style={{ width: fitWidth(value, 3) }}
-        className="h-6 border-0 border-b border-dashed border-foreground/40 bg-transparent p-0 text-right font-semibold tabular-nums text-inherit outline-none focus:border-orange"
-      />
-    </span>
-  );
-}
-
 function Field({ label, note, children }: { label: string; note?: string; children: React.ReactNode }) {
   return (
     <label className="grid gap-1.5">
@@ -723,7 +680,7 @@ export function Editor({ deal }: { deal: EditorDeal }) {
     if (fields.lines.length >= MAX_LINES) return;
     const key = crypto.randomUUID();
     patch({
-      lines: [...fields.lines, { key, id: "", serviceName, hours: "40", ...sheetRates(deal.baseCents, 40) }],
+      lines: [...fields.lines, { key, id: "", serviceName, hours: "40" }],
     });
   }
 
@@ -743,16 +700,6 @@ export function Editor({ deal }: { deal: EditorDeal }) {
     }
     const next = CLIENT_TERMS.filter((item) => on.has(item));
     patch({ termOffer: next.length === 2 ? "both" : next[0]! });
-  }
-
-  // Custom rates start from what the letter shows now, so nothing jumps.
-  function setCustomRates(on: boolean) {
-    if (!on) {
-      patch({ ratesOverridden: false });
-      return;
-    }
-    const lines = fields.lines.map((row) => ({ ...row, ...sheetRates(deal.baseCents, hoursValue(row.hours)) }));
-    patch({ ratesOverridden: true, lines: fields.ratesOverridden ? fields.lines : lines });
   }
 
   function addBlock(type: BlockType, at: number) {
@@ -873,20 +820,6 @@ export function Editor({ deal }: { deal: EditorDeal }) {
     );
   }
 
-  function renderLineRate(line: LetterLine, option: LineOption, term: LetterTerm, index: number) {
-    if (!fields.ratesOverridden) return undefined;
-    const row = fields.lines[index];
-    if (!row) return undefined;
-    const key = rateKey(term.term);
-    return (
-      <RateInput
-        value={row[key]}
-        label={`Rate, ${row.serviceName || "service"} ${row.hours} hours, ${term.label.toLowerCase()}`}
-        onChange={(value) => patchLine(index, { [key]: value })}
-      />
-    );
-  }
-
   const clientParty = (
     <Popover>
       <PopoverTrigger asChild>
@@ -974,7 +907,6 @@ export function Editor({ deal }: { deal: EditorDeal }) {
           deal={letter}
           mode="preview"
           renderName={(line, index, term) => renderLineName(line, index, term)}
-          renderRate={(line, option, term, index) => renderLineRate(line, option, term, index)}
           renderAddLine={(term) => (
             <AddServiceMenu
               label={`Add service, ${term.label.toLowerCase()}`}
@@ -1169,14 +1101,6 @@ export function Editor({ deal }: { deal: EditorDeal }) {
             floorCents={floor}
             onChange={patch}
           />
-          <button
-            type="button"
-            aria-pressed={fields.ratesOverridden}
-            onClick={() => setCustomRates(!fields.ratesOverridden)}
-            className={`${chip} ${fields.ratesOverridden ? "border-orange text-orange" : "text-muted-foreground"}`}
-          >
-            Custom rates {fields.ratesOverridden ? "on" : "off"}
-          </button>
         </div>
       </div>
 

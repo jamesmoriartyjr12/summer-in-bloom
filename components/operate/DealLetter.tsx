@@ -214,6 +214,12 @@ button.operate-letter__option:focus-visible {
 .operate-letter__picked {
   color: #FA4C1F;
 }
+.operate-letter__saving {
+  border: 1px solid #FA4C1F;
+  border-radius: 999px;
+  padding: 3px 8px;
+  color: #FA4C1F;
+}
 .operate-letter__table {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
@@ -349,15 +355,6 @@ button.operate-letter__option:focus-visible {
   font-weight: 400;
   text-decoration: line-through;
 }
-.operate-letter__struck--small {
-  font-size: 14px;
-}
-.operate-letter__struck:has(input) {
-  color: #070f18;
-}
-.operate-letter__struck input {
-  text-decoration: line-through;
-}
 .operate-letter__primary {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
@@ -435,16 +432,14 @@ function LineRow({
   option,
   withEquity,
   name,
-  rate,
 }: {
   line: LetterLine;
   option: LineOption;
   withEquity: boolean;
   name?: ReactNode;
-  rate?: ReactNode;
 }) {
   const reduced = withEquity && option.cashRateCents < line.listRateCents;
-  const listRate = rate ?? <span className="operate-letter__primary">{formatDollars(line.listRateCents)}</span>;
+  const listRate = <span className="operate-letter__primary">{formatDollars(line.listRateCents)}</span>;
   return (
     <span className={line.description ? "operate-letter__row operate-letter__row--described" : "operate-letter__row"}>
       {name ?? (
@@ -456,7 +451,7 @@ function LineRow({
       )}
       <Figure label="Rate" className="operate-letter__figure--rate">
         <span className="operate-letter__pair operate-letter__value">
-          {reduced ? <span className="operate-letter__struck operate-letter__struck--small">{listRate}</span> : null}
+          {reduced ? <span className="operate-letter__struck">{formatDollars(line.listRateCents)}</span> : null}
           <span>
             {reduced ? <span className="operate-letter__primary">{formatDollars(option.cashRateCents)}</span> : listRate}
             <span className="operate-letter__unit">/hr</span>
@@ -615,8 +610,8 @@ function TermOption({
   mode,
   selected,
   onSelect,
+  savingPerHourCents,
   renderName,
-  renderRate,
   renderAddLine,
 }: {
   term: LetterTerm;
@@ -624,9 +619,9 @@ function TermOption({
   withEquity: boolean;
   mode: "customer" | "preview";
   selected: boolean;
+  savingPerHourCents: number;
   onSelect?: (term: ClientTerm) => void;
   renderName?: (line: LetterLine, index: number, term: LetterTerm) => ReactNode;
-  renderRate?: (line: LetterLine, option: LineOption, term: LetterTerm, index: number) => ReactNode;
   renderAddLine?: (term: LetterTerm) => ReactNode;
 }) {
   const addLine = renderAddLine?.(term);
@@ -637,6 +632,11 @@ function TermOption({
       <span className="operate-letter__option-head">
         <span className="operate-letter__option-title">
           <span className="operate-letter__option-term">{term.label}</span>
+          {savingPerHourCents > 0 ? (
+            <span className="operate-letter__mono operate-letter__saving">
+              Save {formatDollars(savingPerHourCents)}/hr<span className="sr-only"> compared with six months</span>
+            </span>
+          ) : null}
           {selected ? <span className="operate-letter__mono operate-letter__picked">Selected</span> : null}
         </span>
         <span className="operate-letter__mono">{termDates(term)}</span>
@@ -649,7 +649,6 @@ function TermOption({
             option={line.options[index]!}
             withEquity={withEquity}
             name={renderName?.(line, i, term)}
-            rate={renderRate?.(line, line.options[index]!, term, i)}
           />
         ))}
         {addLine && !bundle ? <span className="operate-letter__add">{addLine}</span> : null}
@@ -685,24 +684,30 @@ function TermOption({
   return <div className={className}>{body}</div>;
 }
 
+// What one year saves on each hour against six months, at the same services and equity.
+function savingPerHourCents(sixMonth: BundleOption | undefined, oneYear: BundleOption | undefined, withEquity: boolean): number {
+  if (!sixMonth || !oneYear || oneYear.hoursPerWeek === 0) return 0;
+  const weekly = (bundle: BundleOption) => (withEquity ? bundle.weeklyCashCents : bundle.weeklyListCents);
+  return Math.round((weekly(sixMonth) - weekly(oneYear)) / oneYear.hoursPerWeek);
+}
+
 // Every term is priced at the equity amount staff set on the deal.
 export function OffersView({
   deal,
   mode,
   onSelect,
   renderName,
-  renderRate,
   renderAddLine,
 }: {
   deal: LetterDeal;
   mode: "customer" | "preview";
   onSelect?: (term: ClientTerm) => void;
   renderName?: (line: LetterLine, index: number, term: LetterTerm) => ReactNode;
-  renderRate?: (line: LetterLine, option: LineOption, term: LetterTerm, index: number) => ReactNode;
   renderAddLine?: (term: LetterTerm) => ReactNode;
 }) {
   const index = stepIndex(deal.steps, deal.selectedEquityCents);
   const withEquity = (deal.steps[index] ?? 0) > 0;
+  const sixMonth = deal.terms.find((term) => term.term === "six-month")?.options[index];
   return (
     <div className="operate-letter__options">
       {deal.terms.map((term) => (
@@ -713,9 +718,9 @@ export function OffersView({
           withEquity={withEquity}
           mode={mode}
           selected={deal.selectedTerm === term.term}
+          savingPerHourCents={term.term === "one-year" ? savingPerHourCents(sixMonth, term.options[index], withEquity) : 0}
           onSelect={onSelect}
           renderName={renderName}
-          renderRate={renderRate}
           renderAddLine={renderAddLine}
         />
       ))}
