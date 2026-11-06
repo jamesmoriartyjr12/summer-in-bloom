@@ -221,12 +221,6 @@ button.operate-letter__option:focus-visible {
 .operate-letter__picked {
   color: #FA4C1F;
 }
-.operate-letter__saving {
-  border: 1px solid #FA4C1F;
-  border-radius: 999px;
-  padding: 3px 8px;
-  color: #FA4C1F;
-}
 .operate-letter__table {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
@@ -617,7 +611,7 @@ function TermOption({
   mode,
   selected,
   onSelect,
-  savingPerHourCents,
+  saving,
   renderName,
   renderAddLine,
 }: {
@@ -626,7 +620,7 @@ function TermOption({
   withEquity: boolean;
   mode: "customer" | "preview";
   selected: boolean;
-  savingPerHourCents: number;
+  saving: Saving | null;
   onSelect?: (term: ClientTerm) => void;
   renderName?: (line: LetterLine, index: number, term: LetterTerm) => ReactNode;
   renderAddLine?: (term: LetterTerm) => ReactNode;
@@ -639,9 +633,10 @@ function TermOption({
       <span className="operate-letter__option-head">
         <span className="operate-letter__option-title">
           <span className="operate-letter__option-term">{term.label}</span>
-          {savingPerHourCents > 0 ? (
-            <span className="operate-letter__mono operate-letter__saving">
-              Save {formatDollars(savingPerHourCents)}/hr<span className="sr-only"> compared with six months</span>
+          {saving ? (
+            <span className="operate-letter__mono operate-letter__picked">
+              Save {formatDollars(saving.termCents)} over the year · {formatDollars(saving.perHourCents)}/hr less
+              <span className="sr-only"> than six months</span>
             </span>
           ) : null}
           {selected ? <span className="operate-letter__mono operate-letter__picked">Selected</span> : null}
@@ -691,11 +686,16 @@ function TermOption({
   return <div className={className}>{body}</div>;
 }
 
-// What one year saves on each hour against six months, at the same services and equity.
-function savingPerHourCents(sixMonth: BundleOption | undefined, oneYear: BundleOption | undefined, withEquity: boolean): number {
-  if (!sixMonth || !oneYear || oneYear.hoursPerWeek === 0) return 0;
-  const weekly = (bundle: BundleOption) => (withEquity ? bundle.weeklyCashCents : bundle.weeklyListCents);
-  return Math.round((weekly(sixMonth) - weekly(oneYear)) / oneYear.hoursPerWeek);
+type Saving = { perHourCents: number; termCents: number };
+
+// What one year saves against paying six months' rate for the same year, at the same services and equity.
+function oneYearSaving(sixMonth: BundleOption | undefined, oneYear: LetterTerm, index: number, withEquity: boolean): Saving | null {
+  const bundle = oneYear.options[index];
+  if (!sixMonth || !bundle || bundle.hoursPerWeek === 0) return null;
+  const weekly = (option: BundleOption) => (withEquity ? option.weeklyCashCents : option.weeklyListCents);
+  const perWeek = weekly(sixMonth) - weekly(bundle);
+  if (perWeek <= 0) return null;
+  return { perHourCents: Math.round(perWeek / bundle.hoursPerWeek), termCents: perWeek * oneYear.weeks };
 }
 
 // Every term is priced at the equity amount staff set on the deal.
@@ -725,7 +725,7 @@ export function OffersView({
           withEquity={withEquity}
           mode={mode}
           selected={deal.selectedTerm === term.term}
-          savingPerHourCents={term.term === "one-year" ? savingPerHourCents(sixMonth, term.options[index], withEquity) : 0}
+          saving={term.term === "one-year" ? oneYearSaving(sixMonth, term, index, withEquity) : null}
           onSelect={onSelect}
           renderName={renderName}
           renderAddLine={renderAddLine}
