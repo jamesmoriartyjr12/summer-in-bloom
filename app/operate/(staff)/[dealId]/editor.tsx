@@ -37,6 +37,7 @@ import {
   type LetterBlock,
 } from "@/lib/operate/blocks";
 import {
+  cashRateAt,
   defaultEquityBasis,
   DEFAULT_MULTIPLIER,
   EQUITY_BASES,
@@ -56,8 +57,10 @@ import {
   SHEET_HOURS,
   SHEET_SERVICE,
   sheetLine,
+  sheetRateCents,
   termFloorCents,
   termLabel,
+  weeklyAmountCents,
   offeredTerms,
   type ClientTerm,
   type LetterDeal,
@@ -654,6 +657,13 @@ export function Editor({ deal }: { deal: EditorDeal }) {
     [letter, fields, blocks, deal.selectedTerm, deal.baseCents, deal.startDate],
   );
   const floor = floorCents(fields);
+
+  // What the client would pay each week at these hours, on this term, at the deal's equity.
+  function weeklyAt(hours: number, term: ClientTerm): number {
+    const step = fields.equityEnabled ? letter.selectedEquityCents : 0;
+    const rate = cashRateAt(sheetRateCents(deal.baseCents, hours, term), step, termFloorCents(floor, term));
+    return weeklyAmountCents(hours, rate);
+  }
   const dirty = JSON.stringify([fields, blocks]) !== saved;
   const link = `${origin}/operate/d/${deal.token}`;
 
@@ -804,7 +814,7 @@ export function Editor({ deal }: { deal: EditorDeal }) {
                 {row.hours}
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="min-w-36">
+            <DropdownMenuContent align="end" className="min-w-56">
               {SHEET_HOURS.map((hours) => (
                 <DropdownMenuItem
                   key={hours}
@@ -812,7 +822,10 @@ export function Editor({ deal }: { deal: EditorDeal }) {
                   className="tabular-nums"
                 >
                   <Check aria-hidden="true" className={row.hours === String(hours) ? undefined : "invisible"} />
-                  {hours} hrs / week
+                  <span className="flex flex-1 items-baseline justify-between gap-4">
+                    <span>{hours} hrs / week</span>
+                    <span className="text-muted-foreground">{formatDollars(weeklyAt(hours, term.term))}/wk</span>
+                  </span>
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
