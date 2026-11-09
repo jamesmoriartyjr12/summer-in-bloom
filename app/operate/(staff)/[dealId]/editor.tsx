@@ -1121,6 +1121,7 @@ export function Editor({ deal }: { deal: EditorDeal }) {
                 onClick={() => toggleTerm(term)}
                 className={`${chip} ${on ? "border-foreground bg-foreground text-background hover:border-foreground" : "text-muted-foreground"}`}
               >
+                {on ? <Check aria-hidden="true" className="size-3.5" /> : null}
                 {termLabel(term)}
               </button>
             );
